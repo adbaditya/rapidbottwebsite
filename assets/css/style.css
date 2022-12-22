@@ -806,7 +806,7 @@ section {
 }
 
 .about .video-box {
-  background: url("../img/about.png") center center no-repeat;
+  background: url("https://global-uploads.webflow.com/6271eccd721c60cfc506dd88/62b83eba380f06f07341d789_image%20(47).png") center center no-repeat;
   background-size: contain;
   min-height: 300px;
 }
