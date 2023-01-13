@@ -11,6 +11,7 @@
 body {
   font-family: "Open Sans", sans-serif;
   color: #444444;
+  overflow-x: hidden;
 }
 
 a {
@@ -1727,4 +1728,64 @@ section {
   #footer .footer-top .footer-info {
     margin: -20px 0 30px 0;
   }
+}
+
+/* toast */
+.toast-adb {
+  color: #000;
+  line-height: 1.5;
+  margin-bottom: 1em;
+  padding: 1.25em;
+  position: absolute;
+  right: -365px;
+  top: 5em;
+  transition: 0.15s ease-in-out;
+  width: 325px;
+}
+
+.toast_link {
+  color: #fefefe;
+}
+
+.toast-adb.on {
+  transform: translateX(-365px);
+}
+
+.close {
+  cursor: pointer;
+  float: right;
+  font-size: 1.25rem;
+  line-height: 1;
+  margin-left: 1em;
+  opacity: .8;
+}
+
+.jam {
+  background-color: #eeaa00;
+  color: #fff;
+}
+
+.off {
+  display: none;
+}
+
+/* ---------- Scrollbar ----------*/
+
+/* Works on Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #fff #22303C;
+}
+
+/* Works on Chrome, Edge, and Safari */
+*::-webkit-scrollbar {
+  width: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #22303C;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: #fff;
 }
