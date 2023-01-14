@@ -1737,7 +1737,7 @@ section {
   margin-bottom: 1em;
   padding: 1.25em;
   position: absolute;
-  right: -365px;
+  right: 0;
   top: 5em;
   transition: 0.15s ease-in-out;
   width: 325px;
