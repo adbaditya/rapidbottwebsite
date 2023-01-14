@@ -611,7 +611,7 @@
           <div class="col-lg-3 col-md-6 mt-4 mt-md-0">
             <div class="box featured" data-aos="zoom-in" data-aos-delay="200">
               <h3>Starter</h3>
-              <h4><sup>$</sup>30<span> / month</span></h4>
+              <h4><sup>$</sup>30 <span style="text-decoration: line-through;">49</span><span> / month</span></h4>
               <ul>
                 <li>Unlimited Automations</li>
                 <li>Unlimited Conversations</li>
@@ -628,7 +628,7 @@
           <div class="col-lg-3 col-md-6 mt-4 mt-lg-0">
             <div class="box" data-aos="zoom-in" data-aos-delay="300">
               <h3>Growth</h3>
-              <h4><sup>$</sup>60<span> / month</span></h4>
+              <h4><sup>$</sup>60 <span style="text-decoration: line-through;">98</span><span> / month</span></h4>
               <ul>
                 <li>All features of starter plan</li>
                 <li>Access to templates store</li>
@@ -646,7 +646,7 @@
             <div class="box" data-aos="zoom-in" data-aos-delay="400">
               <span class="advanced">Advanced</span>
               <h3>Pro Plan</h3>
-              <h4><sup>$</sup>99<span> / month</span></h4>
+              <h4><sup>$</sup>99 <span style="text-decoration: line-through;">150</span><span> / month</span></h4>
               <ul>
                 <li>Everything in Growth</li>
                 <li>All pro features</li>
@@ -797,10 +797,14 @@ But we also offer 7 days no question asked money back guarantee even if you subs
     </section><!-- End Contact Section -->
 
   </main><!-- End #main -->
-  <div id="toast_notify" class="toast-adb jam">
-      <span class="close" aria-role="button" tabindex="0">&times;</span>
+  <div class="container">
+    <div id="toast_notify" class="toast-adb jam off col-12">
+      <p>
+        <span class="close" aria-role="button" tabindex="0">&times;</span>
       <strong>Please note:</strong> Rapidbott's dashboard access has moved to <a class="toast_link" target="_blank" href="https://app.rapidbott.cloud">app.rapidbott.cloud</a>. Please use this to login for future access.
-    </div>
+      </p>
+  </div>
+  </div>
 
   <!-- ======= Footer ======= -->
   <footer id="footer">
@@ -881,10 +885,11 @@ Kottayam, Kerala 686603<br><br>
     window.addEventListener("load", (event) => {
       setTimeout(() => {
         document.getElementById('toast_notify').classList.add('on');
+        document.getElementById('toast_notify').classList.remove('off');
 }, "2000")
 setTimeout(() => {
   document.getElementById('toast_notify').classList.remove('on');
-  //document.getElementById('toast_notify').classList.add('off');
+  document.getElementById('toast_notify').classList.add('off');
 }, "15000")
 });
   </script>

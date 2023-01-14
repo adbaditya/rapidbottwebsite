@@ -1736,7 +1736,7 @@ section {
   line-height: 1.5;
   margin-bottom: 1em;
   padding: 1.25em;
-  position: absolute;
+  position: fixed;
   right: 0;
   top: 5em;
   transition: 0.15s ease-in-out;
@@ -1747,9 +1747,9 @@ section {
   color: #fefefe;
 }
 
-.toast-adb.on {
+/*.toast-adb.on {
   transform: translateX(-365px);
-}
+}*/
 
 .close {
   cursor: pointer;
@@ -1767,6 +1767,11 @@ section {
 
 .off {
   display: none;
+}
+
+#toast_notify a {
+  font-weight: 900;
+  text-decoration: underline;
 }
 
 /* ---------- Scrollbar ----------*/
