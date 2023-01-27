@@ -1,0 +1,63 @@
+<!-- ======= Team Section ======= -->
+    <section id="team" class="team">
+      <div class="container">
+
+        <div class="section-title" data-aos="fade-up">
+          <h2>Team</h2>
+          <p>Our Great Team</p>
+        </div>
+
+        <div class="row" data-aos="fade-left">
+
+          <div class="col-lg-3 col-md-6">
+            <div class="member" data-aos="zoom-in" data-aos-delay="100">
+              <div class="pic"><img src="https://i.imgur.com/ORJMYE6.png" class="img-fluid" alt=""></div>
+              <div class="member-info">
+                <h4>Vajan Saju</h4>
+                <span>Founder & CEO</span>
+                <div class="social">
+                  <!--<a href=""><i class="bi bi-twitter"></i></a>-->
+                  <!--<a href=""><i class="bi bi-facebook"></i></a>-->
+                  <!--<a href=""><i class="bi bi-instagram"></i></a>-->
+                  <a target="_blank" href="https://www.linkedin.com/in/vajan-saju"><i class="bi bi-linkedin"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 mt-5 mt-md-0">
+            <div class="member" data-aos="zoom-in" data-aos-delay="200">
+              <div class="pic"><img src="https://i.imgur.com/3kq8KSy.png" class="img-fluid" alt=""></div>
+              <div class="member-info">
+                <h4>Aditya Bajaj</h4>
+                <span>Co-Founder & Front End Developer</span>
+                <div class="social">
+                  <!--<a href=""><i class="bi bi-twitter"></i></a>-->
+                  <!--<a href=""><i class="bi bi-facebook"></i></a>-->
+                  <!--<a href=""><i class="bi bi-instagram"></i></a>-->
+                  <a target="_blank" href="https://www.linkedin.com/in/adbaditya/"><i class="bi bi-linkedin"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-3 col-md-6 mt-5 mt-lg-0">
+            <div class="member" data-aos="zoom-in" data-aos-delay="300">
+              <div class="pic"><img src="https://i.imgur.com/Yvg2KpM.png" class="img-fluid" alt=""></div>
+              <div class="member-info">
+                <h4>Rahul Sunil</h4>
+                <span>Business & Legal Partner</span>
+                <!--<div class="social">
+                  <a href=""><i class="bi bi-twitter"></i></a>
+                  <a href=""><i class="bi bi-facebook"></i></a>
+                  <a href=""><i class="bi bi-instagram"></i></a>
+                  <a href=""><i class="bi bi-linkedin"></i></a>
+                </div>-->
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Team Section -->
