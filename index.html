@@ -66,7 +66,6 @@
           <li><a class="nav-link scrollto" href="#features">Features</a></li>
           <li><a class="nav-link scrollto" href="#gallery">Gallery</a></li>
           <li><a class="nav-link scrollto" href="#pricing">Pricing</a></li>
-          <li><a class="nav-link" href="/downloads/">Downloads</a></li>
           <li><a class="nav-link" href="https://app.rapidbott.cloud" target="_blank">Dashboard</a></li>
           <!--<li class="dropdown"><a href="#"><span>Drop Down</span> <i class="bi bi-chevron-down"></i></a>
             <ul>
@@ -747,6 +746,14 @@ But we also offer 7 days no question asked money back guarantee even if you subs
     </section><!-- End Contact Section -->
 
   </main><!-- End #main -->
+  <div class="container">
+    <div id="toast_notify" class="toast-adb jam off col-12">
+      <p>
+        <span class="close" aria-role="button" tabindex="0">&times;</span>
+      <strong>Please note:</strong> Rapidbott's dashboard access has moved to <a class="toast_link" target="_blank" href="https://app.rapidbott.cloud">app.rapidbott.cloud</a>. Please use this to login for future access.
+      </p>
+  </div>
+  </div>
 
   <!-- ======= Footer ======= -->
   <footer id="footer">
@@ -825,6 +832,18 @@ Kottayam, Kerala 686603<br><br>
   <div id="preloader"></div>
 
   <!-- Vendor JS Files -->
+  <script>
+    window.addEventListener("load", (event) => {
+      setTimeout(() => {
+        document.getElementById('toast_notify').classList.add('on');
+        document.getElementById('toast_notify').classList.remove('off');
+}, "2000")
+setTimeout(() => {
+  document.getElementById('toast_notify').classList.remove('on');
+  document.getElementById('toast_notify').classList.add('off');
+}, "15000")
+});
+  </script>
   <script src="assets/vendor/purecounter/purecounter_vanilla.js"></script>
   <script src="assets/vendor/aos/aos.js"></script>
   <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
