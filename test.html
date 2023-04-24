@@ -1,0 +1,1245 @@
+<?php
+
+/**
+ * Forum For Agriculture functions and definitions
+ *
+ * @link https://developer.wordpress.org/themes/basics/theme-functions/
+ *
+ * @package Forum_For_Agriculture
+ */
+
+if (!defined('_S_VERSION')) {
+	// Replace the version number of the theme on each release.
+	define('_S_VERSION', '1.0.0');
+}
+
+/**
+ * Sets up theme defaults and registers support for various WordPress features.
+ *
+ * Note that this function is hooked into the after_setup_theme hook, which
+ * runs before the init hook. The init hook is too late for some features, such
+ * as indicating support for post thumbnails.
+ */
+function ffa_theme_setup()
+{
+	/*
+		* Make theme available for translation.
+		* Translations can be filed in the /languages/ directory.
+		* If you're building a theme based on Forum For Agriculture, use a find and replace
+		* to change 'ffa-theme' to the name of your theme in all the template files.
+		*/
+	// load_theme_textdomain( 'ffa-theme', get_template_directory() . '/languages' );
+
+	// Add default posts and comments RSS feed links to head.
+	add_theme_support('automatic-feed-links');
+
+	/*
+		* Let WordPress manage the document title.
+		* By adding theme support, we declare that this theme does not use a
+		* hard-coded <title> tag in the document head, and expect WordPress to
+		* provide it for us.
+		*/
+	add_theme_support('title-tag');
+
+	/*
+		* Enable support for Post Thumbnails on posts and pages.
+		*
+		* @link https://developer.wordpress.org/themes/functionality/featured-images-post-thumbnails/
+		*/
+	add_theme_support('post-thumbnails');
+
+	// This theme uses wp_nav_menu() in one location.
+	register_nav_menus(
+		array(
+			'menu-1' => esc_html__('Primary', 'ffa-theme'),
+		)
+
+	);
+
+	/*
+		* Switch default core markup for search form, comment form, and comments
+		* to output valid HTML5.
+		*/
+	add_theme_support(
+		'html5',
+		array(
+			'search-form',
+			'comment-form',
+			'comment-list',
+			'gallery',
+			'caption',
+			'style',
+			'script',
+		)
+
+	);
+
+	// Set up the WordPress core custom background feature.
+	// add_theme_support(
+	// 	'custom-background',
+	// 	apply_filters(
+	// 		'ffa_theme_custom_background_args',
+	// 		array(
+	// 			'default-color' => 'ffffff',
+	// 			'default-image' => '',
+	// 		)
+	// 	)
+	// );
+
+	// Add theme support for selective refresh for widgets.
+	add_theme_support('customize-selective-refresh-widgets');
+
+	/**
+	 * Add support for core custom logo.
+	 *
+	 * @link https://codex.wordpress.org/Theme_Logo
+	 */
+	add_theme_support(
+		'custom-logo',
+		array(
+			'height'      => 250,
+			'width'       => 250,
+			'flex-width'  => true,
+			'flex-height' => true,
+		)
+	);
+	// Add support for Block Styles.
+	add_theme_support('wp-block-styles');
+
+	// Add support for full and wide align images.
+	add_theme_support('align-wide');
+
+	// Add support for editor styles.
+	add_theme_support('editor-styles');
+
+	add_theme_support('block-templates');
+	add_post_type_support('post', 'page-attributes');
+}
+add_action('after_setup_theme', 'ffa_theme_setup');
+
+
+
+/**
+ * Set the content width in pixels, based on the theme's design and stylesheet.
+ *
+ * Priority 0 to make it available to lower priority callbacks.
+ *
+ * @global int $content_width
+ */
+function ffa_theme_content_width()
+{
+	$GLOBALS['content_width'] = apply_filters('ffa_theme_content_width', 640);
+}
+add_action('after_setup_theme', 'ffa_theme_content_width', 0);
+
+/**
+ * Change order of custom post type to alphabetical ascending
+ */
+
+
+
+/**
+ * Register widget area.
+ *
+ * @link https://developer.wordpress.org/themes/functionality/sidebars/#registering-a-sidebar
+ */
+function ffa_theme_widgets_init()
+{
+
+	register_sidebar(
+		array(
+			'name'          => esc_html__('Footer', 'ffa-theme'),
+			'id'            => 'sidebar-1',
+			'description'   => esc_html__('Add widgets here to appear in your footer.', 'ffa-theme'),
+			'before_widget' => '<section id="%1$s" class="widget %2$s">',
+			'after_widget'  => '</section>',
+			'before_title'  => '<h2 class="widget-title">',
+			'after_title'   => '</h2>',
+		)
+	);
+}
+add_action('widgets_init', 'ffa_theme_widgets_init');
+// function ffa_theme_widgets_init() {
+// 	register_sidebar(
+// 		array(
+// 			'name'          => esc_html__( 'Sidebar', 'ffa-theme' ),
+// 			'id'            => 'sidebar-1',
+// 			'description'   => esc_html__( 'Add widgets here.', 'ffa-theme' ),
+// 			'before_widget' => '<section id="%1$s" class="widget %2$s">',
+// 			'after_widget'  => '</section>',
+// 			'before_title'  => '<h2 class="widget-title">',
+// 			'after_title'   => '</h2>',
+// 		)
+// 	);
+// }
+// add_action( 'widgets_init', 'ffa_theme_widgets_init' );
+
+/**
+ * Enqueue scripts and styles.
+ */
+function ffa_theme_scripts()
+{
+	wp_enqueue_style('custom-theme-style',  get_template_directory_uri() . '/assets/css/style-theme.css');
+	wp_enqueue_script('custom-theme-script', get_template_directory_uri() . '/assets/js/script-theme.js', array('jquery'), '', true);
+
+
+	wp_enqueue_style('ffa-theme-style', get_stylesheet_uri(), array(), _S_VERSION);
+	wp_style_add_data('ffa-theme-style', 'rtl', 'replace');
+
+	wp_enqueue_script('ffa-theme-navigation', get_template_directory_uri() . '/assets/js/navigation.js', array(), _S_VERSION, true);
+
+	if (is_singular() && comments_open() && get_option('thread_comments')) {
+		wp_enqueue_script('comment-reply');
+	}
+}
+add_action('wp_enqueue_scripts', 'ffa_theme_scripts');
+
+/**
+ * Implement the Custom Header feature.
+ */
+require get_template_directory() . '/inc/custom-header.php';
+
+/**
+ * Custom template tags for this theme.
+ */
+require get_template_directory() . '/inc/template-tags.php';
+
+/**
+ * Functions which enhance the theme by hooking into WordPress.
+ */
+require get_template_directory() . '/inc/template-functions.php';
+
+/**
+ * Customizer additions.
+ */
+require get_template_directory() . '/inc/customizer.php';
+
+/**
+ * Load Jetpack compatibility file.
+ */
+// if ( defined( 'JETPACK__VERSION' ) ) {
+// 	require get_template_directory() . '/inc/jetpack.php';
+// }
+
+function display_dynamic_copyright_year()
+{
+	$output = '© ' . date("Y") . ' ForumforAg';
+	return $output;
+}
+
+add_shortcode('copyright_year', 'display_dynamic_copyright_year');
+
+function dispaly_partners_snippet()
+{
+	$args = array(
+		'post_type' => 'partner',
+		'posts_per_page' => -1,
+		'meta_key'		=> 'display_on_the_home_page',
+		'meta_value'	=> TRUE,
+		'order'   => 'ASC',
+	);
+	// The Query
+	$the_query = new WP_Query($args);
+
+	// The Loop
+	if ($the_query->have_posts()) {
+		$output = '<div class="partners-snipp-wrapper">';
+		while ($the_query->have_posts()) {
+			$the_query->the_post();
+            $website_link = get_field('website_link');
+			$output .= '<a class="partner-link" href="' . $website_link . '" target="_blank"><figure class="partner-item">' . get_the_post_thumbnail() . '</figure></a>';
+		}
+		$output .= '</div>';
+	} else {
+		$output .=  'no posts found';
+	}
+	/* Restore original Post Data */
+	wp_reset_postdata();
+
+	return $output;
+}
+
+
+add_shortcode('partners_snippet', 'dispaly_partners_snippet');
+
+function dispaly_events_snippet($atts)
+{
+	$a = shortcode_atts(array(
+		'date' => 'upcomming',
+	), $atts);
+	if ($a['date'] == 'upcomming') {
+		$compare_sign = '>=';
+	} else if ($a['date'] == 'recent') {
+		$compare_sign = '<';
+	} else {
+		$compare_sign = '<';
+	}
+
+	$args = array(
+		'post_type' => 'event',
+		'posts_per_page' => 6,
+		'meta_key' => 'event_date',
+		'orderby' => 'event_date',
+        'order' => 'DSC',
+		'meta_query' => array(
+			array(
+				'key' => 'event_date',
+				'compare' => $compare_sign,
+				'value' => date('Ymd'),
+				'type' => 'nuemeric'
+			)
+
+		)
+	);
+	// The Query
+	$the_query = new WP_Query($args);
+
+	// The Loop
+	if ($the_query->have_posts()) {
+		$output = '<div id="upcoming-events-posts" class="events-grid alignwide">';
+		while ($the_query->have_posts()) {
+			$the_query->the_post();
+			$subtitle = get_field('subtitle');
+			$event_type = get_field('event_type');
+            $event_image = get_field('event_image');
+			$date = new DateTime(get_field('event_date'));
+			$event_start_time = get_field('event_start_time');
+			$event_end_time = get_field('event_end_time');
+			$time_zone = get_field('time_zones');
+			$type_color = get_field('event_type_color', $event_type[0]);
+
+			$output .= '<div class="event-item-wrapper" style="border-top-color: ' . $type_color . '">';
+			$output .= '<div class="content-wrapper">';
+			$output .= '<div class="top-sec">';
+			$output .= '<h4 class="event-type" style="color: ' . $type_color . '">' . get_the_title($event_type[0]) . '</h4>';
+
+			$output .= '<p class="event-subtitle" style="color: ' . $type_color . '">' .  $subtitle . '</p>';
+			$output .= '<h4 class="event-title"><a href="' . get_the_permalink() . '"  style="color: ' . $type_color . '">' .  wp_trim_words(get_the_title(), 15, "...") . '</a></h4>';
+			// $output .= '<p class="event-excerpt">' .   wp_trim_words(get_the_excerpt(), 15, "...") . '</p>';
+			if (has_excerpt()) {
+				$output .= expandable_excerpt(get_the_excerpt(), $type_color);
+			}
+
+
+			$output .= '</div>';
+            $output .= '<img class="event_image" src="' . $event_image . '">';
+			$output .= '<div class="bottom-sec">';
+			$output .= '<p class="event-date">' .  $date->format("l, M d, Y") . '</p>';
+			if ($event_start_time) {
+				$output .= '<div class="event-time-wrapper">';
+				$output .= '<span class="time-val">' . $event_start_time . '</span>';
+				$output .= '<span class="time-seprator">-</span>';
+				$output .= '<span class="time-val">' . $event_end_time . '</span>';
+				$output .= '<span class="time-val"> (' . $time_zone . ')</span>';
+				$output .= '</div>';
+			}
+			$output .= '<a href="' . get_the_permalink() . '" class="event-link" style="color: ' . $type_color . '">Find out more <span class="dashicons dashicons-arrow-right-alt"></span></a>';
+			$output .= '</div>';
+			$output .= '</div>';
+			$output .= '</div>';
+		}
+		$output .= '</div>';
+	}
+	/* Restore original Post Data */
+	wp_reset_postdata();
+
+	return $output;
+}
+add_shortcode('events_snippet', 'dispaly_events_snippet');
+
+
+function dispaly_recent_publications()
+{
+	$args = array(
+		'post_type' => 'article',
+		'posts_per_page' => 3,
+	);
+	// The Query
+	$the_query = new WP_Query($args);
+
+	// The Loop
+	if ($the_query->have_posts()) {
+		$output = '<div class="events-grid alignwide">';
+		while ($the_query->have_posts()) {
+			$the_query->the_post();
+
+			$article_type = get_field('article_type');
+			$date = new DateTime(get_field('article_date'));
+
+			if ($article_type == 'Articles/News') {
+				$article_subtitle = get_field('article_subtitle');
+			} else {
+				$media_type = get_field('media_type');
+				if ($media_type == 'PDF Document') {
+					$media_link = get_field('doc');
+				} else {
+					$media_link = get_field('external_url');
+				}
+			}
+
+			$output .= '<div class="event-item-wrapper">';
+			$output .= '<div class="content-wrapper">';
+			$output .= '<div class="top-sec">';
+			$output .= '<h4 class="event-type">' . $article_type . '</h4>';
+			if (isset($article_subtitle)) {
+				$output .= '<p class="event-subtitle">' . $article_subtitle . '</p>';
+			}
+			if ($article_type == 'Articles/News') {
+				$output .= ' <h4 class="event-title"><a href="' . get_the_permalink() . '">' . wp_trim_words(get_the_title(), 15, '...') . '</a></h4>';
+			} else {
+				$output .= ' <h4 class="event-title">' . wp_trim_words(get_the_title(), 15, '...') . '</h4>';
+			}
+			if ($article_type == 'Speeches') {
+				$Speeche_speaker = get_field('speakers');
+				$output .= '<p class="event-excerpt">' . $Speeche_speaker . '</p>';
+			} else {
+				if (has_excerpt()) {
+					$output .= expandable_excerpt(get_the_excerpt());
+				}
+			}
+			$output .= '</div>';
+			$output .= '<div class="bottom-sec">';
+			if ($article_type != 'Recipes') {
+				$output .= '<p class="event-date">' . get_the_date('M d, Y')  . '</p>';
+			}
+			if ($article_type == 'Articles/News') {
+
+				$output .= '<a href="' . get_the_permalink() . '" class="event-link">Read Now<span class="dashicons dashicons-arrow-right-alt"></span></a>';
+			} else {
+				$output .= '<a href="' . $media_link . '" target="_blank" class="event-link">Read Now<span class="dashicons dashicons-arrow-right-alt"></span></a>';
+			}
+			$output .= '</div>';
+			$output .= '</div>';
+			$output .= '</div>';
+		}
+		$output .= '</div>';
+	}
+	/* Restore original Post Data */
+	// wp_reset_postdata();
+
+	return $output;
+}
+add_shortcode('recent_publications', 'dispaly_recent_publications');
+
+
+
+
+
+function dispaly_video_snippet()
+{
+	$args = array(
+		'post_type' => 'video',
+		'posts_per_page' => -1,
+		'meta_query' => array(
+			'relation' => 'AND',
+			array(
+				'key' => 'display_in_home_page',
+				'compare' => 'EXISTS'
+			),
+			array(
+				'key' => 'display_in_home_page',
+				'value'	=> true,
+				'compare' => '='
+			)
+		)
+	);
+	// The Query
+	$the_query = new WP_Query($args);
+	// print_r($args);
+	// The Loop
+	if ($the_query->have_posts()) {
+		$output = '<div class="events-grid alignwide media">';
+		while ($the_query->have_posts()) {
+			$the_query->the_post();
+
+			$video_url = get_field('video_url');
+			// print_r(parse_url($video_url));
+
+			$video_speakers = get_field('video_speakers');
+			$video_image = get_field('video_image');
+			if (!filter_var($video_image, FILTER_VALIDATE_URL)) {
+				$video_image = wp_get_attachment_image_src($video_image, 'full')[0];
+			}
+
+			$output .= '<div class="event-item-wrapper">';
+			$output .= '<div class="video-wrapper">';
+
+			$output .= '<img class="video-image" src="' . $video_image . '" alt="' . get_the_title() . ' video iamge">';
+			$output .= '<div class="play-icon-wrapper">';
+			$output .= '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="18" viewBox="0 0 15 18" fill="none">
+						<path d="M15 9L-8.15666e-07 17.6603L-5.85621e-08 0.339745L15 9Z" fill="black" />
+						</svg>';
+			$output .= '</div>';
+
+			$output .= '<div id="item_' . get_the_ID() . '" class="video-popup-wrapper hide">';
+
+
+
+			$output .= '<div class="presenter-popup-contnet">';
+			$output .= '<button class="video-close-btn">';
+			$output .= '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" viewBox="0 0 14 15" fill="none">';
+			$output .= '<path d="M13 1.44104L1 13.4987" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>';
+			$output .= '<path d="M1 1.44104L13 13.4987" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>';
+			$output .= '</svg>';
+			$output .= '</button>';
+			$output .= convertYoutube($video_url);
+			$output .= '</div>';
+
+			$output .= '</div>';
+
+			$output .= '</div>';
+
+			$output .= '<div class="content-wrapper">';
+			$output .= '<p class="video-name">' .  wp_trim_words(get_the_title(), 15, "...") . '</p>';
+			if ($video_speakers) {
+				$output .= '<p class="presenters-names">';
+				$copy = $video_speakers;
+				foreach ($video_speakers as $presenter) {
+					$output .= $presenter->post_title;
+					if (next($copy)) {
+						$output .= ', '; // Add comma for all elements instead of last
+					}
+				}
+				$output .= '</p>';
+			}
+			$output .= '</div>';
+
+
+
+
+			$output .= '</div>';
+		}
+		$output .= '</div>';
+		return $output;
+	}
+	/* Restore original Post Data */
+	// wp_reset_postdata();
+
+}
+add_shortcode('videos_snippet', 'dispaly_video_snippet');
+
+function dispaly_partner_type($atts)
+{
+	$a = shortcode_atts(array(
+		'type' => 'Founding',
+	), $atts);
+	$args = array(
+		'post_type' => 'partner',
+		'posts_per_page' => -1,
+		'meta_key'		=> 'partner_type',
+		'meta_value'	=> '' . $a["type"] . '',
+		'order'   => 'ASC',
+	);
+	// The Query
+	$the_query = new WP_Query($args);
+
+	// The Loop
+	if ($the_query->have_posts()) {
+		if ($a["type"] == 'Exhibitor') {
+			$output = '<div class="exhibitor-type-wrapper">';
+			while ($the_query->have_posts()) {
+				$the_query->the_post();
+                $website_link = get_field('website_link');
+				$output .= '<a class="partner-link" href="' . $website_link . '" target="_blank"><figure class="partner-item">' . get_the_post_thumbnail() . '</figure></a>';
+			}
+			$output .= '</div>';
+		} else {
+			$output = '<div class="partners-type-wrapper">';
+			$order = 0;
+			while ($the_query->have_posts()) {
+
+				$the_query->the_post();
+				$website_link = get_field('website_link');
+				$partner_text = get_field('partner_text');
+
+				$output .= '<div id="item-' . get_the_ID() . '" class="partner-item-wrapper" style="order: ' . $order . '">';
+
+				$output .= '<a class="partner-link" href="' . $website_link . '" target="_blank"><figure class="partner-item">' . get_the_post_thumbnail() . '</figure></a>';
+				$output .= '<p class="partner-text">' . $partner_text . '</p>';
+				$output .= '<a class="partner-link" href="' . $website_link . '" target="_blank">Visit Website <span class="dashicons dashicons-arrow-right-alt"></span></a>';
+				$output .= '</div>';
+				$order += 1;
+			}
+			$output .= '</div>';
+		}
+	}
+	/* Restore original Post Data */
+	wp_reset_postdata();
+
+	return $output;
+}
+add_shortcode('partner_type', 'dispaly_partner_type');
+
+function ww_load_dashicons()
+{
+	wp_enqueue_style('dashicons');
+}
+add_action('wp_enqueue_scripts', 'ww_load_dashicons');
+
+function dispaly_press($atts)
+{
+	// $current_year = date('Ymd');
+	$a = shortcode_atts(array(
+		'year' => 'current',
+	), $atts);
+	if ($a['year'] == 'current') {
+		$compare_sign = '>';
+	} else {
+		$compare_sign = '<';
+	}
+
+	// echo $current_year;
+	$args = array(
+		'post_type' => 'press',
+		'posts_per_page' => -1,
+        'meta_key' => 'press_date',
+		'orderby' => 'press_date',
+        'order' => 'DSC',
+		'meta_query' => array(
+			array(
+				'key' => 'press_date',
+				'compare' => $compare_sign,
+				'value' => '20210000',
+				// 'value' => $current_year,
+				'type' => 'nuemeric'
+			)
+		)
+	);
+	// The Query
+	$the_query = new WP_Query($args);
+
+	// The Loop
+	if ($the_query->have_posts()) {
+		$output = '<div class="events-grid press alignwide">';
+		while ($the_query->have_posts()) {
+			$the_query->the_post();
+			$date = new DateTime(get_field('press_date'));
+			// echo get_field('press_date');
+			$press_document = get_field('press_document');
+			$press_type = get_field('press_type');
+
+			$output .= '<div class="event-item-wrapper press">';
+			$output .= '<div class="content-wrapper">';
+			$output .= '<div class="top-sec">';
+			$output .= '<p class="event-date">' .  $date->format("M d, Y") . '</p>';
+			$output .= '<h4 class="event-type">' . $press_type . '</h4>';
+			$output .= '<p class="event-title">' .  wp_trim_words(get_the_title(), 15, "...") . '</p>';
+			if (has_excerpt()) {
+				$output .= expandable_excerpt(get_the_excerpt());
+			}
+			$output .= '</div>';
+			$output .= '<div class="bottom-sec">';
+			$output .= '<a href="' . $press_document . '" class="event-link" target="_blank">Read Now <span class="dashicons dashicons-arrow-right-alt"></span></a>';
+			$output .= '</div>';
+			$output .= '</div>';
+			$output .= '</div>';
+		}
+		$output .= '</div>';
+		wp_reset_postdata();
+
+		return $output;
+	}
+	/* Restore original Post Data */
+}
+add_shortcode('dispaly_press', 'dispaly_press');
+
+function display_gallery()
+{
+
+	// echo $current_year;
+	$args = array(
+		'post_type' => 'press_image',
+		'posts_per_page' => 9,
+	);
+	// The Query
+	$the_query = new WP_Query($args);
+
+	// The Loop
+	if ($the_query->have_posts()) {
+		$output = '<div class="gallery-grid three-column-gallery-grid alignwide">';
+		while ($the_query->have_posts()) {
+			$the_query->the_post();
+			$thumbnails_image = get_field('thumbnails_image');
+			$original_image = get_field('original_image');
+			$output .= '<div class="image-item-wrapper">';
+			$output .= '<img class="press-image" width="400" height="212" src="' . $thumbnails_image . '" alt="' . get_the_title() . ' iamge">';
+			$output .= '<div class="info-wrapper">';
+			$output .= '<p class="img-title">' . get_the_title() . '</p>';
+			$output .= '<a href="' . $original_image . '" class="org-img-link" download>Download Full-res Image <span class="dashicons dashicons-arrow-right-alt"></a>';
+
+			$output .= '</div>';
+			$output .= '</div>';
+		}
+		$output .= '</div>';
+		wp_reset_postdata();
+
+		return $output;
+	}
+	/* Restore original Post Data */
+}
+add_shortcode('display_gallery_snippet', 'display_gallery');
+
+function dispaly_faq_func()
+{
+	$args = array(
+		'post_type' => 'faq',
+		'posts_per_page' => -1,
+	);
+	// The Query
+	$the_query = new WP_Query($args);
+
+	// The Loop
+	if ($the_query->have_posts()) {
+		$output = '<div class="faq-container aligmid">';
+		while ($the_query->have_posts()) {
+			$the_query->the_post();
+
+			$output .= '<div class="faq-item-wrapper collapsed">';
+			$output .= '<div class="question-wrapper">';
+			$output .= '<p class="faq-question">' . get_the_title() . '</p>';
+			$output .= '<span class="dashicons faq-question-arrow"></span>';
+			$output .= '</div>';
+			$output .= '<div class="answer-wrapper">';
+			$output .= '<p class="faq-answer">' .  get_the_content() . '</p>';
+			$output .= '</div>';
+			$output .= '</div>';
+		}
+		$output .= '</div>';
+	}
+	/* Restore original Post Data */
+	wp_reset_postdata();
+
+	return $output;
+}
+add_shortcode('dispaly_faq', 'dispaly_faq_func');
+
+/**
+ * Register and enqueue a custom stylesheet in the WordPress admin.
+ */
+function wpdocs_enqueue_custom_admin_style()
+{
+	wp_register_style('custom_wp_admin_css', get_template_directory_uri() . '/admin-style.css', false, '1.0.0');
+	wp_enqueue_style('custom_wp_admin_css');
+}
+add_action('admin_enqueue_scripts', 'wpdocs_enqueue_custom_admin_style');
+
+
+add_filter('pre_get_posts', 'query_post_type');
+function query_post_type($query)
+{
+	if (is_category()) {
+		$post_type = get_query_var('post_type');
+		if ($post_type)
+			$post_type = $post_type;
+		else
+			$post_type = array('nav_menu_item', 'post', 'video'); // don't forget nav_menu_item to allow menus to work!
+		$query->set('post_type', $post_type);
+		return $query;
+	}
+}
+
+function expandable_excerpt($excerpt, $color = '#24447E')
+{
+	$split = explode(" ", $excerpt); //convert string to array
+	$len = count($split); //get number of words
+	$words_to_show_first = 19; //Word to be dsiplayed first
+	if ($len > $words_to_show_first) { //check if it's longer the than first part
+
+		$firsthalf = array_slice($split, 0, $words_to_show_first);
+		$secondhalf = array_slice($split, $words_to_show_first, $len - 1);
+		$output = '<p class="event-excerpt" >';
+		$output .= implode(' ', $firsthalf) . '<span class="see-more-text" style="color: ' . $color . '">...see more</span>';
+
+		$output .= '<span class="excerpt-full hide">';
+		$output .= ' ' . implode(' ', $secondhalf);
+		$output .= '</span>';
+		$output .= '</p>';
+	} else {
+		$output = '<p class="event-excerpt">'  .   $excerpt . '</p>';
+	}
+	return $output;
+}
+
+function convertYoutube($string)
+{
+	return preg_replace(
+		"/\s*[a-zA-Z\/\/:\.]*youtu(be.com\/watch\?v=|.be\/)([a-zA-Z0-9\-_]+)([a-zA-Z0-9\/\*\-\_\?\&\;\%\=\.]*)/i",
+		"<iframe width=\"640\" height=\"360\" src=\"//www.youtube.com/embed/$2\" allowfullscreen allow='autoplay'></iframe>",
+		$string
+	);
+
+	// ?&autoplay=1
+}
+
+// artelcs short codes
+function display_single_partner($atts)
+{
+	$a = shortcode_atts(array(
+		'id' => '',
+	), $atts);
+
+	$args = array(
+		'post_type' => 'partner',
+		'posts_per_page' => 1,
+	);
+	$partner = get_post($a['id']);
+	// The Query
+	$the_query = new WP_Query($args);
+	// print_r($partner);
+	if ($partner) {
+		$partner_id = $partner->ID;
+		$website_link = get_field('website_link', $partner_id);
+		$partner_text = get_field('partner_text', $partner_id);
+
+		$output = '<div class="partner-item-wrapper">';
+
+		// $output .= $partner->post_title;
+		$output .= '<figure class="partner-item">' . get_the_post_thumbnail($partner_id) . '</figure>';
+
+
+		$output .= '<p class="partner-text">' . $partner_text . '</p>';
+		$output .= '<a class="partner-link" href="' . $website_link . '" target="_blank">Visit Website <span class="dashicons dashicons-arrow-right-alt"></span></a>';
+		$output .= '</div>';
+	}
+
+	return $output;
+}
+add_shortcode('display_single_partner', 'display_single_partner');
+
+
+function custom_strip_header_func($atts)
+{
+	$a = shortcode_atts(array(
+		'overlay_color' => '#a2a921',
+		'title' => 'section title',
+		'image_id' => '200',
+	), $atts);
+	$bg_img = wp_get_attachment_image_url($a['image_id'], 'full', "", array("class" => "img-responsive"));
+	$header_id  = str_replace(' ', '-', strtolower($a['title']));
+	if (strlen($a['overlay_color']) == 7) {
+		$header_overlay = $a['overlay_color'];
+	} else {
+		$header_overlay = '#a2a921';
+	}
+	$output = '<h2 class="has-bg" id="' . $header_id . '" style="background-image: linear-gradient(
+		360deg,
+		' . $header_overlay . ' 0%,
+		' . $header_overlay . '5A 100%
+	  ),
+	  url(' . $bg_img . ')">' . $a['title'] . '</h2>';
+
+	return $output;
+}
+add_shortcode('section_header', 'custom_strip_header_func');
+
+
+// Front end only, don't hack on the settings page
+if (!is_admin()) {
+	// Hook in early to modify the menu
+	// This is before the CSS "selected" classes are calculated
+	add_filter('wp_get_nav_menu_items', 'replace_placeholder_nav_menu_item_with_latest_post', 10, 3);
+}
+
+if (!is_admin()) {
+	// Hook in early to modify the menu
+	// This is before the CSS "selected" classes are calculated
+	add_filter('wp_get_nav_menu_items', 'replace_placeholder_nav_menu_item_with_latest_post', 10, 3);
+}
+// Replaces a custom URL placeholder with the URL to the latest post
+function replace_placeholder_nav_menu_item_with_latest_post($items, $menu, $args)
+{
+
+	// Loop through the menu items looking for placeholder(s)
+	foreach ($items as $item) {
+		if ('#latestpodcast' != $item->url && '#latestarticle' != $item->url)
+			continue;
+
+		if ('#latestpodcast' == $item->url) {
+			$latestpost = get_posts(array(
+				'post_type'   => 'podcast',
+
+				'numberposts' => 1,
+			));
+		} elseif ('#latestarticle' == $item->url) {
+			$latestpost = get_posts(array(
+				'post_type'   => 'article',
+				'numberposts' => 1,
+				// 'meta_key'         => 'article_type',
+				// 'meta_value'       => 'Articles',
+				'meta_query' => array(
+					'key'   => 'article_type',
+					'value' => 'Articles',
+				)
+			));
+		}
+
+		if (empty($latestpost))
+			continue;
+
+		// Replace the placeholder with the real URL
+		$item->url = get_permalink($latestpost[0]->ID);
+	}
+
+	// Return the modified (or maybe unmodified) menu items array
+	return $items;
+}
+
+//sorting the ffa article
+/* make CPT posts in admin order by title */
+/* Sort posts in wp_list_table by column in ascending or descending order. */
+function custom_post_order($query)
+{
+	/* 
+        Set post types.
+        _builtin => true returns WordPress default post types. 
+        _builtin => false returns custom registered post types. 
+    */
+	/* set the _builtin to false which will order our Custom post types by title */
+	$post_types = get_post_types(array('_builtin' => false), 'names');
+	/* The current post type. */
+	$post_type = $query->get('article');
+	/* Check post types. */
+	if (in_array($post_type, $post_types)) {
+		/* Post Column: e.g. title */
+		if ($query->get('orderby') == '') {
+			$query->set('orderby', 'date');
+		}
+		/* Post Order: ASC / DESC */
+		if ($query->get('order') == '') {
+			$query->set('order', 'ASC');
+		}
+	}
+}
+if (is_admin()) {
+	add_action('pre_get_posts', 'custom_post_order');
+}
+
+
+function presenter_grid_shortcode( $atts ) {
+
+	?>
+	<script>
+      function searchFunction() {
+        var input, filter, ul, li, a, i, txtValue;
+        input = document.getElementById("myInput");
+        filter = input.value.toUpperCase();
+        ul = document.getElementById("myUL");
+        li = document.getElementsByClassName("presenter-item-wrapper");
+        for (i = 0; i < li.length; i++) {
+          a = li[i].getElementsByClassName("presenter-name")[0];
+          txtValue = a.textContent || a.innerText;
+          if (txtValue.toUpperCase().indexOf(filter) > -1) {
+            li[i].style.display = "";
+          } else {
+            li[i].style.display = "none";
+          }
+        }
+      }
+    </script>
+	<?php
+
+	// Parse your shortcode settings with it's defaults
+	$atts = shortcode_atts( array(
+		'posts_per_page' => '-1',
+		'term'           => ''
+	), $atts, 'presenter-list' );
+
+	// Extract shortcode atributes
+	extract( $atts );
+
+	// Define output var
+	$output = '';
+
+	// Define query
+ 
+	$query_args = array(
+		'post_type'      => 'presenter', // Change this to the type of post you want to show
+		'posts_per_page' => '-1',
+        //'orderby' => 'wpse_last_word',
+        'order' => 'ASC',
+        'orderby' => 'wpse_last_word',
+        'meta_query'=> array(
+                        array(
+                                    'key'     => 'dont_show_in_frontend',
+                                    'value'   => 'Show',
+                                    'compare' => '=',
+                                ),
+        ),
+        );
+  
+	// Query by term if defined
+	if ( $term ) {
+
+		$query_args['tax_query'] = array(
+			array(
+				'taxonomy' => 'category',
+				'field'    => 'ID',
+				'terms'    => $term
+			),
+		);
+
+	}
+
+	// Query posts
+	$custom_query = new WP_Query( $query_args );
+	$my_array = array($custom_query);
+	$newArray = array();
+    
+	// Add content if we found posts via our query
+        if ( $custom_query->have_posts() ) {
+        
+		// Open div wrapper around loop
+		$output .= '<div class="presenter-items-wrapper alignwide">';
+
+		// Loop through posts
+		while ( $custom_query->have_posts() ) {
+
+			// Sets up post data so you can use functions like get_the_title(), get_permalink(), etc
+			$custom_query->the_post();
+            $arrayTitle = get_the_title();
+            array_push($newArray, $arrayTitle);
+			// This is the output for your entry so what you want to do for each post.
+            $output .= '<div id="speaker_'. get_the_ID() .'" class="presenter-item-wrapper">';
+            $output .= '<div class="presenter-img">' . get_the_post_thumbnail() . '</div>';
+            $output .= '<div class="item-details">';
+			$output .= '<h5 class="presenter-name">' . get_the_title() . '</h5>';
+            $output .= '<p class="presenter-role">'. get_field('role') .'</p>';
+            $output .= '<span class="learn-more-link speaker_'. get_the_ID() .'">Learn More <span class="dashicons dashicons-arrow-right-alt"></span></span><div class="presenter-popup-wrapper">
+            <div class="presenter-popup-contnet">
+            <div class="popup-header">
+            <h5 class="presenter-name">' . get_the_title() . '</h5>
+            <button class="presenter-close-btn speaker_'. get_the_ID() .'">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="15" viewBox="0 0 14 15" fill="none">
+                <path d="M13 1.44104L1 13.4987" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                <path d="M1 1.44104L13 13.4987" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>	
+            </button>
+            </div>
+            <p class="presenter-role">'. get_field('role') .'</p>
+                                    <div class="presenter-content">'. get_the_content() .'</div>
+                                    </div>
+                                    </div>';
+            $output .= '</div>';
+			$output .= '</div>';
+		}
+		// Close div wrapper around loop
+		$output .= '</div>';
+        
+		wp_reset_postdata();
+
+	}
+	// Return your shortcode output
+    ?>
+	<script>
+      let speakerArray = <?php echo json_encode($newArray); ?>;
+    </script>
+	<?php  
+	return $output;
+}
+add_shortcode( 'presenter-list', 'presenter_grid_shortcode' );
+
+
+
+function ti_custom_javascript() {
+    ?>
+        <script>
+          window.addEventListener("load", (event) => {
+            var presenterNoImg = document.getElementsByClassName('presenter-img');
+            for (let i = 0; i < presenterNoImg.length; i++) {
+              if(document.getElementsByClassName('presenter-img')[i].childNodes.length == 0) {
+                document.getElementsByClassName('presenter-img')[i].innerHTML = `<img
+                src="https://forumforag.com/wp-content/uploads/2022/02/Person-placeholder.jpg">`;
+              }
+            }
+            if(document.getElementById('upcoming-events-posts') == null) {
+              document.getElementById('upcoming-events').style.display = "none";
+            } else if(document.getElementById('upcoming-events-posts').childNodes == 0 || document.getElementById('homepage-upcoming-events').childNodes.length == 0) {
+              document.getElementById('upcoming-events').style.display = "none!important";
+              document.getElementsByClassName('hide-me')[0].style.display = "none";
+              document.getElementsByClassName('hide-me')[1].style.display = "none";
+            } else {
+              console.log('events found');
+            }
+          });
+        </script>
+    <?php
+}
+add_action('wp_head', 'ti_custom_javascript');
+
+add_filter( 'posts_orderby', function( $orderby, \WP_Query $q )
+{
+    if( 'wpse_last_word' === $q->get( 'orderby' ) && $get_order =  $q->get( 'order' ) )
+    {
+        if( in_array( strtoupper( $get_order ), ['ASC', 'DESC'] ) )
+        {
+            global $wpdb;
+            $orderby = " SUBSTRING_INDEX( {$wpdb->posts}.post_title, ' ', -1 ) " . $get_order;
+        }
+    }
+    return $orderby;
+}, PHP_INT_MAX, 2 );
+
+add_filter( 'posts_orderby', function( $orderby, \WP_Query $q )
+{
+    if( 'wpse_last_word' === $q->get( 'orderby' ) && $get_order =  $q->get( 'order' ) )
+    {
+        if( in_array( strtoupper( $get_order ), ['ASC', 'DESC'] ) )
+        {
+            global $wpdb;
+            $orderby = " SUBSTRING_INDEX( {$wpdb->posts}.post_title, ' ', -1 ) " . $get_order;
+        }
+    }
+    return $orderby;
+}, PHP_INT_MAX, 2 );
+
+add_shortcode( 'asearch', 'asearch_func' );
+function asearch_func( $atts ) {
+    $atts = shortcode_atts( array(
+        'source' => 'page,post,product',
+        'image' => 'true'
+    ), $atts, 'asearch' );
+static $asearch_first_call = 1;
+$source = $atts["source"];
+$image = $atts["image"];
+$sForam = '<div class="search_bar">
+    <button id="searchButtonForm"><svg width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M7.66658 14.5C11.1644 14.5 13.9999 11.6644 13.9999 8.16665C13.9999 4.66884 11.1644 1.83331 7.66658 1.83331C4.16878 1.83331 1.33325 4.66884 1.33325 8.16665C1.33325 11.6644 4.16878 14.5 7.66658 14.5Z" stroke="#545454" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M14.6666 15.1666L13.3333 13.8333" stroke="#545454" stroke-linecap="round" stroke-linejoin="round"/>
+</svg></button>
+    <form class="asearch" id="asearch'.$asearch_first_call.'" method="get" autocomplete="off">
+        <svg id="search_icon_header" width="16" height="17" viewBox="0 0 16 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M7.66658 14.5C11.1644 14.5 13.9999 11.6645 13.9999 8.16671C13.9999 4.6689 11.1644 1.83337 7.66658 1.83337C4.16878 1.83337 1.33325 4.6689 1.33325 8.16671C1.33325 11.6645 4.16878 14.5 7.66658 14.5Z" stroke="#545454" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M14.6666 15.1667L13.3333 13.8334" stroke="#545454" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+        <input type="text" name="s" placeholder="Search ..." id="keyword" class="input_search" onkeyup="searchFetch(this)">
+        <span id="close_search">&#10539;</span>
+    </form><div class="search_result" id="datafetch" style="display: none;">
+        <ul>
+            <li>Please wait..</li>
+        </ul>
+    </div></div>';
+$java = '<script>
+function searchFetch(e) {
+var datafetch = e.parentElement.nextSibling
+if (e.value.trim().length > 0) { datafetch.style.display = "block"; } else { datafetch.style.display = "none"; }
+const searchForm = e.parentElement;	
+e.nextSibling.value = "Please wait..."
+var formdata'.$asearch_first_call.' = new FormData(searchForm);
+formdata'.$asearch_first_call.'.append("source", "'.$source.'") 
+formdata'.$asearch_first_call.'.append("image", "'.$image.'") 
+formdata'.$asearch_first_call.'.append("action", "asearch") 
+AjaxAsearch(formdata'.$asearch_first_call.',e) 
+}
+async function AjaxAsearch(formdata,e) {
+  const url = "'.admin_url("admin-ajax.php").'?action=asearch";
+  const response = await fetch(url, {
+      method: "POST",
+      body: formdata,
+  });
+  const data = await response.text();
+if (data){	e.parentElement.nextSibling.innerHTML = data}else  {
+e.parentElement.nextSibling.innerHTML = `<ul><a href="#"><li>Sorry, nothing found</li></a></ul>`
+}}	
+document.addEventListener("click", function(e) { if (document.activeElement.classList.contains("input_search") == false ) { [...document.querySelectorAll("div.search_result")].forEach(e => e.style.display = "none") } else {if  (e.target.value.trim().length > 0) { e.target.parentElement.nextSibling.style.display = "block"}} })
+</script>';
+$css = '<style>form.asearch {display: flex;flex-wrap: nowrap;border: 1px solid #d6d6d6;border-radius: 5px;}
+form.asearch button#mybtn {cursor: pointer;background: none;}
+form.asearch input#keyword {border: none;}
+div#datafetch {
+    background: white;
+    z-index: 10;
+    position: absolute;
+    max-height: 425px;
+    overflow: auto;
+    box-shadow: 0px 15px 15px #00000036;
+    right: 0;
+    left: 0;
+    top: 50px;
+}
+div.search_bar {
+    position: relative;
+}
+
+div.search_result ul a li {
+    margin: 0px;
+    padding: 5px 0px;
+    padding-inline-start: 18px;
+    color: #3f3f3f;
+    font-weight: bold;
+}
+div.search_result li {
+    margin-inline-start: 20px;
+}
+div.search_result ul {
+    padding: 13px 0px 0px 0px;
+    list-style: none;
+    margin: auto;
+}
+
+div.search_result ul a {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+div.search_result ul a:hover {
+    background-color: #f3f3f3;
+}
+.asearch input#keyword {
+    width: 100%;
+    background: rgba(162,169,56,10%);
+    height: 43px;
+    padding: 20px 10px;
+}
+#asearch1 {
+display: none;
+}
+#searchButtonForm {
+    background: rgba(162,169,56,10%);
+    border: 0px solid transparent;
+    width: 43px;
+    height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0px;
+    border-radius: 5px;
+}
+#searchButtonForm:hover {
+cursor: pointer;
+}
+form.asearch {
+border-color: transparent;
+}
+form.asearch input#keyword {
+    border: none;
+    outline: none;
+}
+div.search_bar {
+display: flex;
+flex-direction: row;
+}
+</style>';
+  
+if ( $asearch_first_call == 1 ){	
+	 $asearch_first_call++;
+	 return "{$sForam}{$java}{$css}"; } elseif  ( $asearch_first_call > 1 ) {
+		$asearch_first_call++;
+		return "{$sForam}"; }}
+
+add_action('wp_ajax_asearch' , 'asearch');
+add_action('wp_ajax_nopriv_asearch','asearch');
+function asearch(){
+    $the_query = new WP_Query( array( 'posts_per_page' => 10, 's' => esc_attr( $_POST['s'] ), 'post_type' =>  explode(",", esc_attr( $_POST['source'] )))  );
+    if( $the_query->have_posts() ) :
+        echo '<ul>';
+        while( $the_query->have_posts() ): $the_query->the_post(); ?>
+            <a href="<?php echo esc_url( post_permalink() ); ?>"><li><?php the_title();?></li>
+<?php $image = wp_get_attachment_image_src( get_post_thumbnail_id(), 'single-post-thumbnail' );?>                               
+<?php if ( $image[0] && trim(esc_attr( $_POST['image'] )) == "true" ) {  ?>  <img src="<?php the_post_thumbnail_url('thumbnail'); ?>" style="height: 60px;padding: 0px 5px;"> <?php }  ?> </a>
+        <?php endwhile;
+       echo '</ul>';
+        wp_reset_postdata();  
+    endif;
+    die();
+}
