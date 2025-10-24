@@ -26,7 +26,7 @@
   .hud{display:flex;gap:12px;align-items:center;font-variant-numeric:tabular-nums;font-size:14px}
 
   canvas{width:100%;height:calc(var(--vh) * 62);display:block;background:transparent}
-  @media (max-width:480px){ .wrap{padding:8px} .hud{gap:8px;font-size:13px} canvas{height:calc(var(--vh) * 82)} }
+  @media (max-width:480px){ .wrap{padding:8px} .hud{gap:8px;font-size:13px} canvas{height:calc(var(--vh) * 70)} }
 
   .controls{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px 12px;align-items:center}
   button,.toggle{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.15);padding:8px 12px;border-radius:10px;cursor:pointer;backdrop-filter:blur(4px)}
@@ -169,7 +169,15 @@
   .footer > div[style*="Music track"]{ justify-self: end; }
 
   /* Name badge: nudge up a bit so it never collides with safe area */
-  .player-box{ right: 10px; bottom: 66px; }
+  .player-box{ right: 10px; bottom: 66px; }To: Ito
+Subject: Hello
+
+Hey Ito,
+
+Hope you're doing well.
+
+Best,
+[Your Name]
   .player-badge{ font-size: 11.5px; padding: 5px 9px; }
   .tiny-btn{ padding: 5px 8px; font-size: 11.5px; }
 }
@@ -178,6 +186,17 @@
 @media (max-width: 380px){
   .header .hud{ column-gap: 8px; font-size: 12.5px; }
   #lbBtn{ padding: 5px 9px; font-size: 11.5px; }
+}
+
+@media screen and (max-width: 767px) {
+    .startPanelHeader {
+        font-size: 12px;
+    }
+
+
+    .ghost-btn {
+        font-size: 11px;
+    }
 }
 
 </style>
@@ -207,7 +226,7 @@
         <div class="overlay">
           <!-- START PANEL -->
           <div class="panel" id="startPanel">
-            <div style="font-size:20px;font-weight:800;margin-bottom:8px">Tap, Click or Press Space to Jump</div>
+            <div class="startPanelHeader" style="font-size:20px;font-weight:800;margin-bottom:8px">Tap, Click or Press Space to Jump</div>
 
             <div class="btn-row">
               <button id="howToBtn" class="ghost-btn">❓ How to Play</button>
