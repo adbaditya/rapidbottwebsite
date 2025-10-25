@@ -26,7 +26,7 @@
   .hud{display:flex;gap:12px;align-items:center;font-variant-numeric:tabular-nums;font-size:14px}
 
   canvas{width:100%;height:calc(var(--vh) * 62);display:block;background:transparent}
-  @media (max-width:480px){ .wrap{padding:8px} .hud{gap:8px;font-size:13px} canvas{height:calc(var(--vh) * 70)} }
+  @media (max-width:480px){ .wrap{padding:8px} .hud{gap:8px;font-size:13px} canvas{height:calc(var(--vh) * 82)} }
 
   .controls{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px 12px;align-items:center}
   button,.toggle{background:rgba(255,255,255,.08);color:var(--text);border:1px solid rgba(255,255,255,.15);padding:8px 12px;border-radius:10px;cursor:pointer;backdrop-filter:blur(4px)}
@@ -47,7 +47,7 @@
   .tap-zone{position:absolute;inset:0;z-index:2;pointer-events:none}
   .tap-zone.active{pointer-events:auto}
 
-  /* Character 2×2 grid with pager */
+  /* Character grid & mobile carousel */
   .picker-head{font-weight:800;margin:8px 0 10px}
   .pager{position:relative;display:grid;grid-template-columns:40px 1fr 40px;align-items:center;gap:8px}
   .skins-wrap{overflow:hidden}
@@ -65,6 +65,13 @@
   .nav[disabled]{opacity:.4;pointer-events:none}
   @media (max-width:480px){ .skins{grid-template-columns:1fr} }
 
+  /* Mobile carousel single card look */
+  @media (max-width:600px){
+    .skins.single .skin{min-height:76px}
+    .skins.single .skin img{width:56px;height:56px}
+    .skins.single .label{font-size:15px}
+  }
+
   #startBtn{background:linear-gradient(90deg,var(--accent),var(--accent2));color:#000;font-weight:800;font-size:1.05rem;letter-spacing:.4px;padding:14px 0;border-radius:12px;text-transform:uppercase;box-shadow:0 4px 12px rgba(0,0,0,.4);transition:all .25s ease}
   #startBtn:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(0,0,0,.5)}
 
@@ -72,11 +79,28 @@
   .ghost-btn:hover{background:rgba(255,255,255,.1)}
   .btn-row{display:flex;gap:8px;justify-content:center;margin-bottom:10px;flex-wrap:wrap}
 
-  /* Name badge box (bottom-right, slightly higher) */
+  /* Name badge box (footer on desktop) */
   .player-box{position:absolute; right:12px; bottom:58px; display:flex; gap:6px; align-items:center;}
   .player-badge{font-size:12px;font-weight:800; padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,.18); background:linear-gradient(90deg, rgba(201,226,101,.2), rgba(109,193,246,.2));}
   .tiny-btn{padding:5px 8px; font-size:12px; border-radius:8px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.18)}
   .tiny-btn:hover{background:rgba(255,255,255,.12)}
+
+  /* Inline player row — default hidden (desktop), shown on mobile below Sound */
+  #playerInlineRow{ display:none; }
+  @media (max-width:600px){
+    #playerInlineRow{
+      display:flex; gap:8px; align-items:center; justify-content:center;
+      margin-top:6px;
+    }
+    #playerInlineRow .badge{
+      padding:6px 10px; font-size:12px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:linear-gradient(90deg, rgba(201,226,101,.18), rgba(109,193,246,.18));
+      font-weight:800;
+    }
+    /* Hide footer player box on mobile */
+    #playerBox{ display:none; }
+  }
 
   /* Modals */
   .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:40; }
@@ -102,7 +126,7 @@
     @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(201,226,101,.7)}70%{box-shadow:0 0 0 12px rgba(201,226,101,0)}100%{box-shadow:0 0 0 0 rgba(201,226,101,0)}}
   }
 
-  /* ---- T&C tiny link styling ---- */
+  /* ---- T&C link ---- */
   .tnc-row { display:flex; justify-content:flex-start; }
   .tnc-link{ font-size:12px; padding:4px 8px; border-radius:8px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.14); color:var(--text); cursor:pointer; }
   .tnc-link:hover{ background:rgba(255,255,255,.1); }
@@ -116,89 +140,25 @@
   @media (max-width:480px){ .input-hint .bubble{ font-size:14px; } }
   @media (prefers-reduced-motion:reduce){ .input-hint .dot{ animation:none } .input-hint{ transition:none } }
 
-/* === Mobile header & footer compaction (2-row layout) === */
-@media (max-width: 600px){
-  /* Header becomes two rows: title on row 1, HUD + Leaderboard on row 2 */
-  .header{
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 6px 10px;
-    padding: 8px 10px;
-  }
-  .header .title{
-    flex: 1 0 100%;
-    min-width: 0;   /* allow text to shrink nicely */
-  }
-  .header .hud{
-    flex: 1 0 100%;
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-columns: auto auto auto 1fr; /* Score | Best | Pumpkins | (spacer) */
-    align-items: center;
-    column-gap: 10px;
-    row-gap: 6px;
-    font-size: 13px;
-  }
-  /* Leaderboard button stays on the right side of row 2 */
-  #lbBtn{
-    justify-self: end;
-    padding: 6px 10px;
-    font-size: 12px;
-    border-radius: 9px;
-  }
-
-  /* Controls row: better wrapping */
-  .controls{
-    flex-wrap: wrap;
-    gap: 8px 10px;
-    padding: 8px 10px 10px;
-  }
-
-  /* Footer: two rows, lighter density */
-  .footer{
-    grid-template-columns: 1fr 1fr;
-    gap: 6px 10px;
-    padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
-  }
-  /* First tip line spans full width */
-  .footer > div:first-child{
-    grid-column: 1 / -1;
-  }
-  /* T&C stays left, music line goes right on row 2 */
-  .tnc-row{ justify-content: flex-start; }
-  .footer > div[style*="Music track"]{ justify-self: end; }
-
-  /* Name badge: nudge up a bit so it never collides with safe area */
-  .player-box{ right: 10px; bottom: 66px; }To: Ito
-Subject: Hello
-
-Hey Ito,
-
-Hope you're doing well.
-
-Best,
-[Your Name]
-  .player-badge{ font-size: 11.5px; padding: 5px 9px; }
-  .tiny-btn{ padding: 5px 8px; font-size: 11.5px; }
-}
-
-/* Slightly tighter layout on very small phones */
-@media (max-width: 380px){
-  .header .hud{ column-gap: 8px; font-size: 12.5px; }
-  #lbBtn{ padding: 5px 9px; font-size: 11.5px; }
-}
-
-@media screen and (max-width: 767px) {
-    .startPanelHeader {
-        font-size: 12px;
+  /* Mobile header/footer compaction */
+  @media (max-width: 600px){
+    .header{
+      flex-wrap: wrap; align-items: flex-start; gap: 6px 10px; padding: 8px 10px;
     }
-
-
-    .ghost-btn {
-        font-size: 11px;
+    .header .title{ flex: 1 0 100%; min-width: 0; }
+    .header .hud{
+      flex: 1 0 100%;
+      display: grid; grid-auto-flow: column;
+      grid-template-columns: auto auto auto 1fr;
+      align-items: center; column-gap: 10px; row-gap: 6px; font-size: 13px;
     }
-}
-
+    #lbBtn{ justify-self: end; padding: 6px 10px; font-size: 12px; border-radius: 9px; }
+    .controls{ flex-wrap: wrap; gap: 8px 10px; padding: 8px 10px 10px; }
+    .footer{ grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
+    .footer > div:first-child{ grid-column: 1 / -1; }
+    .tnc-row{ justify-content: flex-start; }
+    .footer > div[style*="Music track"]{ justify-self: end; }
+  }
 </style>
 </head>
 <body>
@@ -226,7 +186,7 @@ Best,
         <div class="overlay">
           <!-- START PANEL -->
           <div class="panel" id="startPanel">
-            <div class="startPanelHeader" style="font-size:20px;font-weight:800;margin-bottom:8px">Tap, Click or Press Space to Jump</div>
+            <div style="font-size:20px;font-weight:800;margin-bottom:8px">Tap, Click or Press Space to Jump</div>
 
             <div class="btn-row">
               <button id="howToBtn" class="ghost-btn">❓ How to Play</button>
@@ -235,7 +195,7 @@ Best,
 
             <div class="picker-head">Choose your character</div>
 
-            <!-- 2×2 GRID WITH PAGER -->
+            <!-- Pager / Carousel -->
             <div class="pager">
               <button id="navLeft" class="nav" aria-label="Previous">◀</button>
               <div class="skins-wrap">
@@ -247,6 +207,12 @@ Best,
             <div class="grid" style="margin-top:8px">
               <button id="startBtn">Start</button>
               <label class="toggle"><input type="checkbox" id="soundToggle" checked/> Sound</label>
+
+              <!-- Inline player row (mobile only) -->
+              <div id="playerInlineRow">
+                <span id="playerInlineBadge" class="badge">Player: …</span>
+                <button id="changeNameInlineBtn" class="tiny-btn">Change</button>
+              </div>
             </div>
 
             <div id="tip" class="subtle" style="margin-top:10px">Double-jump to clear high bats.</div>
@@ -280,7 +246,7 @@ Best,
           <button id="tncBtn" class="tnc-link" aria-haspopup="dialog" aria-controls="tncModal" aria-label="Terms and Conditions">T &amp; C</button>
         </div>
 
-        <!-- Player badge (bottom-right) -->
+        <!-- Player badge (desktop footer) -->
         <div id="playerBox" class="player-box">
           <span id="playerBadge" class="player-badge">Player: …</span>
           <button id="changeNameBtn" class="tiny-btn">Change</button>
@@ -377,7 +343,7 @@ Best,
   /* ---------- config ---------- */
   const API_BASE = "https://near-gecko-60.deno.dev";
 
-  /* ---------- identity (stable userid) ---------- */
+  /* ---------- identity ---------- */
   const USER_ID_KEY = 'halloween.userid';
   function getUserId(){
     let id = localStorage.getItem(USER_ID_KEY);
@@ -398,8 +364,8 @@ Best,
   const isMobile=matchMedia('(pointer:coarse)').matches;
   const DPR=Math.max(1,Math.min(isMobile?1.25:1.5,window.devicePixelRatio||1));
   let W=0,H=0;
-  function resize(){ const r=canvas.getBoundingClientRect(); W=Math.floor(r.width*DPR); H=Math.floor(r.height*DPR); canvas.width=W; canvas.height=H; ctx.setTransform(1,0,0,1,0,0); }
-  new ResizeObserver(resize).observe(canvas); resize(); ctx.imageSmoothingEnabled=true;
+  function resizeCanvas(){ const r=canvas.getBoundingClientRect(); W=Math.floor(r.width*DPR); H=Math.floor(r.height*DPR); canvas.width=W; canvas.height=H; ctx.setTransform(1,0,0,1,0,0); }
+  new ResizeObserver(resizeCanvas).observe(canvas); resizeCanvas(); ctx.imageSmoothingEnabled=true;
 
   /* ---------- elements ---------- */
   const scoreEl=document.getElementById('score'),bestEl=document.getElementById('best'),pumpkinsEl=document.getElementById('pumpkins');
@@ -422,10 +388,14 @@ Best,
   const nameInput = document.getElementById('nameInput');
   const saveNameBtn = document.getElementById('saveNameBtn');
   const skipNameBtn = document.getElementById('skipNameBtn');
+
   const playerBadge = document.getElementById('playerBadge');
   const changeNameBtn = document.getElementById('changeNameBtn');
 
-  /* ---- T&C elements ---- */
+  const playerInlineRow = document.getElementById('playerInlineRow');
+  const playerInlineBadge = document.getElementById('playerInlineBadge');
+  const changeNameInlineBtn = document.getElementById('changeNameInlineBtn');
+
   const tncBtn = document.getElementById('tncBtn');
   const tncModal = document.getElementById('tncModal');
 
@@ -445,15 +415,11 @@ Best,
   };
   const UNLOCKS={skinA:0,skinB:120,lunaHex:180,frankie:220,skeleton:260,reaper:300};
 
-  /* Persisted unlocks */
   const unlocked=JSON.parse(localStorage.getItem('halloween.unlocked')||'{}'); 
   for(const id in UNLOCKS){ if(UNLOCKS[id]===0) unlocked[id]=true; }
   localStorage.setItem('halloween.unlocked',JSON.stringify(unlocked));
-
-  /* Selection (will be validated below) */
   let selectedSkinId=localStorage.getItem('halloween.skin')||'skinA';
 
-  /* Hitbox tweaks per skin */
   const SKIN_HIT={
     skinA:{scale:.78,offsetY:0},
     skinB:{scale:.78,offsetY:0},
@@ -463,7 +429,6 @@ Best,
     reaper:{scale:.70,offsetY:-.02}
   };
 
-  /* Preload raster skins */
   const skinImgs={};
   for(const k of SKINS_ORDER){
     if(SKINS[k].kind==='image'){
@@ -472,26 +437,19 @@ Best,
     }
   }
 
-  /* ---------- Pumpkin sprite (bitmap) ---------- */
+  /* Pumpkin sprite */
   const pumpkinImg = new Image(); pumpkinImg.decoding='async';
   pumpkinImg.src='https://static.wixstatic.com/shapes/526e04_d447db6aea1f491bbd6d72d27cd0661b.svg';
   let pumpkinReady=false, pumpkinBitmap=null;
   pumpkinImg.onload=async()=>{ try{ if('createImageBitmap' in window) pumpkinBitmap=await createImageBitmap(pumpkinImg);}catch(e){} pumpkinReady=true; };
 
-  /* ---------- Utility: selection safety ---------- */
-  function firstUnlockedSkin(){
-    for(const id of SKINS_ORDER){ if(unlocked[id]) return id; }
-    return 'skinA';
-  }
+  /* ---------- utils ---------- */
+  function firstUnlockedSkin(){ for(const id of SKINS_ORDER){ if(unlocked[id]) return id; } return 'skinA'; }
   function isValidSkin(id){ return !!(id && SKINS[id] && unlocked[id]); }
-  function ensureValidSelection(){
-    if(!isValidSkin(selectedSkinId)){
-      selectedSkinId = firstUnlockedSkin();
-      localStorage.setItem('halloween.skin', selectedSkinId);
-    }
-  }
+  function ensureValidSelection(){ if(!isValidSkin(selectedSkinId)){ selectedSkinId = firstUnlockedSkin(); localStorage.setItem('halloween.skin', selectedSkinId); } }
+  const isSmall = () => matchMedia('(max-width:600px)').matches;
 
-  /* ---------- 2×2 grid with paging ---------- */
+  /* ---------- grid / carousel DOM ---------- */
   const skinsGrid=document.getElementById('skinsGrid');
   const navLeft=document.getElementById('navLeft');
   const navRight=document.getElementById('navRight');
@@ -504,9 +462,39 @@ Best,
     const thumb=(s.kind==='image') ? `<img src="${s.url}" alt="${s.name}"/>` : `<img id="prev_${id}" alt="${s.name}"/>`;
     return `<div class="skin" data-skin="${id}">${thumb}<div><div class="label">${s.name}</div><div class="subtle">${s.desc||''}</div></div></div>`;
   }
+  function skinCardLarge(id){
+    const s=SKINS[id];
+    const thumb=(s.kind==='image') ? `<img src="${s.url}" alt="${s.name}"/>` : `<img id="prev_${id}" alt="${s.name}"/>`;
+    return `<div class="skin" data-skin="${id}" style="min-height:78px">${thumb}<div><div class="label">${s.name}</div><div class="subtle">${s.desc||''}</div></div></div>`;
+  }
 
+  function updateNav(){
+    navLeft.removeAttribute('disabled'); navRight.removeAttribute('disabled');
+    if(!isSmall()){
+      if(currentPage<=0) navLeft.setAttribute('disabled','');
+      if(currentPage>=totalPages-1) navRight.setAttribute('disabled','');
+    }
+  }
+
+  function refreshLocksAndSelection(){
+    const best=Number(localStorage.getItem('halloween.best')||0);
+    skinsGrid.querySelectorAll('.skin').forEach(el=>{
+      const id=el.dataset.skin, isUnlocked=!!unlocked[id];
+      el.classList.toggle('selected', id===selectedSkinId);
+      el.classList.toggle('locked', !isUnlocked);
+      let lock=el.querySelector('.lock');
+      if(!isUnlocked){
+        if(!lock){ lock=document.createElement('div'); lock.className='lock'; el.appendChild(lock); }
+        lock.innerHTML=`🔒 Reach ${UNLOCKS[id]} score<div class="subtle">${best}/${UNLOCKS[id]}</div>`;
+      } else if(lock){ lock.remove(); }
+    });
+  }
+
+  // ----- Desktop: 2×2 page
   function buildPage(){
+    if(isSmall()) return buildMobileCarousel();
     ensureValidSelection();
+    skinsGrid.classList.remove('single');
     const start=currentPage*ITEMS_PER_PAGE;
     const pageIds=SKINS_ORDER.slice(start,start+ITEMS_PER_PAGE);
     skinsGrid.innerHTML=pageIds.map(skinCard).join('');
@@ -528,34 +516,53 @@ Best,
     refreshLocksAndSelection(); updateNav();
   }
 
-  function updateNav(){
-    navLeft.removeAttribute('disabled'); navRight.removeAttribute('disabled');
-    if(currentPage<=0) navLeft.setAttribute('disabled','');
-    if(currentPage>=totalPages-1) navRight.setAttribute('disabled','');
+  // ----- Mobile: single-card carousel
+  let currentMobileIndex = Math.max(0, SKINS_ORDER.indexOf(selectedSkinId));
+  function gotoIdx(i){
+    const n=SKINS_ORDER.length;
+    currentMobileIndex = ( (i % n) + n ) % n;
+    selectedSkinId = SKINS_ORDER[currentMobileIndex];
+    localStorage.setItem('halloween.skin', selectedSkinId);
+    buildMobileCarousel();
+  }
+  function buildMobileCarousel(){
+    ensureValidSelection();
+    skinsGrid.classList.add('single');
+    if (currentMobileIndex < 0) currentMobileIndex = Math.max(0, SKINS_ORDER.indexOf(selectedSkinId));
+    const id = SKINS_ORDER[currentMobileIndex] || selectedSkinId;
+    skinsGrid.innerHTML = skinCardLarge(id);
+    refreshLocksAndSelection(); updateNav();
   }
 
-  function refreshLocksAndSelection(){
-    const best=Number(localStorage.getItem('halloween.best')||0);
-    skinsGrid.querySelectorAll('.skin').forEach(el=>{
-      const id=el.dataset.skin, isUnlocked=!!unlocked[id];
-      el.classList.toggle('selected', id===selectedSkinId);
-      el.classList.toggle('locked', !isUnlocked);
-      let lock=el.querySelector('.lock');
-      if(!isUnlocked){
-        if(!lock){ lock=document.createElement('div'); lock.className='lock'; el.appendChild(lock); }
-        lock.innerHTML=`🔒 Reach ${UNLOCKS[id]} score<div class="subtle">${best}/${UNLOCKS[id]}</div>`;
-      } else if(lock){ lock.remove(); }
-    });
-  }
-
+  // Click selection (both modes)
   skinsGrid.addEventListener('click',e=>{
     const item=e.target.closest('.skin'); if(!item) return;
     const id=item.dataset.skin; if(!unlocked[id]) return;
     selectedSkinId=id; localStorage.setItem('halloween.skin',id); refreshLocksAndSelection();
   });
 
-  navRight.addEventListener('click',()=>{ if(currentPage<totalPages-1){ currentPage++; buildPage(); } });
-  navLeft .addEventListener('click',()=>{ if(currentPage>0){ currentPage--; buildPage(); } });
+  // Chevrons: mobile = carousel; desktop = pager
+  navRight.addEventListener('click', () => {
+    if (isSmall()) { gotoIdx(currentMobileIndex + 1); }
+    else { if (currentPage < totalPages - 1) { currentPage++; buildPage(); } }
+  });
+  navLeft.addEventListener('click', () => {
+    if (isSmall()) { gotoIdx(currentMobileIndex - 1); }
+    else { if (currentPage > 0) { currentPage--; buildPage(); } }
+  });
+
+  // Swipe (mobile)
+  let touchX=null;
+  skinsGrid.addEventListener('pointerdown', (e)=>{ if(!isSmall()) return; touchX=e.clientX; });
+  skinsGrid.addEventListener('pointerup', (e)=>{
+    if(!isSmall() || touchX==null) return;
+    const dx=e.clientX - touchX;
+    if(Math.abs(dx)>30){ if(dx<0) gotoIdx(currentMobileIndex+1); else gotoIdx(currentMobileIndex-1); }
+    touchX=null;
+  });
+
+  // Rebuild when screen size crosses breakpoint
+  addEventListener('resize', ()=>{ buildPage(); });
 
   buildPage();
 
@@ -622,15 +629,13 @@ Best,
 
   /* ---------- Name helpers ---------- */
   const NAME_KEY = 'halloween.playerName';
-  function randomGuest(){
-    return 'Guest-' + Math.floor(1000 + Math.random()*9000);
-  }
-  function getPlayerName(){
-    return localStorage.getItem(NAME_KEY) || '';
-  }
+  function randomGuest(){ return 'Guest-' + Math.floor(1000 + Math.random()*9000); }
+  function getPlayerName(){ return localStorage.getItem(NAME_KEY) || ''; }
   function setPlayerName(n){
     localStorage.setItem(NAME_KEY, n);
-    playerBadge.textContent = 'Player: ' + n;
+    const label = 'Player: ' + n;
+    playerBadge.textContent = label;
+    playerInlineBadge.textContent = label;
   }
   function ensureNamePrompt(){
     const cur = getPlayerName();
@@ -639,32 +644,30 @@ Best,
       nameInput.value = '';
       setTimeout(()=> nameInput.focus(), 50);
     } else {
-      playerBadge.textContent = 'Player: ' + cur;
+      setPlayerName(cur); // ensure both badges sync
     }
   }
+
+  function openNameModal(){ nameInput.value = getPlayerName(); openModal(nameModal); setTimeout(()=> nameInput.focus(), 50); }
 
   saveNameBtn.addEventListener('click', ()=>{
     const v = nameInput.value.trim().slice(0,20);
     if(!v){ nameInput.focus(); return; }
-    setPlayerName(v);
-    closeModal(nameModal);
+    setPlayerName(v); closeModal(nameModal);
   });
   skipNameBtn.addEventListener('click', ()=>{
     const v = randomGuest();
     setPlayerName(v);
     closeModal(nameModal);
   });
-  changeNameBtn.addEventListener('click', ()=> {
-    nameInput.value = getPlayerName();
-    openModal(nameModal);
-    setTimeout(()=> nameInput.focus(), 50);
-  });
+  changeNameBtn.addEventListener('click', openNameModal);
+  changeNameInlineBtn.addEventListener('click', openNameModal);
 
   /* ---------- Score submit / leaderboard ---------- */
   async function submitScore(){
     try{
       const name = getPlayerName() || randomGuest();
-      setPlayerName(name); // ensure badge shows something
+      setPlayerName(name);
 
       const payload = {
         userid: getUserId(),
@@ -681,106 +684,120 @@ Best,
 
       const data = await res.json().catch(()=>null);
       if (data && data.ok){
-        console.log('[submit]', data.action, 'best =', data.best);
         if (typeof data.best === 'number' && data.best > state.best){
           state.best = data.best;
           localStorage.setItem('halloween.best', String(data.best));
           bestEl.textContent = data.best;
         }
-      } else {
-        console.warn('[submit] unexpected response', data);
       }
-    }catch(e){ console.warn('[submit] network error', e); }
+    }catch(e){}
+  }
+
+  // Try several likely endpoints to fetch the user's ranked row
+  async function fetchMyRow(userid){
+    const tries = [
+      `${API_BASE}/around/${encodeURIComponent(userid)}`,
+      `${API_BASE}/rank?userid=${encodeURIComponent(userid)}`,
+      `${API_BASE}/me?userid=${encodeURIComponent(userid)}`,
+    ];
+    for (const url of tries){
+      try{
+        const r = await fetch(url);
+        if(!r.ok) continue;
+        const json = await r.json();
+        if (json && (json.userid || (json.row && json.row.userid))){
+          return json.row || json;
+        }
+      }catch(_){}
+    }
+    return null;
   }
 
   async function loadLeaderboard(){
     try{
-      const r = await fetch(API_BASE + '/top');
+      const r = await fetch(API_BASE + '/top');   // expected Top N (e.g., 20)
       const data = await r.json();
       const rows = (data && data.rows) ? data.rows : [];
-      renderLeaderboard(rows);
+      const myId = getUserId();
+
+      const inTop = rows.some(x => (x.userid || x.userId || x.user_id) === myId);
+      let myRow = null;
+      if(!inTop){ myRow = await fetchMyRow(myId); }
+      renderLeaderboard(rows, myRow);
     }catch(e){
       lbBody.innerHTML = `<div style="opacity:.8">Could not load leaderboard.</div>`;
     }
   }
 
-function renderLeaderboard(rows) {
-  if (!rows || !rows.length) {
-    lbBody.innerHTML = `<div style="opacity:.8">No scores yet — be the first! 🎃</div>`;
-    return;
-  }
-
-  // ---- who am I?
-  const myId = getUserId();
-  const myNameRaw = (getPlayerName() || '').trim();
-
-  // normalizer for safe name matching
-  const norm = s => (s || '')
-    .toString()
-    .trim()
-    .toLowerCase()
-    .replace(/\s+/g, ' ');
-
-  const myName = norm(myNameRaw);
-
-  // find best match index
-  let youIndex = -1;
-
-  // 1) Try reliable userid match (if API provides it)
-  for (let i = 0; i < rows.length; i++) {
-    const rid = rows[i].userid || rows[i].userId || rows[i].user_id;
-    if (rid && rid === myId) { youIndex = i; break; }
-  }
-
-  // 2) If no userid match, fall back to normalized name match
-  if (youIndex === -1 && myName) {
-    // collect all matches (in case of duplicates)
-    const matches = rows
-      .map((r, i) => ({ i, r }))
-      .filter(x => norm(x.r.name || x.r.user) === myName);
-
-    if (matches.length) {
-      // pick the highest score among the name matches
-      matches.sort((a, b) => (b.r.score || 0) - (a.r.score || 0));
-      youIndex = matches[0].i;
+  function renderLeaderboard(rows, myRow){
+    if (!rows || !rows.length) {
+      lbBody.innerHTML = `<div style="opacity:.8">No scores yet — be the first! 🎃</div>`;
+      return;
     }
+
+    const myId = getUserId();
+    const norm = s => (s||'').toString().trim().toLowerCase().replace(/\s+/g,' ');
+    const myName = norm(getPlayerName() || '');
+
+    let youIndex = -1;
+    for (let i = 0; i < rows.length; i++) {
+      const rid = rows[i].userid || rows[i].userId || rows[i].user_id;
+      if (rid && rid === myId) { youIndex = i; break; }
+    }
+    if (youIndex === -1 && myName) {
+      const matches = rows
+        .map((r, i) => ({ i, r }))
+        .filter(x => norm(x.r.name || x.r.user) === myName)
+        .sort((a, b) => (b.r.score || 0) - (a.r.score || 0));
+      if (matches.length) youIndex = matches[0].i;
+    }
+
+    const topHtml = rows.map((r, i) => {
+      const name = (r.name || r.user || 'Player').trim();
+      const isYou = (i === youIndex);
+      return `
+        <div class="lb-row${isYou ? ' you' : ''}">
+          <div class="lb-rank">${r.rank ?? (i + 1)}</div>
+          <div class="lb-name">${name}${isYou ? ' <span class="lb-you">(you)</span>' : ''}</div>
+          <div class="lb-score">${r.score}</div>
+        </div>`;
+    }).join('');
+
+    const extraHtml = (!~youIndex && myRow)
+      ? `
+        <div style="opacity:.7;text-align:center;margin-top:6px;margin-bottom:-2px">— your position —</div>
+        <div class="lb-row you">
+          <div class="lb-rank">${myRow.rank ?? '•'}</div>
+          <div class="lb-name">${(myRow.name || 'You').trim()} <span class="lb-you">(you)</span></div>
+          <div class="lb-score">${myRow.score}</div>
+        </div>`
+      : '';
+
+    lbBody.innerHTML = `
+      <style>
+        .lb-wrap{display:grid;gap:8px;max-height:min(46vh,420px);overflow:auto;padding-right:4px}
+        .lb-row{display:grid;grid-template-columns:60px 1fr auto;gap:10px;align-items:center;
+                padding:8px 10px;border:1px solid rgba(255,255,255,.12);border-radius:10px;
+                background:rgba(255,255,255,.04)}
+        .lb-row.you{
+          border-color:#c9e265;
+          box-shadow:0 0 0 2px rgba(201,226,101,.25) inset, 0 0 18px rgba(201,226,101,.15);
+          background:linear-gradient(0deg, rgba(201,226,101,.14), rgba(201,226,101,.08));
+        }
+        .lb-rank{font-weight:800;font-variant-numeric:tabular-nums}
+        .lb-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+        .lb-you{font-weight:800;opacity:.95;margin-left:4px;color:#c9e265}
+        .lb-score{font-variant-numeric:tabular-nums;font-weight:800}
+      </style>
+      <div class="lb-wrap">
+        ${topHtml}
+        ${extraHtml}
+      </div>
+    `;
+
+    const youEl = lbBody.querySelector('.lb-row.you');
+    if (youEl) setTimeout(() => youEl.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60);
   }
-
-  // UI
-  lbBody.innerHTML = `
-    <style>
-      .lb-wrap{display:grid;gap:8px;max-height:min(46vh,420px);overflow:auto;padding-right:4px}
-      .lb-row{display:grid;grid-template-columns:40px 1fr auto;gap:10px;align-items:center;
-              padding:8px 10px;border:1px solid rgba(255,255,255,.12);border-radius:10px;
-              background:rgba(255,255,255,.04)}
-      .lb-row.you{
-        border-color:#c9e265;
-        box-shadow:0 0 0 2px rgba(201,226,101,.25) inset, 0 0 18px rgba(201,226,101,.15);
-        background:linear-gradient(0deg, rgba(201,226,101,.14), rgba(201,226,101,.08));
-      }
-      .lb-rank{font-weight:800}
-      .lb-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-      .lb-you{font-weight:800;opacity:.95;margin-left:4px;color:#c9e265}
-      .lb-score{font-variant-numeric:tabular-nums;font-weight:800}
-    </style>
-    <div class="lb-wrap">
-      ${rows.map((r, i) => {
-        const name = (r.name || r.user || 'Player').trim();
-        const isYou = (i === youIndex);
-        return `
-          <div class="lb-row${isYou ? ' you' : ''}">
-            <div class="lb-rank">${i + 1}</div>
-            <div class="lb-name">${name}${isYou ? ' <span class="lb-you">(you)</span>' : ''}</div>
-            <div class="lb-score">${r.score}</div>
-          </div>`;
-      }).join('')}
-    </div>
-  `;
-
-  // auto-scroll your row into view
-  const youEl = lbBody.querySelector('.lb-row.you');
-  if (youEl) setTimeout(() => youEl.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60);
-}
 
   lbBtn.addEventListener('click', ()=>{ openModal(lbModal); lbBody.innerHTML='Loading…'; loadLeaderboard(); });
 
@@ -871,78 +888,21 @@ function renderLeaderboard(rows) {
     shake*=0.9; flash*=0.85;
   }
 
-  /* ---------- COLOR HELPERS ---------- */
-  function hexToHsl(hex){
-    hex = hex.replace('#','');
-    if (hex.length===3) hex = hex.split('').map(c=>c+c).join('');
-    const r = parseInt(hex.slice(0,2),16)/255;
-    const g = parseInt(hex.slice(2,4),16)/255;
-    const b = parseInt(hex.slice(4,6),16)/255;
-    const max=Math.max(r,g,b), min=Math.min(r,g,b);
-    let h,s,l=(max+min)/2;
-    if(max===min){ h=s=0; }
-    else{
-      const d=max-min;
-      s = l>0.5 ? d/(2-max-min) : d/(max+min);
-      switch(max){
-        case r: h=(g-b)/d+(g<b?6:0); break;
-        case g: h=(b-r)/d+2; break;
-        case b: h=(r-g)/d+4; break;
-      }
-      h/=6;
-    }
-    return {h,s,l};
-  }
-  function hslToHex(h,s,l){
-    function hue2rgb(p,q,t){ if(t<0) t+=1; if(t>1) t-=1;
-      if(t<1/6) return p+(q-p)*6*t;
-      if(t<1/2) return q;
-      if(t<2/3) return p+(q-p)*(2/3 - t)*6;
-      return p;
-    }
-    let r,g,b;
-    if(s===0){ r=g=b=l; }
-    else{
-      const q=l<0.5? l*(1+s) : l+s-l*s;
-      const p=2*l-q;
-      r=hue2rgb(p,q,h+1/3);
-      g=hue2rgb(p,q,h);
-      b=hue2rgb(p,q,h-1/3);
-    }
-    const toHex = x => ('0'+Math.round(x*255).toString(16)).slice(-2);
-    return '#'+toHex(r)+toHex(g)+toHex(b);
-  }
+  /* ---------- BG + draw helpers (unchanged) ---------- */
+  function hexToHsl(hex){ hex = hex.replace('#',''); if (hex.length===3) hex = hex.split('').map(c=>c+c).join(''); const r=parseInt(hex.slice(0,2),16)/255,g=parseInt(hex.slice(2,4),16)/255,b=parseInt(hex.slice(4,6),16)/255; const max=Math.max(r,g,b),min=Math.min(r,g,b); let h,s,l=(max+min)/2; if(max===min){h=s=0;}else{const d=max-min; s=l>0.5?d/(2-max-min):d/(max+min); switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;} h/=6;} return {h,s,l}; }
+  function hslToHex(h,s,l){ function hue2rgb(p,q,t){ if(t<0) t+=1; if(t>1) t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3 - t)*6; return p; } let r,g,b; if(s===0){ r=g=b=l; } else{ const q=l<0.5? l*(1+s) : l+s-l*s; const p=2*l-q; r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);} const toHex = x => ('0'+Math.round(x*255).toString(16)).slice(-2); return '#'+toHex(r)+toHex(g)+toHex(b); }
   const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
   const lerp  = (a,b,t)=> a+(b-a)*t;
-  function lerpHSL(hexA, hexB, t){
-    const a=hexToHsl(hexA), b=hexToHsl(hexB);
-    let dh = b.h-a.h;
-    if (dh >  0.5) dh -= 1;
-    if (dh < -0.5) dh += 1;
-    const h = (a.h + dh*t + 1) % 1;
-    const s = lerp(a.s,b.s,t);
-    const l = lerp(a.l,b.l,t);
-    return hslToHex(h,s,l);
-  }
+  function lerpHSL(hexA, hexB, t){ const a=hexToHsl(hexA), b=hexToHsl(hexB); let dh=b.h-a.h; if (dh>0.5) dh-=1; if (dh<-0.5) dh+=1; const h=(a.h + dh*t + 1) % 1; const s=lerp(a.s,b.s,t); const l=lerp(a.l,b.l,t); return hslToHex(h,s,l); }
 
-  /* ---------- DYNAMIC BG PALETTE ---------- */
-  const BG_PALETTES = [
-    ['#1a1030', '#0b0f1a'],
-    ['#1b1338', '#0c1220'],
-    ['#23194a', '#0d1426'],
-    ['#3b1f6b', '#11152a'],
-    ['#ff7a18', '#a83d00'],
-    ['#103054', '#0b0f1a']
-  ];
-  const BRAND_GREEN = '#c9e265';
-  const BRAND_BLUE  = '#6dc1f6';
-
+  const BG_PALETTES = [['#1a1030','#0b0f1a'],['#1b1338','#0c1220'],['#23194a','#0d1426'],['#3b1f6b','#11152a'],['#ff7a18','#a83d00'],['#103054','#0b0f1a']];
+  const BRAND_GREEN = '#c9e265'; const BRAND_BLUE  = '#6dc1f6';
   const HILL_LAYERS=isMobile?4:6;
+
   function drawBackground(){
     const scoreNorm = clamp(state.score / 300, 0, 1);
     const timePulse = (Math.sin(state.time / 16000) + 1) * 0.04;
-    const LOOP_THRESHOLD = 0.98;
-    const LOOP_SPEED     = 0.000025;
+    const LOOP_THRESHOLD = 0.98, LOOP_SPEED = 0.000025;
 
     let p = clamp(scoreNorm + timePulse, 0, 0.999);
     if (scoreNorm >= LOOP_THRESHOLD) {
@@ -1094,7 +1054,7 @@ function renderLeaderboard(rows) {
     for(const id in UNLOCKS){ if(!unlocked[id] && s>=UNLOCKS[id]){ unlocked[id]=true; localStorage.setItem('halloween.unlocked',JSON.stringify(unlocked)); setTimeout(()=>toast(`🎉 New Skin Unlocked: ${SKINS[id].name}!`),120); } }
     refreshLocksAndSelection();
     scoreEl.textContent=s; rewardMsg.classList.toggle('hidden', s<120);
-    submitScore(); // ✅ send to leaderboard / DB
+    submitScore();
     startPanel.classList.add('hidden'); overPanel.classList.remove('hidden');
   }
 
@@ -1178,7 +1138,6 @@ function renderLeaderboard(rows) {
   function setHintText(){
     inputHintText.textContent = isMobile ? 'Tap to Jump 🎃' : 'Press Space or ↑ to Jump 🎃';
   }
-
   function showInputHint(){
     setHintText();
     inputHint.setAttribute('aria-hidden','false');
@@ -1186,21 +1145,16 @@ function renderLeaderboard(rows) {
     clearTimeout(hintTimeoutId);
     hintTimeoutId = setTimeout(()=> dismissInputHint(true), 10000);
   }
-
   function hideInputHint(){
     inputHint.classList.remove('show');
     inputHint.setAttribute('aria-hidden','true');
     clearTimeout(hintTimeoutId);
   }
-
   function dismissInputHint(markSeen){
     if(!inputHint.classList.contains('show')) return;
     hideInputHint();
-    if(markSeen){
-      try{ localStorage.setItem(HINT_KEY,'1'); }catch(e){}
-    }
+    if(markSeen){ try{ localStorage.setItem(HINT_KEY,'1'); }catch(e){} }
   }
-
   function maybeShowInputHint(){
     const seen = localStorage.getItem(HINT_KEY) === '1';
     if(seen) return;
