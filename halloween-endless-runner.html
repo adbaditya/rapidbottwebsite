@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Halloween Haunted Run</title>
 
-<!-- Preload arts (players + pumpkins) test--> 
+<!-- Preload art (players + pumpkins) test--> 
 <link rel="preload" as="image" href="https://static.wixstatic.com/media/526e04_f384930b6471431fbfc62bd5e46616cb~mv2.png" />
 <link rel="preload" as="image" href="https://static.wixstatic.com/media/526e04_ecfdec596ba947568734ddfd967e16b8~mv2.png" />
 <link rel="preload" as="image" href="https://static.wixstatic.com/media/526e04_1560b2cae1bb432a873ef31f0b391b5f~mv2.png" />
@@ -150,7 +150,7 @@
     }
     #lbBtn{ justify-self: end; padding: 6px 10px; font-size: 12px; border-radius: 9px; }
     .controls{ flex-wrap: wrap; gap: 8px 10px; padding: 8px 10px 10px; }
-    .footer{ grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
+    .footer{ grid-template-columns: 1 fr 1fr; gap: 6px 10px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
     .footer > div:first-child{ grid-column: 1 / -1; }
     .tnc-row{ justify-content: flex-start; }
     .footer > div[style*="Music track"]{ justify-self: end; }
@@ -536,17 +536,20 @@
     const id=item.dataset.skin; if(!unlocked[id]) return;
     const changed = id !== selectedSkinId;
     selectedSkinId=id; localStorage.setItem('halloween.skin',id); refreshLocksAndSelection();
-    // NEW: selection SFX
+    // selection SFX
     if (changed){ initAudio(); uiClick && uiClick(); }
   });
 
+  // PAGER BUTTONS — now with SFX
   navRight.addEventListener('click', () => {
     if (isSmall()) { gotoIdx(currentMobileIndex + 1); }
     else { if (currentPage < totalPages - 1) { currentPage++; buildPage(); } }
+    initAudio(); uiClick && uiClick();
   });
   navLeft.addEventListener('click', () => {
     if (isSmall()) { gotoIdx(currentMobileIndex - 1); }
     else { if (currentPage > 0) { currentPage--; buildPage(); } }
+    initAudio(); uiClick && uiClick();
   });
 
   let touchX=null;
@@ -579,11 +582,11 @@
       o.type=t;o.frequency.value=f;o.connect(gn);gn.connect(audioCtx.destination);
       gn.gain.value=g;o.start();setTimeout(()=>o.stop(),d*1000); 
     };
-    // existing
+    // gameplay SFX
     jumpOsc=mk(520,'square',.08,.03); 
     coinOsc=mk(850,'triangle',.09,.04);
 
-    // NEW: UI select two-note plink
+    // UI select two-note plink
     uiClick=()=>{ 
       if(!soundToggle.checked) return;
       const t=audioCtx.currentTime;
@@ -599,11 +602,10 @@
       o2.start(t+0.08); o2.stop(t+0.16);
     };
 
-    // NEW: Start button whoosh/confirm
+    // Start button whoosh/confirm
     uiStart=()=>{
       if(!soundToggle.checked) return;
       const t=audioCtx.currentTime;
-      // whoosh sweep
       const g=audioCtx.createGain(); g.connect(audioCtx.destination);
       g.gain.setValueAtTime(0.0001, t);
       g.gain.exponentialRampToValueAtTime(0.12, t+0.05);
@@ -618,7 +620,6 @@
       o.start(t);
       o.stop(t+0.36);
 
-      // soft click accent
       const o2=audioCtx.createOscillator(), g2=audioCtx.createGain();
       o2.type='square'; o2.frequency.setValueAtTime(1200, t+0.02);
       g2.gain.setValueAtTime(0.0001, t+0.02);
@@ -1149,7 +1150,7 @@
       return;
     }
     initAudio(); 
-    uiStart && uiStart(); // NEW: start button SFX
+    uiStart && uiStart(); // start button SFX
     startPanel.classList.add('hidden'); overPanel.classList.add('hidden'); tapZone.classList.add('active'); 
     clearInterval(tipTimer); 
     reset();
