@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Halloween Haunted Run</title>
 
-<!-- Preload art (players + pumpkins) test--> 
+<!-- Preload art (players + pumpkins) -->
 <link rel="preload" as="image" href="https://static.wixstatic.com/media/526e04_f384930b6471431fbfc62bd5e46616cb~mv2.png" />
 <link rel="preload" as="image" href="https://static.wixstatic.com/media/526e04_ecfdec596ba947568734ddfd967e16b8~mv2.png" />
 <link rel="preload" as="image" href="https://static.wixstatic.com/media/526e04_1560b2cae1bb432a873ef31f0b391b5f~mv2.png" />
@@ -44,7 +44,7 @@
   .hidden{display:none !important}
   .coupon{color:var(--accent);font-weight:800;letter-spacing:1px}
 
-  .tap-zone{position:absolute;inset:0;z-index:2;pointer-events:none}
+  .tap-zone{position:absolute;inset:0;z-index:2;pointer-events:none; touch-action: manipulation; -webkit-user-select: none; user-select: none;}
   .tap-zone.active{pointer-events:auto}
 
   /* Character grid & mobile carousel */
@@ -101,7 +101,7 @@
     #playerBox{ display:none; }
   }
 
-  /* Modals (raise z-index so Leaderboard always opens on top) */
+  /* Modals */
   .modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:9999; }
   .modal.show{ display:flex; }
   .modal .backdrop{ position:absolute; inset:0; background:rgba(0,0,0,.55); backdrop-filter: blur(3px); }
@@ -145,7 +145,7 @@
     .header .hud{
       flex: 1 0 100%;
       display: grid; grid-auto-flow: column;
-      grid-template-columns: auto auto auto 1fr;
+      grid-template-columns: auto auto auto auto 1fr;
       align-items: center; column-gap: 10px; row-gap: 6px; font-size: 13px;
     }
     #lbBtn{ justify-self: end; padding: 6px 10px; font-size: 12px; border-radius: 9px; }
@@ -154,6 +154,19 @@
     .footer > div:first-child{ grid-column: 1 / -1; }
     .tnc-row{ justify-content: flex-start; }
     .footer > div[style*="Music track"]{ justify-self: end; }
+  }
+
+  /* Device badge style */
+  .device-badge{
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:999px;
+    border:1px solid rgba(255,255,255,.22);
+    background:linear-gradient(90deg,rgba(201,226,101,.18),rgba(109,193,246,.18));
+    font-weight:800;
+    letter-spacing:.3px;
+    white-space:nowrap;
+    display:flex; align-items:center; gap:6px;
   }
 </style>
 </head>
@@ -166,6 +179,7 @@
           <div>Score: <span id="score">0</span></div>
           <div>Best: <span id="best">0</span></div>
           <div>Pumpkins: <span id="pumpkins">0</span> 🎃</div>
+          <div id="deviceIcon" class="device-badge" aria-label="Device">…</div>
           <button id="lbBtn" class="ghost-btn">🏆 Leaderboard</button>
         </div>
       </div>
@@ -391,6 +405,60 @@
 
   const tncBtn = document.getElementById('tncBtn');
   const tncModal = document.getElementById('tncModal');
+
+  /* === Device badge elements & logic === */
+  const deviceIconEl = document.getElementById('deviceIcon');
+
+  function deviceType(){
+    const ua = (navigator.userAgent || '').toLowerCase();
+    const coarse = matchMedia('(pointer:coarse)').matches;
+    const w = Math.max(window.screen?.width || 0, window.innerWidth || 0);
+    const h = Math.max(window.screen?.height || 0, window.innerHeight || 0);
+    const minDim = Math.min(w, h);
+    const isiPad = /ipad|macintosh/.test(ua) && 'ontouchend' in document;
+    const isAndroid = /android/.test(ua);
+
+    if (coarse || isiPad || isAndroid){
+      if (isiPad || minDim >= 700) return 'tablet';
+      return 'mobile';
+    }
+    return 'desktop';
+  }
+
+  function deviceSVG(kind, size=16){
+    const s = String(size);
+    if (kind === 'mobile') {
+      return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" role="img">
+        <rect x="7" y="2" width="10" height="20" rx="2" fill="currentColor" opacity=".15"/>
+        <rect x="8.5" y="3.5" width="7" height="15" rx="1" stroke="currentColor" fill="none" stroke-width="1.5"/>
+        <circle cx="12" cy="20" r="1" fill="currentColor"/>
+      </svg>`;
+    }
+    if (kind === 'tablet') {
+      return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" role="img">
+        <rect x="3" y="3" width="18" height="18" rx="2.5" fill="currentColor" opacity=".15"/>
+        <rect x="4.5" y="4.5" width="15" height="15" rx="2" stroke="currentColor" fill="none" stroke-width="1.5"/>
+        <circle cx="12" cy="19" r="1" fill="currentColor"/>
+      </svg>`;
+    }
+    return `<svg width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true" role="img">
+      <rect x="3" y="4" width="18" height="12" rx="2" fill="currentColor" opacity=".15"/>
+      <rect x="4.5" y="5.5" width="15" height="9" rx="1.2" stroke="currentColor" fill="none" stroke-width="1.5"/>
+      <rect x="10" y="17" width="4" height="2.5" rx="0.6" fill="currentColor"/>
+    </svg>`;
+  }
+
+  function setDeviceBadge(){
+    const kind = deviceType();
+    if (deviceIconEl){
+      deviceIconEl.innerHTML = deviceSVG(kind, 14) + ' ' + (kind === 'mobile' ? 'Mobile' : kind === 'tablet' ? 'Tablet' : 'Desktop');
+      deviceIconEl.setAttribute('title',
+        kind === 'desktop' ? 'Desktop controls: Space / ↑' : 'Mobile/Tablet: tap / double-tap');
+    }
+  }
+  setDeviceBadge();
+  addEventListener('resize', setDeviceBadge);
+  addEventListener('orientationchange', setDeviceBadge);
 
   /* ---------- music ---------- */
   const bgMusic=new Audio('https://rapidbott.s3.us-east-005.backblazeb2.com/Rapidbott+Builder+Resources/Aetheric+Haunted+House+Halloween+Music.mp3');
@@ -664,7 +732,8 @@
         userid: getUserId(),
         name,
         score: Math.floor(state.score),
-        pumpkins: state.pumpkins
+        pumpkins: state.pumpkins,
+        device: deviceType()   // NEW: include device
       };
 
       const res = await fetch(API_BASE + '/submit', {
@@ -743,11 +812,16 @@
     const topHtml = rows.map((r, i) => {
       const name = (r.name || r.user || 'Player').trim();
       const isYou = (i === youIndex);
+      const device = (r.device || '').toString() || 'desktop';
+      const pumpkins = Number(r.pumpkins || 0);
+
       return `
         <div class="lb-row${isYou ? ' you' : ''}">
           <div class="lb-rank">${r.rank ?? (i + 1)}</div>
+          <div class="lb-device">${deviceSVG(device,16)}</div>
           <div class="lb-name">${name}${isYou ? ' <span class="lb-you">(you)</span>' : ''}</div>
-          <div class="lb-score">${r.score}</div>
+          <div class="lb-pumpkins" title="Pumpkins">${pumpkins}</div>
+          <div class="lb-score" title="Score">${r.score}</div>
         </div>`;
     }).join('');
 
@@ -756,7 +830,9 @@
         <div style="opacity:.7;text-align:center;margin-top:6px;margin-bottom:-2px">— your position —</div>
         <div class="lb-row you">
           <div class="lb-rank">${myRow.rank ?? '•'}</div>
+          <div class="lb-device">${deviceSVG((myRow.device || 'desktop'),16)}</div>
           <div class="lb-name">${(myRow.name || 'You').trim()} <span class="lb-you">(you)</span></div>
+          <div class="lb-pumpkins">${Number(myRow.pumpkins || 0)}</div>
           <div class="lb-score">${myRow.score}</div>
         </div>`
       : '';
@@ -764,18 +840,24 @@
     lbBody.innerHTML = `
       <style>
         .lb-wrap{display:grid;gap:8px;max-height:min(46vh,420px);overflow:auto;padding-right:4px}
-        .lb-row{display:grid;grid-template-columns:60px 1fr auto;gap:10px;align-items:center;
-                padding:8px 10px;border:1px solid rgba(255,255,255,.12);border-radius:10px;
-                background:rgba(255,255,255,.04)}
+        .lb-row{
+          display:grid;
+          grid-template-columns:54px 24px 1fr auto auto; /* rank | device | name | pumpkins | score */
+          gap:10px; align-items:center;
+          padding:8px 10px;border:1px solid rgba(255,255,255,.12);border-radius:10px;
+          background:rgba(255,255,255,.04)
+        }
         .lb-row.you{
           border-color:#c9e265;
           box-shadow:0 0 0 2px rgba(201,226,101,.25) inset, 0 0 18px rgba(201,226,101,.15);
           background:linear-gradient(0deg, rgba(201,226,101,.14), rgba(201,226,101,.08));
         }
         .lb-rank{font-weight:800;font-variant-numeric:tabular-nums}
+        .lb-device{display:flex;align-items:center;justify-content:center;color:#c9e265}
         .lb-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
         .lb-you{font-weight:800;opacity:.95;margin-left:4px;color:#c9e265}
-        .lb-score{font-variant-numeric:tabular-nums;font-weight:800}
+        .lb-pumpkins,.lb-score{font-variant-numeric:tabular-nums;font-weight:800; white-space:nowrap}
+        .lb-pumpkins::after{ content:" 🎃"; opacity:.9; margin-left:3px; }
       </style>
       <div class="lb-wrap">
         ${topHtml}
@@ -885,8 +967,38 @@
   }
 
   /* ---------- BG + draw helpers ---------- */
-  function hexToHsl(hex){ hex = hex.replace('#',''); if (hex.length===3) hex = hex.split('').map(c=>c+c).join(''); const r=parseInt(hex.slice(0,2),16)/255,g=parseInt(hex.slice(2,4),16)/255,b=parseInt(hex.slice(4,6),16)/255; const max=Math.max(r,g,b),min=Math.min(r,g,b); let h,s,l=(max+min)/2; if(max===min){h=s=0;}else{const d=max-min; s=l>0.5?d/(2-max-min):d/(max+min); switch(max){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;case b:h=(r-g)/d+4;break;} h/=6;} return {h,s,l}; }
-  function hslToHex(h,s,l){ function hue2rgb(p,q,t){ if(t<0) t+=1; if(t>1) t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3 - t)*6; return p; } let r,g,b; if(s===0){ r=g=b=l; } else{ const q=l<0.5? l*(1+s) : l+s-l*s; const p=2*l-q; r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);} const toHex = x => ('0'+Math.round(x*255).toString(16)).slice(-2); return '#'+toHex(r)+toHex(g)+toHex(b); }
+  function hexToHsl(hex){
+    hex = hex.replace('#',''); 
+    if (hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+    const r=parseInt(hex.slice(0,2),16)/255,
+          g=parseInt(hex.slice(2,4),16)/255,
+          b=parseInt(hex.slice(4,6),16)/255;
+    const max=Math.max(r,g,b),min=Math.min(r,g,b);
+    let h,s,l=(max+min)/2;
+    if(max===min){h=s=0;}else{
+      const d=max-min;
+      s=l>0.5?d/(2-max-min):d/(max+min);
+      switch(max){
+        case r:h=(g-b)/d+(g<b?6:0);break;
+        case g:h=(b-r)/d+2;break;
+        case b:h=(r-g)/d+4;break;
+      }
+      h/=6;
+    }
+    return {h,s,l};
+  }
+  function hslToHex(h,s,l){
+    function hue2rgb(p,q,t){ if(t<0) t+=1; if(t>1) t-=1; if(t<1/6) return p+(q-p)*6*t; if(t<1/2) return q; if(t<2/3) return p+(q-p)*(2/3 - t)*6; return p; }
+    let r,g,b;
+    if(s===0){ r=g=b=l; }
+    else{
+      const q=l<0.5? l*(1+s) : l+s-l*s;
+      const p=2*l-q;
+      r=hue2rgb(p,q,h+1/3); g=hue2rgb(p,q,h); b=hue2rgb(p,q,h-1/3);
+    }
+    const toHex = x => ('0'+Math.round(x*255).toString(16)).slice(-2);
+    return '#'+toHex(r)+toHex(g)+toHex(b);  /* FIXED: include blue */
+  }
   const clamp = (v,min,max)=> Math.max(min, Math.min(max, v));
   const lerp  = (a,b,t)=> a+(b-a)*t;
   function lerpHSL(hexA, hexB, t){ const a=hexToHsl(hexA), b=hexToHsl(hexB); let dh=b.h-a.h; if (dh>0.5) dh-=1; if (dh<-0.5) dh+=1; const h=(a.h + dh*t + 1) % 1; const s=lerp(a.s,b.s,t); const l=lerp(a.l,b.l,t); return hslToHex(h,s,l); }
@@ -1081,38 +1193,12 @@
   });
   tapZone.addEventListener('pointerdown',()=>{ if(state.running) jump(); });
 
+  /* === Double-tap reliability === */
+  tapZone.addEventListener('dblclick', ()=>{ if(state.running) jump(); }, { passive: true });
+  document.addEventListener('gesturestart', (e)=>{ if(state.running) e.preventDefault(); }, { passive:false });
+
   function togglePause(){ if(!state.running) return; state.paused=!state.paused; pauseBtn.textContent=state.paused?'Resume':'Pause'; if(state.paused) bgMusic.pause(); else if(soundToggle.checked) bgMusic.play().catch(()=>{}); }
   pauseBtn.addEventListener('click',togglePause);
-
-  startBtn.addEventListener('click',()=>{
-    ensureValidSelection();
-    if(!isValidSkin(selectedSkinId)){
-      toast('Please choose your character', '#ff9aa2');
-      return;
-    }
-    initAudio(); 
-    startPanel.classList.add('hidden'); overPanel.classList.add('hidden'); tapZone.classList.add('active'); 
-    clearInterval(tipTimer); 
-    reset();
-    maybeShowInputHint();
-  });
-
-  retryBtn.addEventListener('click',()=>{ overPanel.classList.add('hidden'); reset(); });
-
-  exitBtn.addEventListener('click',()=>{
-    bgMusic.pause();
-    overPanel.classList.add('hidden');
-    startPanel.classList.remove('hidden');
-    tapZone.classList.remove('active');
-    state.running=false; state.paused=false;
-    obstacles.length=0; candies.length=0;
-    scoreEl.textContent='0'; pumpkinsEl.textContent='0';
-    clearInterval(tipTimer); tipTimer=setInterval(renderTip,6000); renderTip();
-    ensureValidSelection(); refreshLocksAndSelection();
-  });
-
-  diffRange.addEventListener('input',()=>{ state.difficulty=Number(diffRange.value); toast(`Difficulty: ${state.difficulty}`); });
-  soundToggle.addEventListener('change',()=>{ if(soundToggle.checked && state.running && !state.paused) bgMusic.play().catch(()=>{}); else bgMusic.pause(); });
 
   /* ---------- modals ---------- */
   function openModal(el){ el.classList.add('show'); el.setAttribute('aria-hidden','false'); document.body.classList.add('modal-open'); const btn=el.querySelector('.close-x'); if(btn) btn.focus(); }
