@@ -587,7 +587,7 @@
     currentMobileIndex = ( (i % n) + n ) % n;
     selectedSkinId = SKINS_ORDER[currentMobileIndex];
     localStorage.setItem('halloween.skin', selectedSkinId);
-    initAudio(); playUiSelect(); // NEW sound
+    initAudio(); playUiSelect(); // UI select sound
     buildMobileCarousel();
   }
   function buildMobileCarousel(){
@@ -604,16 +604,16 @@
     const item=e.target.closest('.skin'); if(!item) return;
     const id=item.dataset.skin; if(!unlocked[id]) return;
     selectedSkinId=id; localStorage.setItem('halloween.skin',id); refreshLocksAndSelection();
-    initAudio(); playUiSelect(); // NEW sound
+    initAudio(); playUiSelect(); // UI select sound
   });
 
   navRight.addEventListener('click', () => {
     if (isSmall()) { gotoIdx(currentMobileIndex + 1); }
-    else { if (currentPage < totalPages - 1) { currentPage++; buildPage(); initAudio(); playUiSelect(); } } // NEW tick on page
+    else { if (currentPage < totalPages - 1) { currentPage++; buildPage(); initAudio(); playUiSelect(); } } // UI select sound
   });
   navLeft.addEventListener('click', () => {
     if (isSmall()) { gotoIdx(currentMobileIndex - 1); }
-    else { if (currentPage > 0) { currentPage--; buildPage(); initAudio(); playUiSelect(); } } // NEW tick on page
+    else { if (currentPage > 0) { currentPage--; buildPage(); initAudio(); playUiSelect(); } } // UI select sound
   });
 
   let touchX=null;
@@ -661,7 +661,7 @@
     coinOsc = mk(850,'triangle',.09,.04);
   }
 
-  // NEW: UI select sound
+  // UI select sound
   function playUiSelect(){
     if(!audioCtx || !soundToggle.checked) return;
     const t = audioCtx.currentTime;
@@ -677,7 +677,7 @@
     o.start(t); o.stop(t + 0.18);
   }
 
-  // NEW: UI confirm sound
+  // UI confirm sound
   function playUiConfirm(){
     if(!audioCtx || !soundToggle.checked) return;
     const t = audioCtx.currentTime;
@@ -1336,7 +1336,7 @@
     if(startPanel.classList.contains('hidden')) showInputHint();
   }
 
-  // === Start / Retry / Exit buttons with sounds ===
+  // Start / Retry / Exit with sounds
   startBtn.addEventListener('click', ()=>{
     initAudio(); playUiConfirm();
     startPanel.classList.add('hidden');
@@ -1353,7 +1353,7 @@
   });
 
   exitBtn.addEventListener('click', ()=>{
-    initAudio(); playUiSelect(); // softer than confirm
+    initAudio(); playUiSelect();
     overPanel.classList.add('hidden');
     startPanel.classList.remove('hidden');
     tapZone.classList.remove('active');
