@@ -36,8 +36,7 @@
   <meta name="twitter:image" content="https://static.wixstatic.com/media/526e04_199158f8bfb44a229bcf15b6ff5c91c7~mv2.jpg" />
   <meta name="twitter:image:alt" content="Halloween Haunted Run game preview" />
 
-
-  <!-- Preload art (players + pumpkins) test-->
+  <!-- Preload art (players + pumpkins) -->
   <link rel="preload" as="image"
     href="https://static.wixstatic.com/media/526e04_f384930b6471431fbfc62bd5e46616cb~mv2.png" />
   <link rel="preload" as="image"
@@ -70,15 +69,9 @@
       color: var(--text);
     }
 
-    body.modal-open {
-      overflow: hidden;
-    }
+    body.modal-open { overflow: hidden; }
 
-    .wrap {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 12px;
-    }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 12px; }
 
     .game-card {
       position: relative;
@@ -90,674 +83,224 @@
     }
 
     .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
       padding: 10px 12px;
       background: linear-gradient(90deg, rgba(201, 226, 101, .08), rgba(109, 193, 246, .08));
     }
 
-    .title {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      font-weight: 700;
-      letter-spacing: .3px;
-      flex-wrap: wrap
-    }
+    .title { display: flex; gap: 8px; align-items: center; font-weight: 700; letter-spacing: .3px; flex-wrap: wrap }
 
     .badge {
-      font-size: 11px;
-      padding: 3px 8px;
-      border-radius: 999px;
+      font-size: 11px; padding: 3px 8px; border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, .22);
       background: linear-gradient(90deg, rgba(201, 226, 101, .2), rgba(109, 193, 246, .2));
-      font-weight: 800;
-      letter-spacing: .3px
+      font-weight: 800; letter-spacing: .3px
     }
 
-    .hud {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      font-variant-numeric: tabular-nums;
-      font-size: 14px
-    }
+    .hud { display: flex; gap: 12px; align-items: center; font-variant-numeric: tabular-nums; font-size: 14px }
 
-    canvas {
-      width: 100%;
-      height: calc(var(--vh) * 62);
-      display: block;
-      background: transparent
-    }
+    canvas { width: 100%; height: calc(var(--vh) * 62); display: block; background: transparent }
 
     @media (max-width:480px) {
-      .wrap {
-        padding: 8px
-      }
-
-      .hud {
-        gap: 8px;
-        font-size: 13px
-      }
-
-      canvas {
-        height: calc(var(--vh) * 70)
-      }
+      .wrap { padding: 8px }
+      .hud { gap: 8px; font-size: 13px }
+      canvas { height: calc(var(--vh) * 70) }
     }
 
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 10px 12px 12px;
-      align-items: center
-    }
+    .controls { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 12px 12px; align-items: center }
 
-    button,
-    .toggle {
-      background: rgba(255, 255, 255, .08);
-      color: var(--text);
+    button, .toggle {
+      background: rgba(255, 255, 255, .08); color: var(--text);
       border: 1px solid rgba(255, 255, 255, .15);
-      padding: 8px 12px;
-      border-radius: 10px;
-      cursor: pointer;
-      backdrop-filter: blur(4px)
+      padding: 8px 12px; border-radius: 10px; cursor: pointer; backdrop-filter: blur(4px)
     }
+    button:hover, .toggle:hover { background: rgba(255, 255, 255, .14) }
 
-    button:hover,
-    .toggle:hover {
-      background: rgba(255, 255, 255, .14)
-    }
-
-    .range {
-      accent-color: var(--accent)
-    }
-
-    .hint {
-      font-size: 12px;
-      opacity: .8
-    }
+    .range { accent-color: var(--accent) }
+    .hint { font-size: 12px; opacity: .8 }
 
     .footer {
       position: relative;
       padding: 8px 12px calc(12px + env(safe-area-inset-bottom));
-      font-size: 12px;
-      opacity: .9;
-      display: grid;
-      gap: 6px
+      font-size: 12px; opacity: .9; display: grid; gap: 6px
     }
 
-    .overlay {
-      position: absolute;
-      inset: 0;
-      display: grid;
-      place-items: center;
-      pointer-events: none
-    }
+    .overlay { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none }
 
     .panel {
-      pointer-events: auto;
-      background: rgba(0, 0, 0, .6);
-      border: 1px solid rgba(255, 255, 255, .12);
-      border-radius: 14px;
-      padding: 16px 14px;
-      text-align: center;
-      max-width: 680px;
-      margin: 0 12px;
+      pointer-events: auto; background: rgba(0, 0, 0, .6);
+      border: 1px solid rgba(255, 255, 255, .12); border-radius: 14px;
+      padding: 16px 14px; text-align: center; max-width: 680px; margin: 0 12px;
       box-shadow: 0 10px 30px rgba(0, 0, 0, .45)
     }
 
-    #startPanel {
-      margin-bottom: clamp(14px, 7vh, 64px);
-    }
+    #startPanel { margin-bottom: clamp(14px, 7vh, 64px); }
+    @media (max-width:480px) { #startPanel { margin-bottom: clamp(18px, 10vh, 96px); } }
 
-    @media (max-width:480px) {
-      #startPanel {
-        margin-bottom: clamp(18px, 10vh, 96px);
-      }
-    }
+    .grid { display: grid; gap: 8px }
+    .hidden { display: none !important }
+    .coupon { color: var(--accent); font-weight: 800; letter-spacing: 1px }
 
-    .grid {
-      display: grid;
-      gap: 8px
-    }
-
-    .hidden {
-      display: none !important
-    }
-
-    .coupon {
-      color: var(--accent);
-      font-weight: 800;
-      letter-spacing: 1px
-    }
-
-    .tap-zone {
-      position: absolute;
-      inset: 0;
-      z-index: 2;
-      pointer-events: none
-    }
-
-    .tap-zone.active {
-      pointer-events: auto
-    }
+    .tap-zone { position: absolute; inset: 0; z-index: 2; pointer-events: none }
+    .tap-zone.active { pointer-events: auto }
 
     /* Character grid & mobile carousel */
-    .picker-head {
-      font-weight: 800;
-      margin: 8px 0 10px
-    }
-
-    .pager {
-      position: relative;
-      display: grid;
-      grid-template-columns: 40px 1fr 40px;
-      align-items: center;
-      gap: 8px
-    }
-
-    .skins-wrap {
-      overflow: hidden
-    }
-
-    .skins {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(220px, 1fr));
-      gap: 12px;
-      transition: transform .25s ease
-    }
-
+    .picker-head { font-weight: 800; margin: 8px 0 10px }
+    .pager { position: relative; display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; gap: 8px }
+    .skins-wrap { overflow: hidden }
+    .skins { display: grid; grid-template-columns: repeat(2, minmax(220px, 1fr)); gap: 12px; transition: transform .25s ease }
     .skin {
-      position: relative;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(255, 255, 255, .14);
-      background: rgba(255, 255, 255, .04);
-      cursor: pointer;
-      user-select: none;
-      min-height: 64px
+      position: relative; display: flex; align-items: center; gap: 10px; padding: 10px;
+      border-radius: 12px; border: 1px solid rgba(255, 255, 255, .14); background: rgba(255, 255, 255, .04);
+      cursor: pointer; user-select: none; min-height: 64px
     }
-
-    .skin:hover {
-      background: rgba(255, 255, 255, .08)
-    }
-
-    .skin.selected {
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(201, 226, 101, .25) inset
-    }
-
-    .skin img {
-      width: 52px;
-      height: 52px;
-      object-fit: contain;
-      border-radius: 10px;
-      background: rgba(0, 0, 0, .25)
-    }
-
-    .skin .label {
-      font-weight: 800;
-      font-size: 14px
-    }
-
-    .subtle {
-      font-size: 12px;
-      opacity: .85;
-      margin-top: 2px
-    }
-
-    .skin.locked {
-      filter: grayscale(.85);
-      cursor: not-allowed
-    }
-
+    .skin:hover { background: rgba(255, 255, 255, .08) }
+    .skin.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(201,226,101,.25) inset }
+    .skin img { width: 52px; height: 52px; object-fit: contain; border-radius: 10px; background: rgba(0, 0, 0, .25) }
+    .skin .label { font-weight: 800; font-size: 14px }
+    .subtle { font-size: 12px; opacity: .85; margin-top: 2px }
+    .skin.locked { filter: grayscale(.85); cursor: not-allowed }
     .lock {
-      position: absolute;
-      right: 8px;
-      bottom: 8px;
-      background: rgba(0, 0, 0, .6);
-      border: 1px solid rgba(255, 255, 255, .18);
-      border-radius: 10px;
-      padding: 6px 8px;
-      font-size: 12px;
-      text-align: center
+      position: absolute; right: 8px; bottom: 8px; background: rgba(0, 0, 0, .6);
+      border: 1px solid rgba(255, 255, 255, .18); border-radius: 10px; padding: 6px 8px; font-size: 12px; text-align: center
     }
-
     .nav {
-      width: 38px;
-      height: 38px;
-      border-radius: 999px;
-      display: grid;
-      place-items: center;
-      background: rgba(0, 0, 0, .45);
-      border: 1px solid rgba(255, 255, 255, .2);
-      cursor: pointer;
-      user-select: none
+      width: 38px; height: 38px; border-radius: 999px; display: grid; place-items: center;
+      background: rgba(0, 0, 0, .45); border: 1px solid rgba(255, 255, 255, .2); cursor: pointer; user-select: none
     }
-
-    .nav:hover {
-      background: rgba(0, 0, 0, .6)
-    }
-
-    .nav[disabled] {
-      opacity: .4;
-      pointer-events: none
-    }
-
-    @media (max-width:480px) {
-      .skins {
-        grid-template-columns: 1fr
-      }
-    }
+    .nav:hover { background: rgba(0, 0, 0, .6) }
+    .nav[disabled] { opacity: .4; pointer-events: none }
+    @media (max-width:480px) { .skins { grid-template-columns: 1fr } }
 
     /* Mobile carousel single card look */
     @media (max-width:600px) {
-      .skins.single .skin {
-        min-height: 76px
-      }
-
-      .skins.single .skin img {
-        width: 56px;
-        height: 56px
-      }
-
-      .skins.single .label {
-        font-size: 15px
-      }
+      .skins.single .skin { min-height: 76px }
+      .skins.single .skin img { width: 56px; height: 56px }
+      .skins.single .label { font-size: 15px }
     }
 
     #startBtn {
       background: linear-gradient(90deg, var(--accent), var(--accent2));
-      color: #000;
-      font-weight: 800;
-      font-size: 1.05rem;
-      letter-spacing: .4px;
-      padding: 14px 0;
-      border-radius: 12px;
-      text-transform: uppercase;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, .4);
-      transition: all .25s ease
+      color: #000; font-weight: 800; font-size: 1.05rem; letter-spacing: .4px; padding: 14px 0;
+      border-radius: 12px; text-transform: uppercase; box-shadow: 0 4px 12px rgba(0, 0, 0, .4); transition: all .25s ease
     }
-
-    #startBtn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, .5)
-    }
+    #startBtn:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(0, 0, 0, .5) }
 
     .ghost-btn {
-      display: inline-flex;
-      gap: 8px;
-      align-items: center;
-      padding: 8px 12px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, .18);
-      background: rgba(255, 255, 255, .06);
-      font-weight: 700
+      display: inline-flex; gap: 8px; align-items: center; padding: 8px 12px; border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, .18); background: rgba(255, 255, 255, .06); font-weight: 700
     }
+    .ghost-btn:hover { background: rgba(255, 255, 255, .1) }
 
-    .ghost-btn:hover {
-      background: rgba(255, 255, 255, .1)
-    }
-
-    .btn-row {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      margin-bottom: 10px;
-      flex-wrap: wrap
-    }
+    .btn-row { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap }
 
     /* Name badge box (footer on desktop) */
     .player-box {
-      position: absolute;
-      right: 12px;
-      bottom: 58px;
-      display: flex;
-      gap: 6px;
-      align-items: center;
+      position: absolute; right: 12px; bottom: 58px; display: flex; gap: 6px; align-items: center;
     }
-
     .player-badge {
-      font-size: 12px;
-      font-weight: 800;
-      padding: 6px 10px;
-      border-radius: 999px;
+      font-size: 12px; font-weight: 800; padding: 6px 10px; border-radius: 999px;
       border: 1px solid rgba(255, 255, 255, .18);
       background: linear-gradient(90deg, rgba(201, 226, 101, .2), rgba(109, 193, 246, .2));
     }
+    .tiny-btn { padding: 5px 8px; font-size: 12px; border-radius: 8px; background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18) }
+    .tiny-btn:hover { background: rgba(255, 255, 255, .12) }
 
-    .tiny-btn {
-      padding: 5px 8px;
-      font-size: 12px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, .08);
-      border: 1px solid rgba(255, 255, 255, .18)
-    }
-
-    .tiny-btn:hover {
-      background: rgba(255, 255, 255, .12)
-    }
-
-    /* Inline player row — default hidden (desktop), shown on mobile below Sound */
-    #playerInlineRow {
-      display: none;
-    }
-
+    /* Inline player row — hidden on desktop, shown on mobile below Sound */
+    #playerInlineRow { display: none; }
     @media (max-width:600px) {
       #playerInlineRow {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        justify-content: center;
-        margin-top: 6px;
+        display: flex; gap: 8px; align-items: center; justify-content: center; margin-top: 6px;
       }
-
       #playerInlineRow .badge {
-        padding: 6px 10px;
-        font-size: 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, .18);
-        background: linear-gradient(90deg, rgba(201, 226, 101, .18), rgba(109, 193, 246, .18));
-        font-weight: 800;
+        padding: 6px 10px; font-size: 12px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, .18);
+        background: linear-gradient(90deg, rgba(201, 226, 101, .18), rgba(109, 193, 246, .18)); font-weight: 800;
       }
-
-      #playerBox {
-        display: none;
-      }
+      #playerBox { display: none; }
     }
 
-    /* Modals (raise z-index so Leaderboard always opens on top) */
-    .modal {
-      position: fixed;
-      inset: 0;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-    }
-
-    .modal.show {
-      display: flex;
-    }
-
-    .modal .backdrop {
-      position: absolute;
-      inset: 0;
-      background: rgba(0, 0, 0, .55);
-      backdrop-filter: blur(3px);
-    }
-
+    /* Modals */
+    .modal { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; z-index: 9999; }
+    .modal.show { display: flex; }
+    .modal .backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .55); backdrop-filter: blur(3px); }
     .modal .dialog {
-      position: relative;
-      z-index: 1;
-      width: min(92vw, 660px);
-      max-height: min(70vh, calc(var(--vh) * 80));
-      border: 1px solid rgba(255, 255, 255, .14);
-      border-radius: 14px;
+      position: relative; z-index: 1; width: min(92vw, 660px); max-height: min(70vh, calc(var(--vh) * 80));
+      border: 1px solid rgba(255, 255, 255, .14); border-radius: 14px;
       background: linear-gradient(180deg, rgba(0, 0, 0, .90), rgba(0, 0, 0, .80));
-      box-shadow: 0 18px 50px rgba(0, 0, 0, .55);
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, .55); overflow: hidden; display: flex; flex-direction: column;
     }
-
     .modal .dialog-header {
-      position: sticky;
-      top: 0;
-      z-index: 2;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      padding: 12px 14px;
-      background: linear-gradient(180deg, rgba(0, 0, 0, .9), rgba(0, 0, 0, .75));
-      border-bottom: 1px solid rgba(255, 255, 255, .1);
+      position: sticky; top: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      padding: 12px 14px; background: linear-gradient(180deg, rgba(0,0,0,.9), rgba(0,0,0,.75)); border-bottom: 1px solid rgba(255,255,255,.1);
     }
-
-    .modal h3 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 800;
-    }
-
-    .close-x {
-      background: rgba(255, 255, 255, .12);
-      border: 1px solid rgba(255, 255, 255, .25);
-      border-radius: 10px;
-      padding: 6px 10px;
-      cursor: pointer;
-      font-weight: 800
-    }
-
-    .close-x:hover {
-      background: rgba(255, 255, 255, .2)
-    }
-
-    .modal .dialog-body {
-      padding: 14px 16px;
-      overflow: auto;
-      line-height: 1.7;
-      font-size: 15.5px;
-    }
-
-    .modal .dialog-body ul {
-      margin: 0;
-      padding-left: 20px;
-    }
-
-    .modal .dialog-body li {
-      margin: 6px 0;
-    }
+    .modal h3 { margin: 0; font-size: 18px; font-weight: 800; }
+    .close-x { background: rgba(255, 255, 255, .12); border: 1px solid rgba(255, 255, 255, .25); border-radius: 10px; padding: 6px 10px; cursor: pointer; font-weight: 800 }
+    .close-x:hover { background: rgba(255, 255, 255, .2) }
+    .modal .dialog-body { padding: 14px 16px; overflow: auto; line-height: 1.7; font-size: 15.5px; }
+    .modal .dialog-body ul { margin: 0; padding-left: 20px; }
+    .modal .dialog-body li { margin: 6px 0; }
 
     /* Name modal input */
-    .field {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      margin: 8px 0;
-    }
-
+    .field { display: flex; gap: 8px; align-items: center; margin: 8px 0; }
     .field input {
-      flex: 1;
-      padding: 8px 10px;
-      border-radius: 10px;
-      border: 1px solid rgba(255, 255, 255, .18);
-      background: rgba(255, 255, 255, .06);
-      color: var(--text);
+      flex: 1; padding: 8px 10px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .18);
+      background: rgba(255, 255, 255, .06); color: var(--text);
     }
-
-    .actions {
-      display: flex;
-      gap: 8px;
-      justify-content: flex-end;
-      margin-top: 12px;
-    }
+    .actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 12px; }
 
     @media (pointer:coarse) {
-      .tap-hint {
-        display: flex;
-        gap: 8px;
-        align-items: center;
-        justify-content: center;
-        font-size: 14px;
-        opacity: .9
-      }
-
-      .pulse {
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        background: var(--accent);
-        box-shadow: 0 0 0 0 rgba(201, 226, 101, .7);
-        animation: pulse 1.6s infinite
-      }
-
+      .tap-hint { display: flex; gap: 8px; align-items: center; justify-content: center; font-size: 14px; opacity: .9 }
+      .pulse { width: 12px; height: 12px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 0 rgba(201, 226, 101, .7); animation: pulse 1.6s infinite }
       @keyframes pulse {
-        0% {
-          box-shadow: 0 0 0 0 rgba(201, 226, 101, .7)
-        }
-
-        70% {
-          box-shadow: 0 0 0 12px rgba(201, 226, 101, 0)
-        }
-
-        100% {
-          box-shadow: 0 0 0 0 rgba(201, 226, 101, 0)
-        }
+        0% { box-shadow: 0 0 0 0 rgba(201, 226, 101, .7) }
+        70% { box-shadow: 0 0 0 12px rgba(201, 226, 101, 0) }
+        100% { box-shadow: 0 0 0 0 rgba(201, 226, 101, 0) }
       }
     }
 
-    .tnc-row {
-      display: flex;
-      justify-content: flex-start;
-    }
-
+    .tnc-row { display: flex; justify-content: flex-start; }
     .tnc-link {
-      font-size: 12px;
-      padding: 4px 8px;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, .06);
-      border: 1px solid rgba(255, 255, 255, .14);
-      color: var(--text);
-      cursor: pointer;
+      font-size: 12px; padding: 4px 8px; border-radius: 8px; background: rgba(255, 255, 255, .06);
+      border: 1px solid rgba(255, 255, 255, .14); color: var(--text); cursor: pointer;
     }
-
-    .tnc-link:hover {
-      background: rgba(255, 255, 255, .1);
-    }
+    .tnc-link:hover { background: rgba(255, 255, 255, .1); }
 
     /* ===== Input Hint Overlay ===== */
     .input-hint {
-      position: absolute;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: clamp(12px, 4vh, 56px);
-      z-index: 3;
-      pointer-events: none;
-      opacity: 0;
-      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .45));
-      transition: opacity .45s ease;
+      position: absolute; left: 50%; transform: translateX(-50%);
+      bottom: clamp(12px, 4vh, 56px); z-index: 3; pointer-events: none; opacity: 0;
+      filter: drop-shadow(0 8px 18px rgba(0, 0, 0, .45)); transition: opacity .45s ease;
     }
-
-    .input-hint.show {
-      opacity: 1;
-    }
-
+    .input-hint.show { opacity: 1; }
     .input-hint .bubble {
-      display: inline-flex;
-      gap: 10px;
-      align-items: center;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(0, 0, 0, .65);
-      border: 1px solid rgba(255, 255, 255, .18);
-      backdrop-filter: blur(4px);
-      font-weight: 800;
-      letter-spacing: .2px;
-      white-space: nowrap;
+      display: inline-flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 999px;
+      background: rgba(0, 0, 0, .65); border: 1px solid rgba(255, 255, 255, .18); backdrop-filter: blur(4px);
+      font-weight: 800; letter-spacing: .2px; white-space: nowrap;
     }
-
-    .input-hint .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: var(--accent);
-      animation: hintPulse 1.6s ease-in-out infinite;
-    }
-
+    .input-hint .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: hintPulse 1.6s ease-in-out infinite; }
     @keyframes hintPulse {
-      0% {
-        transform: scale(1);
-        opacity: 1
-      }
-
-      60% {
-        transform: scale(1.35);
-        opacity: .6
-      }
-
-      100% {
-        transform: scale(1);
-        opacity: 1
-      }
+      0% { transform: scale(1); opacity: 1 }
+      60% { transform: scale(1.35); opacity: .6 }
+      100% { transform: scale(1); opacity: 1 }
     }
-
-    @media (max-width:480px) {
-      .input-hint .bubble {
-        font-size: 14px;
-      }
-    }
-
-    @media (prefers-reduced-motion:reduce) {
-      .input-hint .dot {
-        animation: none
-      }
-
-      .input-hint {
-        transition: none
-      }
-    }
+    @media (max-width:480px) { .input-hint .bubble { font-size: 14px; } }
+    @media (prefers-reduced-motion:reduce) { .input-hint .dot { animation: none } .input-hint { transition: none } }
 
     /* Mobile header/footer compaction */
     @media (max-width: 600px) {
-      .header {
-        flex-wrap: wrap;
-        align-items: flex-start;
-        gap: 6px 10px;
-        padding: 8px 10px;
-      }
-
-      .header .title {
-        flex: 1 0 100%;
-        min-width: 0;
-      }
-
+      .header { flex-wrap: wrap; align-items: flex-start; gap: 6px 10px; padding: 8px 10px; }
+      .header .title { flex: 1 0 100%; min-width: 0; }
       .header .hud {
         flex: 1 0 100%;
-        display: grid;
-        grid-auto-flow: column;
-        grid-template-columns: auto auto auto 1fr;
-        align-items: center;
-        column-gap: 10px;
-        row-gap: 6px;
-        font-size: 13px;
+        display: grid; grid-auto-flow: column; grid-template-columns: auto auto auto 1fr;
+        align-items: center; column-gap: 10px; row-gap: 6px; font-size: 13px;
       }
-
-      #lbBtn {
-        justify-self: end;
-        padding: 6px 10px;
-        font-size: 12px;
-        border-radius: 9px;
-      }
-
-      .controls {
-        flex-wrap: wrap;
-        gap: 8px 10px;
-        padding: 8px 10px 10px;
-      }
-
-      .footer {
-        grid-template-columns: 1 fr 1fr;
-        gap: 6px 10px;
-        padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
-      }
-
-      .footer>div:first-child {
-        grid-column: 1 / -1;
-      }
-
-      .tnc-row {
-        justify-content: flex-start;
-      }
-
-      .footer>div[style*="Music track"] {
-        justify-self: end;
-      }
+      #lbBtn { justify-self: end; padding: 6px 10px; font-size: 12px; border-radius: 9px; }
+      .controls { flex-wrap: wrap; gap: 8px 10px; padding: 8px 10px 10px; }
+      .footer { grid-template-columns: 1 fr 1fr; gap: 6px 10px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom)); }
+      .footer>div:first-child { grid-column: 1 / -1; }
+      .tnc-row { justify-content: flex-start; }
+      .footer>div[style*="Music track"] { justify-self: end; }
     }
   </style>
 </head>
@@ -766,8 +309,7 @@
   <div class="wrap">
     <div class="game-card" id="card">
       <div class="header">
-        <div class="title"><span aria-hidden>🎃</span><span>Halloween Haunted Run</span><span class="badge">By
-            Rapidbott</span></div>
+        <div class="title"><span aria-hidden>🎃</span><span>Halloween Haunted Run</span><span class="badge">By Rapidbott</span></div>
         <div class="hud">
           <div>Score: <span id="score">0</span></div>
           <div>Best: <span id="best">0</span></div>
@@ -782,8 +324,7 @@
 
         <!-- Input hint -->
         <div id="inputHint" class="input-hint" aria-live="polite" aria-hidden="true">
-          <div class="bubble"><span class="dot" aria-hidden="true"></span><span id="inputHintText">Tap to Jump 🎃</span>
-          </div>
+          <div class="bubble"><span class="dot" aria-hidden="true"></span><span id="inputHintText">Tap to Jump 🎃</span></div>
         </div>
 
         <div class="overlay">
@@ -818,8 +359,7 @@
             </div>
 
             <div id="tip" class="subtle" style="margin-top:10px">Double-jump to clear high bats.</div>
-            <div class="tap-hint" style="margin-top:8px"><span class="pulse"></span> Tap anywhere to jump (double-tap =
-              double-jump)</div>
+            <div class="tap-hint" style="margin-top:8px"><span class="pulse"></span> Tap anywhere to jump (double-tap = double-jump)</div>
           </div>
 
           <!-- GAME OVER -->
@@ -827,8 +367,7 @@
             <div style="font-size:22px;font-weight:800;margin-bottom:4px">Game Over</div>
             <div id="finalScore" style="margin-bottom:6px"></div>
             <div id="finalPumpkins" style="margin-bottom:10px"></div>
-            <div id="rewardMsg" class="hidden" style="margin:6px 0 10px">You unlocked a treat! Coupon: <span
-                class="coupon">SPOOKY38</span></div>
+            <div id="rewardMsg" class="hidden" style="margin:6px 0 10px">You unlocked a treat! Coupon: <span class="coupon">SPOOKY38</span></div>
             <div class="grid">
               <button id="retryBtn">Play Again</button>
               <button id="exitBtn">Exit Game</button>
@@ -845,10 +384,9 @@
 
       <div class="footer">
         <div>Tip: On mobile, tap anywhere to jump. Desktop: Space or ↑.</div>
-        <div style="opacity:.85">Music track: Haunted House by Aetheric</div>
+        <div id="musicLabel" style="opacity:.85">Music track: (waiting…)</div>
         <div class="tnc-row">
-          <button id="tncBtn" class="tnc-link" aria-haspopup="dialog" aria-controls="tncModal"
-            aria-label="Terms and Conditions">T &amp; C</button>
+          <button id="tncBtn" class="tnc-link" aria-haspopup="dialog" aria-controls="tncModal" aria-label="Terms and Conditions">T &amp; C</button>
         </div>
 
         <!-- Player badge (desktop footer) -->
@@ -902,12 +440,9 @@
         <button class="close-x" data-close="tnc">✕</button>
       </div>
       <div class="dialog-body">
-        <p><em>Please note:</em> This coupon code is only applicable to new workspaces or accounts created with us. It
-          cannot be applied to existing workspaces already on any paid plan.</p>
-        <p>If you claim the code but do not apply it to your Pro Plan on your Rapidbott workspace by <strong>Nov
-            4th</strong>, the coupon will expire.</p>
-        <p>Additionally, if you cancel or downgrade to the Free Plan after applying the coupon, it will no longer be
-          valid for future use.</p>
+        <p><em>Please note:</em> This coupon code is only applicable to new workspaces or accounts created with us. It cannot be applied to existing workspaces already on any paid plan.</p>
+        <p>If you claim the code but do not apply it to your Pro Plan on your Rapidbott workspace by <strong>Nov 4th</strong>, the coupon will expire.</p>
+        <p>Additionally, if you cancel or downgrade to the Free Plan after applying the coupon, it will no longer be valid for future use.</p>
       </div>
     </div>
   </div>
@@ -968,9 +503,13 @@
     const canvas = document.getElementById('game');
     const ctx = canvas.getContext('2d', { alpha: true, desynchronized: true });
     const isMobile = matchMedia('(pointer:coarse)').matches;
-    const DPR = Math.max(1, Math.min(isMobile ? 1.25 : 1.5, window.devicePixelRatio || 1));
+    const DPR = Math.max(1, Math.min(isMobile ? 1.2 : 1.5, window.devicePixelRatio || 1)); // slightly lower on mobile
     let W = 0, H = 0;
-    function resizeCanvas() { const r = canvas.getBoundingClientRect(); W = Math.floor(r.width * DPR); H = Math.floor(r.height * DPR); canvas.width = W; canvas.height = H; ctx.setTransform(1, 0, 0, 1, 0, 0); }
+    function resizeCanvas() {
+      const r = canvas.getBoundingClientRect();
+      W = Math.floor(r.width * DPR); H = Math.floor(r.height * DPR);
+      canvas.width = W; canvas.height = H; ctx.setTransform(1, 0, 0, 1, 0, 0);
+    }
     new ResizeObserver(resizeCanvas).observe(canvas); resizeCanvas(); ctx.imageSmoothingEnabled = true;
 
     /* ---------- elements ---------- */
@@ -1005,9 +544,103 @@
     const tncBtn = document.getElementById('tncBtn');
     const tncModal = document.getElementById('tncModal');
 
-    /* ---------- music ---------- */
-    const bgMusic = new Audio('https://rapidbott.s3.us-east-005.backblazeb2.com/Rapidbott+Builder+Resources/Aetheric+Haunted+House+Halloween+Music.mp3');
-    bgMusic.loop = true; bgMusic.volume = 0.3;
+    
+ 
+/* ===== STRICT MUSIC MANAGER (no overlap, hard switch) ===== */
+(function () {
+  const label = document.getElementById('musicLabel');
+  const menu = new Audio('https://static.wixstatic.com/mp3/526e04_53e0141755424781a9c5065dedd3c306.mp3'); // Stroll by Massobeats
+  const game = new Audio('https://rapidbott.s3.us-east-005.backblazeb2.com/Rapidbott+Builder+Resources/Aetheric+Haunted+House+Halloween+Music.mp3'); // Haunted House by Aetheric
+  menu.loop = true; game.loop = true;
+  menu.preload = 'auto'; game.preload = 'auto';
+  menu.volume = 0.35; game.volume = 0.35;
+
+  let enabled = true, unlocked = false, current = 'menu';
+
+  const setLabel = (txt) => { if (label) label.textContent = 'Music track: ' + txt; };
+
+  function forceStop(a) {
+    try { a.pause(); } catch {}
+    a.currentTime = 0;
+    a.volume = 0;       // make absolutely sure it’s silent
+  }
+  function forcePlay(a, vol = 0.35) {
+    a.volume = vol;
+    a.muted = false;
+    a.play().catch(() => {});
+  }
+
+  function pauseAll(lbl = 'Muted') {
+    forceStop(menu);
+    forceStop(game);
+    current = 'none';
+    setLabel(lbl);
+  }
+
+  function unlock() {
+    if (unlocked) return;
+    unlocked = true;
+    if (!enabled) return pauseAll('Muted');
+    // Default idle state: menu music only
+    forceStop(game);
+    forcePlay(menu);
+    current = 'menu';
+    setLabel('Stroll by Massobeats');
+  }
+
+  function toMenu() {
+    if (!enabled) return pauseAll('Muted');
+    // hard switch: stop game first, then play menu
+    forceStop(game);
+    forcePlay(menu);
+    current = 'menu';
+    setLabel('Stroll by Massobeats');
+  }
+
+  function toGame() {
+    if (!enabled) return pauseAll('Muted');
+    // hard switch: stop menu first, then play game
+    forceStop(menu);
+    forcePlay(game);
+    current = 'game';
+    setLabel('Haunted House by Aetheric');
+  }
+
+  function setEnabled(on) {
+    enabled = !!on;
+    if (!enabled) return pauseAll('Muted');
+    if (window.gameIsRunning) toGame(); else toMenu();
+  }
+
+  function pause() {
+    if (!enabled) return pauseAll('Muted');
+    if (current === 'game') { forceStop(game); setLabel('Paused'); }
+    else if (current === 'menu') { forceStop(menu); setLabel('Paused'); }
+  }
+
+  function resume() {
+    if (!enabled) return;
+    if (window.gameIsRunning) toGame(); else toMenu();
+  }
+
+  // Try to recover playback if the tab regains focus
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden || !enabled || !unlocked) return;
+    if (current === 'game') forcePlay(game);
+    else if (current === 'menu') forcePlay(menu);
+  });
+
+  window.Music = { unlock, toMenu, toGame, setEnabled, pause, resume };
+
+  // First user gesture unlocks audio
+  window.addEventListener('pointerdown', unlock, { passive: true });
+  window.addEventListener('keydown', unlock);
+
+  // Initial label (before unlock)
+  setLabel('Stroll by Massobeats');
+})();
+
+    
 
     /* ---------- skins ---------- */
     const SKINS_ORDER = ['skinA', 'skinB', 'lunaHex', 'frankie', 'skeleton', 'reaper'];
@@ -1021,9 +654,9 @@
     };
     const UNLOCKS = { skinA: 0, skinB: 120, lunaHex: 180, frankie: 220, skeleton: 260, reaper: 300 };
 
-    const unlocked = JSON.parse(localStorage.getItem('halloween.unlocked') || '{}');
-    for (const id in UNLOCKS) { if (UNLOCKS[id] === 0) unlocked[id] = true; }
-    localStorage.setItem('halloween.unlocked', JSON.stringify(unlocked));
+    const unlockedSkins = JSON.parse(localStorage.getItem('halloween.unlocked') || '{}');
+    for (const id in UNLOCKS) { if (UNLOCKS[id] === 0) unlockedSkins[id] = true; }
+    localStorage.setItem('halloween.unlocked', JSON.stringify(unlockedSkins));
     let selectedSkinId = localStorage.getItem('halloween.skin') || 'skinA';
 
     const SKIN_HIT = {
@@ -1047,12 +680,19 @@
     const pumpkinImg = new Image(); pumpkinImg.decoding = 'async';
     pumpkinImg.src = 'https://static.wixstatic.com/shapes/526e04_d447db6aea1f491bbd6d72d27cd0661b.svg';
     let pumpkinReady = false, pumpkinBitmap = null;
-    pumpkinImg.onload = async () => { try { if ('createImageBitmap' in window) pumpkinBitmap = await createImageBitmap(pumpkinImg); } catch (e) { } pumpkinReady = true; };
+    pumpkinImg.onload = async () => {
+      try { if ('createImageBitmap' in window) pumpkinBitmap = await createImageBitmap(pumpkinImg); } catch (e) { }
+      pumpkinReady = true;
+    };
 
     /* ---------- utils ---------- */
-    function firstUnlockedSkin() { for (const id of SKINS_ORDER) { if (unlocked[id]) return id; } return 'skinA'; }
-    function isValidSkin(id) { return !!(id && SKINS[id] && unlocked[id]); }
-    function ensureValidSelection() { if (!isValidSkin(selectedSkinId)) { selectedSkinId = firstUnlockedSkin(); localStorage.setItem('halloween.skin', selectedSkinId); } }
+    function firstUnlockedSkin() { for (const id of SKINS_ORDER) { if (unlockedSkins[id]) return id; } return 'skinA'; }
+    function isValidSkin(id) { return !!(id && SKINS[id] && unlockedSkins[id]); }
+    function ensureValidSelection() {
+      if (!isValidSkin(selectedSkinId)) {
+        selectedSkinId = firstUnlockedSkin(); localStorage.setItem('halloween.skin', selectedSkinId);
+      }
+    }
     const isSmall = () => matchMedia('(max-width:600px)').matches;
 
     /* Skeleton vector preview helper */
@@ -1102,7 +742,7 @@
     function refreshLocksAndSelection() {
       const best = Number(localStorage.getItem('halloween.best') || 0);
       skinsGrid.querySelectorAll('.skin').forEach(el => {
-        const id = el.dataset.skin, isUnlocked = !!unlocked[id];
+        const id = el.dataset.skin, isUnlocked = !!unlockedSkins[id];
         el.classList.toggle('selected', id === selectedSkinId);
         el.classList.toggle('locked', !isUnlocked);
         let lock = el.querySelector('.lock');
@@ -1113,7 +753,6 @@
       });
     }
 
-    // Desktop: 2×2 page
     function buildPage() {
       if (isSmall()) return buildMobileCarousel();
       ensureValidSelection();
@@ -1146,14 +785,12 @@
 
     skinsGrid.addEventListener('click', e => {
       const item = e.target.closest('.skin'); if (!item) return;
-      const id = item.dataset.skin; if (!unlocked[id]) return;
+      const id = item.dataset.skin; if (!unlockedSkins[id]) return;
       const changed = id !== selectedSkinId;
       selectedSkinId = id; localStorage.setItem('halloween.skin', id); refreshLocksAndSelection();
-      // selection SFX
       if (changed) { initAudio(); uiClick && uiClick(); }
     });
 
-    // PAGER BUTTONS — now with SFX
     navRight.addEventListener('click', () => {
       if (isSmall()) { gotoIdx(currentMobileIndex + 1); }
       else { if (currentPage < totalPages - 1) { currentPage++; buildPage(); } }
@@ -1181,7 +818,11 @@
     const PLAYER_RADIUS_FACTOR = isMobile ? 0.05 : 0.045;
     const player = { x: () => W * 0.15, y: 0, r: () => Math.max(24, Math.min(W, H) * PLAYER_RADIUS_FACTOR), vy: 0, onGround: false, jumps: 0, MAX_JUMPS: 2 };
 
-    const state = { running: false, paused: false, time: 0, score: 0, pumpkins: 0, best: Number(localStorage.getItem('halloween.best') || 0), difficulty: 2, gravity: 0.9, jumpVel: -16, rewardShown: false, speed: 5 };
+    const state = {
+      running: false, paused: false, time: 0, score: 0, pumpkins: 0,
+      best: Number(localStorage.getItem('halloween.best') || 0),
+      difficulty: 2, gravity: 0.9, jumpVel: -16, rewardShown: false, speed: 5
+    };
     bestEl.textContent = state.best;
 
     /* ---------- SFX ---------- */
@@ -1195,11 +836,9 @@
         o.type = t; o.frequency.value = f; o.connect(gn); gn.connect(audioCtx.destination);
         gn.gain.value = g; o.start(); setTimeout(() => o.stop(), d * 1000);
       };
-      // gameplay SFX
       jumpOsc = mk(520, 'square', .08, .03);
       coinOsc = mk(850, 'triangle', .09, .04);
 
-      // UI select two-note plink
       uiClick = () => {
         if (!soundToggle.checked) return;
         const t = audioCtx.currentTime;
@@ -1215,7 +854,6 @@
         o2.start(t + 0.08); o2.stop(t + 0.16);
       };
 
-      // Start button whoosh/confirm
       uiStart = () => {
         if (!soundToggle.checked) return;
         const t = audioCtx.currentTime;
@@ -1256,7 +894,8 @@
     }
 
     /* ---------- world & spawns ---------- */
-    const groundY = () => H * 0.82; const obstacles = [], candies = []; const rand = (a, b) => Math.random() * (b - a) + a;
+    const groundY = () => H * 0.82; const obstacles = [], candies = [];
+    const rand = (a, b) => Math.random() * (b - a) + a;
     let lastGroundSpawn = 0, lastAirSpawn = 0, groundBlockUntil = 0, airBlockUntil = 0, lastPumpkin = 0;
     const MIN_GROUND_INTERVAL = isMobile ? 2000 : 1800, MIN_AIR_INTERVAL = isMobile ? 1600 : 1400, LANE_WINDOW = 700, MIN_PUMPKIN_INTERVAL = 2500;
     const MAX_PUMPKINS = 5;
@@ -1264,8 +903,18 @@
     const currentMaxObstacles = () => (easeInFactor() < 0.5 ? 1 : (easeInFactor() < 1 || state.difficulty <= 3 ? 2 : 3));
     const countOnScreen = () => obstacles.length;
 
-    function spawnGroundObstacle() { if (countOnScreen() >= currentMaxObstacles()) return; const y = groundY() - rand(16, 44); obstacles.push({ type: 'ghost', lane: 'ground', x: W + 40, y, w: rand(30, 42), h: rand(36, 48) }); lastGroundSpawn = state.time; airBlockUntil = Math.max(airBlockUntil, state.time + LANE_WINDOW); }
-    function spawnAirObstacle() { if (countOnScreen() >= currentMaxObstacles()) return; const y = (Math.random() < 0.55) ? groundY() - rand(90, 120) : groundY() - rand(140, 170); obstacles.push({ type: 'bat', lane: 'air', x: W + 40, y, w: rand(34, 44), h: rand(16, 22) }); lastAirSpawn = state.time; groundBlockUntil = Math.max(groundBlockUntil, state.time + LANE_WINDOW); }
+    function spawnGroundObstacle() {
+      if (countOnScreen() >= currentMaxObstacles()) return;
+      const y = groundY() - rand(16, 44);
+      obstacles.push({ type: 'ghost', lane: 'ground', x: W + 40, y, w: rand(30, 42), h: rand(36, 48) });
+      lastGroundSpawn = state.time; airBlockUntil = Math.max(airBlockUntil, state.time + LANE_WINDOW);
+    }
+    function spawnAirObstacle() {
+      if (countOnScreen() >= currentMaxObstacles()) return;
+      const y = (Math.random() < 0.55) ? groundY() - rand(90, 120) : groundY() - rand(140, 170);
+      obstacles.push({ type: 'bat', lane: 'air', x: W + 40, y, w: rand(34, 44), h: rand(16, 22) });
+      lastAirSpawn = state.time; groundBlockUntil = Math.max(groundBlockUntil, state.time + LANE_WINDOW);
+    }
 
     function spawn() {
       const diffScale = 0.8 + state.difficulty * 0.15, ease = 0.35 + easeInFactor() * 0.65, ramp = timeRamp(), spawnScale = diffScale * ease * ramp;
@@ -1458,7 +1107,6 @@
       if (youEl) setTimeout(() => youEl.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60);
     }
 
-    // Button: always open modal first, then load data
     lbBtn.addEventListener('click', async (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -1476,7 +1124,7 @@
       obstacles.length = 0; candies.length = 0; player.y = groundY(); player.vy = 0; player.onGround = true; player.jumps = 0;
       tapZone.classList.add('active');
       lastGroundSpawn = lastAirSpawn = groundBlockUntil = airBlockUntil = lastPumpkin = 0;
-      if (soundToggle.checked) bgMusic.play().catch(() => { });
+      // Music is handled by Music.toGame() in button handlers; no direct audio calls here.
     }
     function jump() {
       if (!state.running || state.paused) return;
@@ -1565,7 +1213,7 @@
 
     const BG_PALETTES = [['#1a1030', '#0b0f1a'], ['#1b1338', '#0c1220'], ['#23194a', '#0d1426'], ['#3b1f6b', '#11152a'], ['#ff7a18', '#a83d00'], ['#103054', '#0b0f1a']];
     const BRAND_GREEN = '#c9e265'; const BRAND_BLUE = '#6dc1f6';
-    const HILL_LAYERS = isMobile ? 4 : 6;
+    const HILL_LAYERS = isMobile ? 3 : 6; /* slight perf trim on mobile */
 
     function drawBackground() {
       const scoreNorm = clamp(state.score / 300, 0, 1);
@@ -1735,10 +1383,19 @@
     }
 
     function gameOver() {
-      state.running = false; state.paused = false; tapZone.classList.remove('active'); bgMusic.pause();
-      const s = Math.floor(state.score); finalScore.textContent = `Your score: ${s}`; finalPumpkins.textContent = `Pumpkins: ${state.pumpkins}`;
+      state.running = false; state.paused = false; tapZone.classList.remove('active');
+      window.gameIsRunning = false;
+      if (window.Music) Music.toMenu();
+
+      const s = Math.floor(state.score);
+      finalScore.textContent = `Your score: ${s}`; finalPumpkins.textContent = `Pumpkins: ${state.pumpkins}`;
       if (s > state.best) { state.best = s; localStorage.setItem('halloween.best', String(s)); bestEl.textContent = state.best; }
-      for (const id in UNLOCKS) { if (!unlocked[id] && s >= UNLOCKS[id]) { unlocked[id] = true; localStorage.setItem('halloween.unlocked', JSON.stringify(unlocked)); setTimeout(() => toast(`🎉 New Skin Unlocked: ${SKINS[id].name}!`), 120); } }
+      for (const id in UNLOCKS) {
+        if (!unlockedSkins[id] && s >= UNLOCKS[id]) {
+          unlockedSkins[id] = true; localStorage.setItem('halloween.unlocked', JSON.stringify(unlockedSkins));
+          setTimeout(() => toast(`🎉 New Skin Unlocked: ${SKINS[id].name}!`), 120);
+        }
+      }
       refreshLocksAndSelection();
       scoreEl.textContent = s; rewardMsg.classList.toggle('hidden', s < 120);
       submitScore();
@@ -1753,27 +1410,41 @@
     });
     tapZone.addEventListener('pointerdown', () => { if (state.running) jump(); });
 
-    function togglePause() { if (!state.running) return; state.paused = !state.paused; pauseBtn.textContent = state.paused ? 'Resume' : 'Pause'; if (state.paused) bgMusic.pause(); else if (soundToggle.checked) bgMusic.play().catch(() => { }); }
+    function togglePause() {
+      if (!state.running) return;
+      state.paused = !state.paused;
+      pauseBtn.textContent = state.paused ? 'Resume' : 'Pause';
+      if (window.Music) { if (state.paused) Music.pause(); else Music.resume(); }
+    }
     pauseBtn.addEventListener('click', togglePause);
+
+    // Sound toggle -> enable/disable all music
+    soundToggle.addEventListener('change', () => {
+      if (window.Music) Music.setEnabled(soundToggle.checked);
+    });
 
     startBtn.addEventListener('click', () => {
       ensureValidSelection();
-      if (!isValidSkin(selectedSkinId)) {
-        toast('Please choose your character', '#ff9aa2');
-        return;
-      }
+      if (!isValidSkin(selectedSkinId)) { toast('Please choose your character', '#ff9aa2'); return; }
       initAudio();
-      uiStart && uiStart(); // start button SFX
+      uiStart && uiStart();
       startPanel.classList.add('hidden'); overPanel.classList.add('hidden'); tapZone.classList.add('active');
       clearInterval(tipTimer);
       reset();
       maybeShowInputHint();
+
+      window.gameIsRunning = true;
+      if (window.Music) { Music.unlock(); Music.toGame(); }
     });
 
-    retryBtn.addEventListener('click', () => { overPanel.classList.add('hidden'); reset(); });
+    retryBtn.addEventListener('click', () => {
+      overPanel.classList.add('hidden');
+      reset();
+      window.gameIsRunning = true;
+      if (window.Music) Music.toGame();
+    });
 
     exitBtn.addEventListener('click', () => {
-      bgMusic.pause();
       overPanel.classList.add('hidden');
       startPanel.classList.remove('hidden');
       tapZone.classList.remove('active');
@@ -1782,10 +1453,12 @@
       scoreEl.textContent = '0'; pumpkinsEl.textContent = '0';
       clearInterval(tipTimer); tipTimer = setInterval(renderTip, 6000); renderTip();
       ensureValidSelection(); refreshLocksAndSelection();
+
+      window.gameIsRunning = false;
+      if (window.Music) Music.toMenu();
     });
 
     diffRange.addEventListener('input', () => { state.difficulty = Number(diffRange.value); toast(`Difficulty: ${state.difficulty}`); });
-    soundToggle.addEventListener('change', () => { if (soundToggle.checked && state.running && !state.paused) bgMusic.play().catch(() => { }); else bgMusic.pause(); });
 
     /* ---------- modals ---------- */
     function openModal(el) { el.classList.add('show'); el.setAttribute('aria-hidden', 'false'); document.body.classList.add('modal-open'); const btn = el.querySelector('.close-x'); if (btn) btn.focus(); }
@@ -1854,5 +1527,4 @@
     ensureNamePrompt();
   </script>
 </body>
-
 </html>
