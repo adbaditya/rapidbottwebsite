@@ -1145,14 +1145,32 @@
     requestAnimationFrame(gameLoop);
   }
 
+  // MOBILE: much slower, only very fast after 20k+
   function computeSpeed() {
-    if (score < 500) {
-      return 2.8 + (score / 500) * 1.2;
-    } else if (score < 1500) {
-      return 4.0 + ((score - 500) / 1000) * 3.0;
+    if (isMobile) {
+      if (score < 1000) {
+        // 2.2 -> 3.0 over first 1k
+        return 2.2 + (score / 1000) * 0.8;
+      } else if (score < 5000) {
+        // 3.0 -> 4.5 up to 5k
+        return 3.0 + ((score - 1000) / 4000) * 1.5;
+      } else if (score < 20000) {
+        // 4.5 -> 6.0 up to 20k
+        return 4.5 + ((score - 5000) / 15000) * 1.5;
+      } else {
+        // after 20k, ramp up to 8.0 max
+        return 6.0 + Math.min((score - 20000) / 20000 * 2.0, 2.0);
+      }
     } else {
-      const extra = Math.min((score - 1500) / 1500 * 3.0, 3.0);
-      return 7.0 + extra;
+      // desktop: keep the faster, more intense curve
+      if (score < 500) {
+        return 2.8 + (score / 500) * 1.2;
+      } else if (score < 1500) {
+        return 4.0 + ((score - 500) / 1000) * 3.0;
+      } else {
+        const extra = Math.min((score - 1500) / 1500 * 3.0, 3.0);
+        return 7.0 + extra;
+      }
     }
   }
 
@@ -1346,7 +1364,36 @@
     requestAnimationFrame(gameLoop);
   }
 
-  function drawBackground() {
+  // DESKTOP: simpler static gradient "old" style
+  function drawBackgroundDesktop() {
+    const w = canvas.width;
+    const h = canvas.height;
+
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, "#0b1b2e");
+    g.addColorStop(0.4, "#10263a");
+    g.addColorStop(1, "#17364d");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    const slopeWidth = w * 0.6;
+    const slopeX = (w - slopeWidth) / 2;
+
+    const slopeGrad = ctx.createLinearGradient(0, 0, 0, h);
+    slopeGrad.addColorStop(0, "rgba(255,255,255,0.95)");
+    slopeGrad.addColorStop(1, "rgba(235,245,255,0.9)");
+    ctx.fillStyle = slopeGrad;
+    ctx.beginPath();
+    ctx.moveTo(slopeX, 0);
+    ctx.lineTo(slopeX + slopeWidth, 0);
+    ctx.lineTo(slopeX + slopeWidth * 0.78, h);
+    ctx.lineTo(slopeX + slopeWidth * 0.22, h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // MOBILE: keep the newer dynamic gradient / slope
+  function drawBackgroundMobile() {
     const w = canvas.width;
     const h = canvas.height;
 
@@ -1375,6 +1422,11 @@
     ctx.lineTo(slopeX + slopeWidth * 0.2, h);
     ctx.closePath();
     ctx.fill();
+  }
+
+  function drawBackground() {
+    if (isMobile) drawBackgroundMobile();
+    else drawBackgroundDesktop();
   }
 
   function updateSnow(speedFactor) {
@@ -1412,16 +1464,20 @@
     }
   }
 
+  // Trail rendered behind character: stop a few points before the current position
   function renderTrail() {
-    if (trail.length < 2) return;
+    if (trail.length < 3) return;
+
+    const endIndex = Math.max(0, trail.length - 6); // leave a gap behind skater
+
     ctx.lineCap = "round";
     ctx.beginPath();
-    for (let i = 0; i < trail.length; i++) {
+    for (let i = 0; i <= endIndex; i++) {
       const p = trail[i];
       if (i === 0) ctx.moveTo(p.x, p.y);
       else ctx.lineTo(p.x, p.y);
     }
-    const last = trail[trail.length - 1];
+    const last = trail[endIndex];
     const first = trail[0];
     const factor = Math.max(0.4, (last.y - first.y) / canvas.height);
     ctx.strokeStyle = "#6dc1f6";
@@ -1487,11 +1543,18 @@
       const o = obstacles[i];
       o.y += speed;
 
-      // shrink tree collision box so you can slip between them
-      const treeX = o.x + o.width * 0.15;
-      const treeY = o.y + o.height * 0.15;
-      const treeW = o.width * 0.7;
-      const treeH = o.height * 0.75;
+      // much smaller collision box around the trunk,
+      // extra forgiving on mobile so you can slip between trees
+      let treePadX = o.width * 0.30;
+      let treePadY = o.height * 0.20;
+      if (isMobile) {
+        treePadX = o.width * 0.35;
+        treePadY = o.height * 0.25;
+      }
+      let treeX = o.x + treePadX;
+      let treeY = o.y + treePadY;
+      let treeW = o.width - treePadX * 2;
+      let treeH = o.height - treePadY * 1.8;
 
       if (rectsOverlap(hb.x, hb.y, hb.width, hb.height, treeX, treeY, treeW, treeH)) {
         if (hitCooldown <= 0) {
