@@ -540,12 +540,37 @@
       margin-top: 8px;
     }
 
+    /* Mobile tweaks so HUD doesn’t collide */
     @media (max-width: 600px) {
       .title { font-size: 18px; }
       .btn { font-size: 11px; padding: 10px 20px; min-width: 160px; }
       .subtitle { font-size: 8px; }
-      #pauseBtn { font-size: 8px; padding: 4px 10px; }
-      #score { font-size: 7px; padding: 5px 8px; }
+
+      #score {
+        font-size: 7px;
+        padding: 5px 8px;
+        max-width: 58vw;
+      }
+
+      #leaderboardIcon {
+        height: 24px;
+        min-width: 64px;
+        font-size: 8px;
+        padding: 0 8px;
+      }
+
+      #pauseBtn {
+        top: 32px;           /* move below score/leaderboard */
+        font-size: 7px;
+        padding: 3px 10px;
+      }
+
+      #soundToggleGame {
+        top: 60px;
+        font-size: 8px;
+        padding: 3px 8px;
+      }
+
       .smallBtn { font-size: 9px; padding: 7px 16px; }
     }
   </style>
@@ -1145,32 +1170,29 @@
     requestAnimationFrame(gameLoop);
   }
 
-  // MOBILE: much slower, only very fast after 20k+
+  /* Speed curve tuned separately for desktop vs mobile.
+     Mobile: slow start, then medium locked until ~10k, then faster. */
   function computeSpeed() {
+    const d = score;
+
     if (isMobile) {
-      if (score < 1000) {
-        // 2.2 -> 3.0 over first 1k
-        return 2.2 + (score / 1000) * 0.8;
-      } else if (score < 5000) {
-        // 3.0 -> 4.5 up to 5k
-        return 3.0 + ((score - 1000) / 4000) * 1.5;
-      } else if (score < 20000) {
-        // 4.5 -> 6.0 up to 20k
-        return 4.5 + ((score - 5000) / 15000) * 1.5;
-      } else {
-        // after 20k, ramp up to 8.0 max
-        return 6.0 + Math.min((score - 20000) / 20000 * 2.0, 2.0);
-      }
+      if (d < 400) return 2.2;        // very gentle start
+      if (d < 2000) return 2.8;       // easy
+      if (d < 10000) return 3.3;      // medium locked till 10k
+      if (d < 20000) return 4.1;      // faster after 10k
+      if (d < 30000) return 4.8;
+      return 5.2;                     // cap so it’s fast but playable
+    }
+
+    // Desktop: a bit quicker but still ramps
+    if (d < 500) {
+      return 3.0 + (d / 500) * 0.8;
+    } else if (d < 2000) {
+      return 3.8 + ((d - 500) / 1500) * 2.2; // up to ~6
+    } else if (d < 8000) {
+      return 6.0 + ((d - 2000) / 6000) * 2.0; // up to ~8
     } else {
-      // desktop: keep the faster, more intense curve
-      if (score < 500) {
-        return 2.8 + (score / 500) * 1.2;
-      } else if (score < 1500) {
-        return 4.0 + ((score - 500) / 1000) * 3.0;
-      } else {
-        const extra = Math.min((score - 1500) / 1500 * 3.0, 3.0);
-        return 7.0 + extra;
-      }
+      return 8.0 + Math.min((d - 8000) / 8000 * 1.5, 2.0); // cap around 10
     }
   }
 
@@ -1278,7 +1300,7 @@
 
     if (!gamePaused && !lifePaused) updatePlayerPosition(worldSpeed);
     if (!gamePaused && !lifePaused) updateTrail(worldSpeed);
-    renderTrail();
+    renderTrail();  // now only behind player
 
     if (playerSpriteImg.style.display === "block") {
       playerSpriteImg.style.left = player.x + "px";
@@ -1330,28 +1352,30 @@
     if (distInt % 80 === 0) spawnObstacle();
     if (distInt % 250 === 0) spawnGift();
 
+    // Big snowballs – slightly increased spawn rates
     if (!isMobile) {
-      if (distInt >= 800 && distInt < 8000 && distInt % 600 === 0 && Math.random() < 0.25) {
+      if (distInt >= 800 && distInt < 8000 && distInt % 550 === 0 && Math.random() < 0.35) {
         spawnBigSnowball();
       }
-      if (distInt >= 8000 && distInt % 250 === 0 && Math.random() < 0.8) {
+      if (distInt >= 8000 && distInt % 230 === 0 && Math.random() < 0.9) {
         spawnBigSnowball();
       }
     } else {
-      if (distInt >= 1200 && distInt % 1200 === 0 && Math.random() < 0.25) {
+      if (distInt >= 1200 && distInt % 1000 === 0 && Math.random() < 0.35) {
         spawnBigSnowball();
       }
-      if (distInt >= 6000 && distInt % 900 === 0 && Math.random() < 0.4) {
+      if (distInt >= 6000 && distInt % 700 === 0 && Math.random() < 0.6) {
         spawnBigSnowball();
       }
     }
 
+    // Ice golems – slightly more frequent
     if (!isMobile) {
-      if (distInt >= 600 && distInt % 900 === 0 && Math.random() < 0.8) {
+      if (distInt >= 600 && distInt % 800 === 0 && Math.random() < 0.9) {
         spawnIceGolem();
       }
     } else {
-      if (distInt >= 1500 && distInt % 1600 === 0 && Math.random() < 0.5) {
+      if (distInt >= 1500 && distInt % 1200 === 0 && Math.random() < 0.7) {
         spawnIceGolem();
       }
     }
@@ -1364,57 +1388,35 @@
     requestAnimationFrame(gameLoop);
   }
 
-  // DESKTOP: simpler static gradient "old" style
-  function drawBackgroundDesktop() {
-    const w = canvas.width;
-    const h = canvas.height;
-
-    const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, "#0b1b2e");
-    g.addColorStop(0.4, "#10263a");
-    g.addColorStop(1, "#17364d");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, h);
-
-    const slopeWidth = w * 0.6;
-    const slopeX = (w - slopeWidth) / 2;
-
-    const slopeGrad = ctx.createLinearGradient(0, 0, 0, h);
-    slopeGrad.addColorStop(0, "rgba(255,255,255,0.95)");
-    slopeGrad.addColorStop(1, "rgba(235,245,255,0.9)");
-    ctx.fillStyle = slopeGrad;
-    ctx.beginPath();
-    ctx.moveTo(slopeX, 0);
-    ctx.lineTo(slopeX + slopeWidth, 0);
-    ctx.lineTo(slopeX + slopeWidth * 0.78, h);
-    ctx.lineTo(slopeX + slopeWidth * 0.22, h);
-    ctx.closePath();
-    ctx.fill();
-  }
-
-  // MOBILE: keep the newer dynamic gradient / slope
-  function drawBackgroundMobile() {
+  /* Winter background with smooth color shifts */
+  function drawBackground() {
     const w = canvas.width;
     const h = canvas.height;
 
     bgTime += 0.002;
-    const t = Math.sin(bgTime);
-    const topHue = 210 + 8 * t;
-    const bottomHue = 195 + 10 * Math.cos(bgTime * 0.8);
+    const t = Math.sin(bgTime * 0.7);
+    const t2 = Math.cos(bgTime * 0.9);
+
+    const topHue = 205 + 5 * t;   // cold blue
+    const midHue = 210 + 6 * t2;
+    const bottomHue = 200 + 8 * t;
 
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, `hsl(${topHue}, 60%, 32%)`);
-    g.addColorStop(0.35, `hsl(${topHue + 5}, 65%, 40%)`);
-    g.addColorStop(1, `hsl(${bottomHue}, 70%, 68%)`);
+    g.addColorStop(0, `hsl(${topHue}, 65%, 30%)`);
+    g.addColorStop(0.35, `hsl(${midHue}, 70%, 45%)`);
+    g.addColorStop(1, `hsl(${bottomHue}, 80%, 75%)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
     const slopeWidth = w * 0.7;
     const slopeX = (w - slopeWidth) / 2;
-    const slopeGrad = ctx.createLinearGradient(0, 0, 0, h);
-    slopeGrad.addColorStop(0, "rgba(255,255,255,0.9)");
-    slopeGrad.addColorStop(1, "rgba(240,250,255,0.85)");
-    ctx.fillStyle = slopeGrad;
+
+    const snowGrad = ctx.createLinearGradient(0, 0, 0, h);
+    snowGrad.addColorStop(0, "rgba(255,255,255,0.95)");
+    snowGrad.addColorStop(0.55, "rgba(244,250,255,0.9)");
+    snowGrad.addColorStop(1, "rgba(232,246,255,0.88)");
+
+    ctx.fillStyle = snowGrad;
     ctx.beginPath();
     ctx.moveTo(slopeX, 0);
     ctx.lineTo(slopeX + slopeWidth, 0);
@@ -1422,11 +1424,6 @@
     ctx.lineTo(slopeX + slopeWidth * 0.2, h);
     ctx.closePath();
     ctx.fill();
-  }
-
-  function drawBackground() {
-    if (isMobile) drawBackgroundMobile();
-    else drawBackgroundDesktop();
   }
 
   function updateSnow(speedFactor) {
@@ -1464,21 +1461,23 @@
     }
   }
 
-  // Trail rendered behind character: stop a few points before the current position
+  /* Trail only behind the player so it never passes in front */
   function renderTrail() {
-    if (trail.length < 3) return;
+    if (trail.length < 2) return;
 
-    const endIndex = Math.max(0, trail.length - 6); // leave a gap behind skater
+    const thresholdY = player.y + player.height * 0.1;
+    const visibleTrail = trail.filter(p => p.y > thresholdY);
+    if (visibleTrail.length < 2) return;
 
     ctx.lineCap = "round";
     ctx.beginPath();
-    for (let i = 0; i <= endIndex; i++) {
-      const p = trail[i];
+    for (let i = 0; i < visibleTrail.length; i++) {
+      const p = visibleTrail[i];
       if (i === 0) ctx.moveTo(p.x, p.y);
       else ctx.lineTo(p.x, p.y);
     }
-    const last = trail[endIndex];
-    const first = trail[0];
+    const last = visibleTrail[visibleTrail.length - 1];
+    const first = visibleTrail[0];
     const factor = Math.max(0.4, (last.y - first.y) / canvas.height);
     ctx.strokeStyle = "#6dc1f6";
     ctx.lineWidth = 4 + 6 * factor;
@@ -1543,18 +1542,11 @@
       const o = obstacles[i];
       o.y += speed;
 
-      // much smaller collision box around the trunk,
-      // extra forgiving on mobile so you can slip between trees
-      let treePadX = o.width * 0.30;
-      let treePadY = o.height * 0.20;
-      if (isMobile) {
-        treePadX = o.width * 0.35;
-        treePadY = o.height * 0.25;
-      }
-      let treeX = o.x + treePadX;
-      let treeY = o.y + treePadY;
-      let treeW = o.width - treePadX * 2;
-      let treeH = o.height - treePadY * 1.8;
+      // shrink tree collision box so you can slip between them
+      const treeX = o.x + o.width * 0.15;
+      const treeY = o.y + o.height * 0.15;
+      const treeW = o.width * 0.7;
+      const treeH = o.height * 0.75;
 
       if (rectsOverlap(hb.x, hb.y, hb.width, hb.height, treeX, treeY, treeW, treeH)) {
         if (hitCooldown <= 0) {
