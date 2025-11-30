@@ -545,6 +545,14 @@
       #score { font-size: 7px; padding: 5px 8px; }
       .smallBtn { font-size: 9px; padding: 7px 16px; }
     }
+
+/* highlight my own score row in leaderboard */
+.myScoreRow td {
+  background: rgba(201, 226, 101, 0.18) !important;
+  color: #c9e265;
+}
+
+
   </style>
 </head>
 
@@ -1889,158 +1897,207 @@
     playerSpriteImg.style.display = "none";
   }
 
-  const API_BASE = "https://snow-glide.deno.dev";
+/* ---------- Leaderboard modal + API ---------- */
 
-  function openLeaderboard() {
-    const modal = document.getElementById("leaderboardModal");
-    const lastRunEl = document.getElementById("leaderboardLastRun");
-    const nameInput = document.getElementById("playerNameInput");
+// Deno leaderboard URL
+const API_BASE = "https://snow-glide.deno.dev";
 
-    if (bestDistance > 0) {
-      lastRunEl.textContent = "Best local distance: " + bestDistance + " m";
+// best score that has already been uploaded for this device
+let bestUploaded = parseInt(localStorage.getItem("snowglide_bestUploaded") || "0", 10);
+
+function openLeaderboard() {
+  const modal = document.getElementById("leaderboardModal");
+  const lastRunEl = document.getElementById("leaderboardLastRun");
+  const nameInput = document.getElementById("playerNameInput");
+
+  if (bestDistance > 0) {
+    lastRunEl.textContent = "Best local distance: " + bestDistance + " m";
+  } else if (lastRunDistance > 0) {
+    lastRunEl.textContent = "Your last run: " + lastRunDistance + " m";
+  } else {
+    lastRunEl.textContent = "Play a run to submit a score.";
+  }
+
+  if (nameInput) nameInput.value = playerName || "";
+  document.getElementById("leaderboardStatus").textContent = "";
+  modal.style.display = "flex";
+  fetchLeaderboard();
+}
+
+function closeLeaderboard() {
+  document.getElementById("leaderboardModal").style.display = "none";
+}
+
+async function fetchLeaderboard() {
+  const container = document.getElementById("leaderboardTableContainer");
+
+  if (!API_BASE) {
+    container.innerHTML =
+      "<p style='font-size:8px;opacity:0.7;'>Leaderboard server not configured yet.</p>";
+    return;
+  }
+
+  container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>Loading highscores...</p>";
+
+  try {
+    const res = await fetch(API_BASE + "/api/leaderboard");
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    const items = data.items || [];
+
+    if (!items.length) {
+      container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>No scores yet. Be the first!</p>";
+      return;
+    }
+
+    // figure out which score to highlight for this device
+    const highlightName = (playerName || "").trim();
+    let highlightScore = 0;
+    if (bestUploaded > 0) {
+      highlightScore = bestUploaded;
+    } else if (bestDistance > 0) {
+      highlightScore = bestDistance;
     } else if (lastRunDistance > 0) {
-      lastRunEl.textContent = "Your last run: " + lastRunDistance + " m";
-    } else {
-      lastRunEl.textContent = "Play a run to submit a score.";
+      highlightScore = lastRunDistance;
     }
 
-    if (nameInput) nameInput.value = playerName || "";
-    document.getElementById("leaderboardStatus").textContent = "";
-    modal.style.display = "flex";
-    fetchLeaderboard();
+    let html =
+      "<table><thead><tr><th>#</th><th>Name</th><th style='text-align:right;'>Distance</th></tr></thead><tbody>";
+    items.forEach((item, idx) => {
+      const safeName = (item.name || "Player")
+        .toString()
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      const isMe =
+        highlightName &&
+        safeName.trim() === highlightName &&
+        Number(item.score) === Number(highlightScore);
+
+      const rowClass = isMe ? " class=\"myScoreRow\"" : "";
+
+      html += `<tr${rowClass}>
+        <td>${idx + 1}</td>
+        <td>${safeName}</td>
+        <td style="text-align:right;">${item.score} m</td>
+      </tr>`;
+    });
+    html += "</tbody></table>";
+    container.innerHTML = html;
+  } catch (err) {
+    container.innerHTML =
+      "<p style='font-size:8px;color:#ff8080;'>Unable to load leaderboard right now.</p>";
+  }
+}
+
+/**
+ * Send score to server.
+ * This is the ONLY place that actually uploads.
+ * We only ever send when scoreToSend > bestUploaded.
+ */
+async function sendScoreToServer(scoreToSend, showStatus) {
+  if (!playerId || !Number.isFinite(scoreToSend) || scoreToSend <= 0) return;
+
+  const statusEl = document.getElementById("leaderboardStatus");
+
+  if (!API_BASE) {
+    if (showStatus && statusEl) {
+      statusEl.style.color = "#ff8080";
+      statusEl.textContent = "Leaderboard server URL not set.";
+    }
+    return;
   }
 
-  function closeLeaderboard() {
-    document.getElementById("leaderboardModal").style.display = "none";
-  }
-
-  async function fetchLeaderboard() {
-    const container = document.getElementById("leaderboardTableContainer");
-
-    if (!API_BASE) {
-      container.innerHTML =
-        "<p style='font-size:8px;opacity:0.7;'>Leaderboard server not configured yet.</p>";
-      return;
-    }
-
-    container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>Loading highscores...</p>";
-    try {
-      const res = await fetch(API_BASE + "/api/leaderboard");
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      const items = data.items || [];
-
-      if (!items.length) {
-        container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>No scores yet. Be the first!</p>";
-        return;
-      }
-
-      let html = "<table><thead><tr><th>#</th><th>Name</th><th style='text-align:right;'>Distance</th></tr></thead><tbody>";
-      items.forEach((item, idx) => {
-        html += `<tr>
-          <td>${idx + 1}</td>
-          <td>${(item.name || "Player")
-            .toString()
-            .replace(/</g,"&lt;")
-            .replace(/>/g,"&gt;")}</td>
-          <td style="text-align:right;">${item.score} m</td>
-        </tr>`;
-      });
-      html += "</tbody></table>";
-      container.innerHTML = html;
-    } catch (err) {
-      container.innerHTML = "<p style='font-size:8px;color:#ff8080;'>Unable to load leaderboard right now.</p>";
-    }
-  }
-
-  async function sendScoreToServer(scoreToSend, showStatus) {
-    if (!playerId || !Number.isFinite(scoreToSend) || scoreToSend <= 0) return;
-
-    const statusEl = document.getElementById("leaderboardStatus");
-
-    if (!API_BASE) {
-      if (showStatus && statusEl) {
-        statusEl.style.color = "#ff8080";
-        statusEl.textContent = "Leaderboard server URL not set.";
-      }
-      return;
-    }
-
-    ensurePlayerNameForScore();
-
+  // important: only upload if this beats our previous uploaded best
+  if (scoreToSend <= bestUploaded) {
     if (showStatus && statusEl) {
       statusEl.style.color = "#c9e265";
-      statusEl.textContent = "Saving...";
+      statusEl.textContent = "Your best score is already saved.";
+    }
+    return;
+  }
+
+  ensurePlayerNameForScore();
+
+  if (showStatus && statusEl) {
+    statusEl.style.color = "#c9e265";
+    statusEl.textContent = "Saving best score...";
+  }
+
+  try {
+    const res = await fetch(API_BASE + "/api/leaderboard", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        playerId,          // unique per device
+        name: playerName,  // current display name
+        score: Math.floor(scoreToSend)
+      })
+    });
+
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    if (!data.success) throw new Error("API error");
+
+    // store uploaded best locally so we never upload worse scores again
+    bestUploaded = Math.max(bestUploaded, Math.floor(scoreToSend));
+    localStorage.setItem("snowglide_bestUploaded", String(bestUploaded));
+
+    if (showStatus && statusEl) {
+      statusEl.style.color = "#6dc1f6";
+      statusEl.textContent = "Best score saved!";
     }
 
-    try {
-      const res = await fetch(API_BASE + "/api/leaderboard", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          playerId,
-          name: playerName,
-          score: Math.floor(scoreToSend)
-        })
-      });
+    // reload leaderboard so row highlighting is accurate
+    fetchLeaderboard();
+  } catch (err) {
+    if (showStatus && statusEl) {
+      statusEl.style.color = "#ff8080";
+      statusEl.textContent = "Could not save score right now.";
+    }
+  }
+}
 
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      if (!data.success) throw new Error("API error");
+/**
+ * Called from endGame()
+ * First ever run: uploads that score.
+ * Later: only uploads if this run beats previous bestUploaded.
+ */
+function autoSubmitScore() {
+  if (!lastRunDistance || lastRunDistance < 1) return;
+  sendScoreToServer(lastRunDistance, false);
+}
 
-      bestUploaded = Math.max(bestUploaded, Math.floor(scoreToSend));
-      localStorage.setItem("snowglide_bestUploaded", String(bestUploaded));
+/**
+ * Manual button in the leaderboard:
+ * – lets the player update their name
+ * – re-uploads only if best distance beat the previously uploaded best.
+ */
+function submitLeaderboardScore() {
+  const input = document.getElementById("playerNameInput");
+  const statusEl = document.getElementById("leaderboardStatus");
 
-      if (showStatus && statusEl) {
-        statusEl.style.color = "#6dc1f6";
-        statusEl.textContent = "Score saved!";
-      }
-
-      fetchLeaderboard();
-    } catch (err) {
-      if (showStatus && statusEl) {
-        statusEl.style.color = "#ff8080";
-        statusEl.textContent = "Could not save score right now.";
-      }
+  if (input) {
+    const name = (input.value || "").trim();
+    if (name) {
+      playerName = name.slice(0, 20);
+      localStorage.setItem("snowglide_playerName", playerName);
     }
   }
 
-  function autoSubmitScore() {
-    if (!lastRunDistance || lastRunDistance < 1) return;
-    if (lastRunDistance <= bestUploaded) return;
-    sendScoreToServer(lastRunDistance, false);
+  const best = bestDistance || lastRunDistance || 0;
+  if (!best) {
+    if (statusEl) {
+      statusEl.style.color = "#c9e265";
+      statusEl.textContent = "Play a run first, then save.";
+    }
+    return;
   }
 
-  function submitLeaderboardScore() {
-    const input = document.getElementById("playerNameInput");
-    const statusEl = document.getElementById("leaderboardStatus");
+  // this will only upload if `best > bestUploaded`
+  sendScoreToServer(best, true);
+}
 
-    if (input) {
-      const name = (input.value || "").trim();
-      if (name) {
-        playerName = name.slice(0, 20);
-        localStorage.setItem("snowglide_playerName", playerName);
-      }
-    }
-    const best = bestDistance || lastRunDistance || 0;
-    if (!best) {
-      if (statusEl) {
-        statusEl.style.color = "#c9e265";
-        statusEl.textContent = "Play a run first, then save.";
-      }
-      return;
-    }
-
-    if (best <= bestUploaded) {
-      if (statusEl) {
-        statusEl.style.color = "#c9e265";
-        statusEl.textContent = "Your best score is already saved.";
-      }
-      return;
-    }
-
-    sendScoreToServer(best, true);
-  }
 
   function togglePause() {
     if (!gameRunning || lifePaused) return;
