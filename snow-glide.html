@@ -1367,17 +1367,33 @@
     // gifts
     if (distInt % 250 === 0) spawnGift();
 
-    // big snowballs – very low rate until 8000, then more often
-    if (distInt >= 800 && distInt < 8000 && distInt % 600 === 0 && Math.random() < 0.25) {
-      spawnBigSnowball();
-    }
-    if (distInt >= 8000 && distInt % 250 === 0 && Math.random() < 0.8) {
-      spawnBigSnowball();
+    // big snowballs – spawn rules differ on mobile vs desktop
+    if (!isMobile) {
+      if (distInt >= 800 && distInt < 8000 && distInt % 600 === 0 && Math.random() < 0.25) {
+        spawnBigSnowball();
+      }
+      if (distInt >= 8000 && distInt % 250 === 0 && Math.random() < 0.8) {
+        spawnBigSnowball();
+      }
+    } else {
+      // mobile: much rarer spawns
+      if (distInt >= 1200 && distInt % 1200 === 0 && Math.random() < 0.25) {
+        spawnBigSnowball();
+      }
+      if (distInt >= 6000 && distInt % 900 === 0 && Math.random() < 0.4) {
+        spawnBigSnowball();
+      }
     }
 
-    // golems
-    if (distInt >= 600 && distInt % 900 === 0 && Math.random() < 0.8) {
-      spawnIceGolem();
+    // golems – rarer on mobile
+    if (!isMobile) {
+      if (distInt >= 600 && distInt % 900 === 0 && Math.random() < 0.8) {
+        spawnIceGolem();
+      }
+    } else {
+      if (distInt >= 1500 && distInt % 1600 === 0 && Math.random() < 0.5) {
+        spawnIceGolem();
+      }
     }
 
     handleTutorialTriggers(distInt);
@@ -1396,14 +1412,32 @@
 
     bgTime += 0.002;
 
-    const topHue = 190 + 10 * Math.sin(bgTime);
-    const bottomHue = 35 + 8 * Math.sin(bgTime + 1.5);
+    // darker winter gradient to improve contrast with snowballs
+    const t = Math.sin(bgTime);
+    const topHue = 210 + 8 * t;
+    const bottomHue = 195 + 10 * Math.cos(bgTime * 0.8);
 
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, `hsl(${topHue}, 70%, 88%)`);
-    g.addColorStop(1, `hsl(${bottomHue}, 90%, 96%)`);
+    g.addColorStop(0, `hsl(${topHue}, 60%, 32%)`);
+    g.addColorStop(0.35, `hsl(${topHue + 5}, 65%, 40%)`);
+    g.addColorStop(1, `hsl(${bottomHue}, 70%, 68%)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
+
+    // lighter central slope to still feel like snow
+    const slopeWidth = w * 0.7;
+    const slopeX = (w - slopeWidth) / 2;
+    const slopeGrad = ctx.createLinearGradient(0, 0, 0, h);
+    slopeGrad.addColorStop(0, "rgba(255,255,255,0.9)");
+    slopeGrad.addColorStop(1, "rgba(240,250,255,0.85)");
+    ctx.fillStyle = slopeGrad;
+    ctx.beginPath();
+    ctx.moveTo(slopeX, 0);
+    ctx.lineTo(slopeX + slopeWidth, 0);
+    ctx.lineTo(slopeX + slopeWidth * 0.8, h);
+    ctx.lineTo(slopeX + slopeWidth * 0.2, h);
+    ctx.closePath();
+    ctx.fill();
   }
 
   function updateSnow(speedFactor) {
@@ -1605,9 +1639,9 @@
     for (let i = 0; i < bigSnowballs.length; i++) {
       const b = bigSnowballs[i];
 
-      // slow snowballs (tuned for mobile)
-      const upMult = 0.35;
-      const downMult = 0.55;
+      // slower snowballs on mobile so they can be dodged more easily
+      const upMult = isMobile ? 0.22 : 0.35;
+      const downMult = isMobile ? 0.4 : 0.55;
 
       if (b.direction === "up") {
         b.y -= speed * upMult;
@@ -1637,7 +1671,7 @@
 
   function renderBigSnowballs() {
     bigSnowballs.forEach(b => {
-      ctx.fillStyle = "rgba(0,0,0,0.18)";
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
       ctx.beginPath();
       ctx.ellipse(b.x, b.y + b.r * 0.9, b.r * 0.9, b.r * 0.4, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -1647,13 +1681,21 @@
         b.x, b.y, b.r
       );
       gradient.addColorStop(0, "#ffffff");
-      gradient.addColorStop(1, "#cfe5f8");
+      gradient.addColorStop(0.5, "#d6f0ff");
+      gradient.addColorStop(1, "#9ac3ff");
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      // dark outline so it stands out on light snow
+      ctx.strokeStyle = "rgba(20,60,120,0.9)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
       ctx.beginPath();
       ctx.arc(b.x - b.r * 0.3, b.y - b.r * 0.4, b.r * 0.25, 0, Math.PI * 2);
       ctx.fill();
@@ -1721,7 +1763,10 @@
     dx /= mag;
     dy /= mag;
 
-    const speed = 6 + currentSpeed * 0.3;
+    // slower projectiles on mobile
+    const baseSpeed = isMobile ? 3.5 : 6;
+    const scale = isMobile ? 0.15 : 0.3;
+    const speed = baseSpeed + currentSpeed * scale;
 
     golemSnowballs.push({
       x: originX,
@@ -1800,7 +1845,7 @@
 
   function renderGolemSnowballs() {
     golemSnowballs.forEach(b => {
-      ctx.strokeStyle = "rgba(173,216,255,0.5)";
+      ctx.strokeStyle = "rgba(173,216,255,0.8)";
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(b.x - b.vx * 0.2, b.y - b.vy * 0.2);
@@ -1812,11 +1857,19 @@
         b.x, b.y, b.r
       );
       grad.addColorStop(0, "#ffffff");
-      grad.addColorStop(1, "#b7ddff");
+      grad.addColorStop(0.6, "#d1ecff");
+      grad.addColorStop(1, "#7fb4ff");
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
+
+      // outline for visibility
+      ctx.strokeStyle = "rgba(10,40,90,0.9)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.stroke();
     });
   }
 
@@ -1992,28 +2045,43 @@
       const res = await fetch(API_BASE + "/api/leaderboard");
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
-      const items = data.items || [];
+      let items = data.items || [];
 
       if (!items.length) {
         container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>No scores yet. Be the first!</p>";
         return;
       }
 
+      // sort by score DESC just in case API doesn't
+      items = items.slice().sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+
+      // de-dupe by playerId (or fallback name+score) so renames don't show as new rows
+      const seen = new Set();
+      const deduped = [];
+      for (const item of items) {
+        const key = item.playerId || (String(item.name) + "|" + String(item.score));
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(item);
+      }
+
       const highlightName = (playerName || "").trim();
       const highlightScore = bestDistance || lastRunDistance || 0;
+      const myId = playerId;
 
       let html =
         "<table><thead><tr><th>#</th><th>Name</th><th style='text-align:right;'>Distance</th></tr></thead><tbody>";
-      items.forEach((item, idx) => {
+      deduped.forEach((item, idx) => {
         const safeName = (item.name || "Player")
           .toString()
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;");
 
         const isMe =
-          highlightName &&
-          safeName.trim() === highlightName &&
-          Number(item.score) === Number(highlightScore);
+          (item.playerId && myId && item.playerId === myId) ||
+          (!item.playerId && highlightName &&
+           safeName.trim() === highlightName &&
+           Number(item.score) === Number(highlightScore));
 
         const rowClass = isMe ? " class=\"myScoreRow\"" : "";
 
