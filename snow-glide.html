@@ -21,7 +21,7 @@
       overflow: hidden;
       background: #0d1b2a;
       font-family: 'Press Start 2P', monospace;
-      touch-action: none;
+      touch-action: none; /* prevent scroll / zoom on mobile while dragging */
     }
 
     #gameCanvas {
@@ -116,6 +116,7 @@
       opacity: 0.75;
     }
 
+    /* menu snow texture */
     #startScreen::after,
     #characterScreen::after {
       content: "";
@@ -132,6 +133,7 @@
       to   { background-position: 0 8px; }
     }
 
+    /* sound toggle (reused) */
     .soundToggle {
       position: absolute;
       top: 10px;
@@ -144,6 +146,8 @@
       cursor: pointer;
       z-index: 25;
     }
+
+    /* character select */
 
     #charRow {
       display: flex;
@@ -229,6 +233,8 @@
 
     #charLeaderboardBtn span.icon { font-size: 12px; }
 
+    /* HUD */
+
     #score {
       position: absolute;
       top: 8px;
@@ -281,6 +287,8 @@
       z-index: 5;
       border: 1px solid #c9e265;
     }
+
+    /* overlays */
 
     #gameOverScreen,
     #pauseScreen {
@@ -339,6 +347,8 @@
       border: 2px solid #c9e265;
       box-shadow: none;
     }
+
+    /* ---------- modals (How to Play / Leaderboard) ---------- */
 
     .modalOverlay {
       position: fixed;
@@ -414,6 +424,7 @@
       color: #0d1b2a;
     }
 
+    /* leaderboard-specific */
     #leaderboardModal .modalText table {
       width: 100%;
       border-collapse: collapse;
@@ -475,6 +486,14 @@
       margin-top: 2px;
       min-height: 11px;
     }
+
+    /* highlight my own score row in leaderboard */
+    .myScoreRow td {
+      background: rgba(201, 226, 101, 0.18) !important;
+      color: #c9e265;
+    }
+
+    /* ---- first-time name modal ---- */
 
     #nameModal .modalBox {
       max-width: 360px;
@@ -545,14 +564,6 @@
       #score { font-size: 7px; padding: 5px 8px; }
       .smallBtn { font-size: 9px; padding: 7px 16px; }
     }
-
-/* highlight my own score row in leaderboard */
-.myScoreRow td {
-  background: rgba(201, 226, 101, 0.18) !important;
-  color: #c9e265;
-}
-
-
   </style>
 </head>
 
@@ -561,6 +572,7 @@
 <canvas id="gameCanvas"></canvas>
 <img id="playerSprite" src="" alt="player" />
 
+<!-- START MENU -->
 <div id="startScreen">
   <div id="soundToggleMain" class="soundToggle" onclick="toggleSound()"></div>
 
@@ -576,6 +588,7 @@
   <div class="byText">By Rapidbott</div>
 </div>
 
+<!-- CHARACTER SELECT -->
 <div id="characterScreen">
   <div id="soundToggleChar" class="soundToggle" onclick="toggleSound()"></div>
 
@@ -602,6 +615,7 @@
 </div>
 <div id="pauseBtn" onclick="playUiClick(); togglePause()">Pause</div>
 
+<!-- GAME OVER -->
 <div id="gameOverScreen">
   <div class="title">GAME OVER</div>
   <div id="finalScoreText"></div>
@@ -610,6 +624,7 @@
   <div class="smallBtn secondary" onclick="playUiClick(); backToMainMenu()">Main Menu</div>
 </div>
 
+<!-- PAUSE SCREEN -->
 <div id="pauseScreen">
   <div class="title">PAUSED</div>
   <div class="smallBtn" onclick="playUiClick(); resumeFromPause()">Resume</div>
@@ -617,6 +632,7 @@
   <div class="smallBtn secondary" onclick="playUiClick(); backToMainMenu()">Main Menu</div>
 </div>
 
+<!-- HOW TO PLAY MODAL -->
 <div id="howToModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'howToModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeHowToPlay()">✕</div>
@@ -663,6 +679,7 @@
   </div>
 </div>
 
+<!-- LEADERBOARD MODAL -->
 <div id="leaderboardModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'leaderboardModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeLeaderboard()">✕</div>
@@ -683,7 +700,9 @@
 
         <div id="leaderboardTableWrap">
           <p style="font-size:8px;margin:3px 0 3px 0;opacity:0.8;">Top runs</p>
-          <div id="leaderboardTableContainer"></div>
+          <div id="leaderboardTableContainer">
+            <!-- table injected by JS -->
+          </div>
         </div>
       </div>
     </div>
@@ -691,6 +710,7 @@
   </div>
 </div>
 
+<!-- FIRST-TIME NAME MODAL -->
 <div id="nameModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'nameModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeNameModal()">✕</div>
@@ -719,11 +739,15 @@
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
+  // basic mobile detection just to tweak difficulty
+  const isMobile =
+    /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent) ||
+    window.innerWidth < 800;
+
   let gameRunning = false;
   let gamePaused = false;
   let score = 0;
   let bestDistance = parseInt(localStorage.getItem("snowglide_best") || "0", 10);
-  let bestUploaded = parseInt(localStorage.getItem("snowglide_bestUploaded") || "0", 10);
 
   let obstacles = [];
   let gifts = [];
@@ -742,6 +766,7 @@
   let bgTime = 0;
   let glitchFrames = 0;
 
+  // tutorial
   let tutorialRun = localStorage.getItem("snowglide_tutorialDone") !== "1";
   let tutorialStage = 0;
   let tutorialActive = false;
@@ -766,11 +791,15 @@
     ArrowDown: false
   };
 
+  /* ---------- vibration helpers (mobile feedback) ---------- */
+
   function vibrate(pattern) {
     if (navigator.vibrate) {
       navigator.vibrate(pattern);
     }
   }
+
+  /* ---------- background MUSIC ---------- */
 
   const musicUrls = [
     "https://static.wixstatic.com/mp3/526e04_95f7861eae324e5d8d4639bc42421f66.mp3",
@@ -814,6 +843,7 @@
     }
   }
 
+  /* ---------- WebAudio SFX & sound toggle ---------- */
   let audioCtx = null;
   let soundMuted = localStorage.getItem("snowglide_soundMuted") === "1";
 
@@ -868,7 +898,7 @@
   }
   function playUiClick() {
     playBeep(600, 0.06, "square", 0.18);
-    ensureMusicPlaying();
+    ensureMusicPlaying();   // start music on first interaction
   }
   function playUiSelect() {
     playBeep(360, 0.08, "triangle", 0.18);
@@ -894,12 +924,14 @@
 
   updateSoundButtons();
 
+  /* ---------- character sprites ---------- */
+
   const spriteUrls = {
     skater: "https://static.wixstatic.com/media/526e04_fdcc62e1239f4d9f99ca919124fa61ea~mv2.gif",
     santa:  "https://static.wixstatic.com/media/526e04_442ddcff77ab4db08d32d4d8afa080e6~mv2.gif",
     elf:    "https://static.wixstatic.com/media/526e04_bcb3066ff6ca4a6084532f3488d9e60b~mv2.gif",
     snowman:"https://static.wixstatic.com/media/526e04_abd71acd4e914bc9a4a28e748a88e6b0~mv2.gif",
-    penguin: null,
+    penguin: null, // placeholder
     polar:  "https://static.wixstatic.com/media/526e04_2441b9e5ede14c2182a8dc2ff5464b22~mv2.gif",
     mrsclaus:"https://static.wixstatic.com/media/526e04_18c403f1cd3447da9d2c0cd378fc8e4c~mv2.gif"
   };
@@ -938,6 +970,8 @@
   function saveUnlocks() {
     localStorage.setItem("snowglide_unlockedChars", JSON.stringify(unlocked));
   }
+
+  /* ---------- player identity & names ---------- */
 
   let playerId = localStorage.getItem("snowglide_playerId");
   if (!playerId) {
@@ -1009,6 +1043,8 @@
     closeNameModal();
   }
 
+  /* ---------- menu actions ---------- */
+
   function openCharacterSelect() {
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("characterScreen").style.display = "flex";
@@ -1037,6 +1073,8 @@
       document.getElementById(modalId).style.display = "none";
     }
   }
+
+  /* ---------- character select ---------- */
 
   function renderCharacters() {
     const row = document.getElementById("charRow");
@@ -1105,6 +1143,8 @@
     }
   }
 
+  /* ---------- start game ---------- */
+
   function startGame() {
     document.getElementById("characterScreen").style.display = "none";
     document.getElementById("gameOverScreen").style.display = "none";
@@ -1148,6 +1188,7 @@
     requestAnimationFrame(gameLoop);
   }
 
+  /* ---------- speed curve ---------- */
   function computeSpeed() {
     if (score < 500) {
       return 2.8 + (score / 500) * 1.2;
@@ -1175,8 +1216,10 @@
     if (player.x < 0) player.x = 0;
     if (player.y < 0) player.y = 0;
     if (player.x + player.width > canvas.width)  player.x = canvas.width - player.width;
-    if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+    if (player.y + player.height > canvas.height)  player.y = canvas.height - player.height;
   }
+
+  /* ---------- tutorial helpers ---------- */
 
   function startTutorial(lines) {
     tutorialActive = true;
@@ -1249,10 +1292,11 @@
     });
   }
 
+  /* ---------- main loop ---------- */
+
   function gameLoop() {
     if (!gameRunning) return;
 
-    const distBefore = Math.floor(score);
     currentSpeed = computeSpeed();
     const worldSpeed = tutorialActive ? currentSpeed * 0.25 : currentSpeed;
 
@@ -1302,7 +1346,7 @@
     updateObstacles(worldSpeed);
     renderObstacles();
 
-    updateBigSnowballs(worldSpeed, distBefore);
+    updateBigSnowballs(worldSpeed);
     renderBigSnowballs();
 
     updateIceGolems(worldSpeed);
@@ -1317,23 +1361,21 @@
     score += tutorialActive ? 0.25 : 1;
     const distInt = Math.floor(score);
 
+    // trees
     if (distInt % 80 === 0) spawnObstacle();
+
+    // gifts
     if (distInt % 250 === 0) spawnGift();
 
-    // Big snowball spawn:
-    // - before 1500m: none at all (except the tutorial one)
-    // - 1500–8000m: very rare
-    // - 8000m+: more frequent
-    if (distInt >= 1500 && distInt < 8000) {
-      if (distInt % 1200 === 0 && Math.random() < 0.25) {
-        spawnBigSnowball();
-      }
-    } else if (distInt >= 8000) {
-      if (distInt % 600 === 0 && Math.random() < 0.65) {
-        spawnBigSnowball();
-      }
+    // big snowballs – very low rate until 8000, then more often
+    if (distInt >= 800 && distInt < 8000 && distInt % 600 === 0 && Math.random() < 0.25) {
+      spawnBigSnowball();
+    }
+    if (distInt >= 8000 && distInt % 250 === 0 && Math.random() < 0.8) {
+      spawnBigSnowball();
     }
 
+    // golems
     if (distInt >= 600 && distInt % 900 === 0 && Math.random() < 0.8) {
       spawnIceGolem();
     }
@@ -1345,6 +1387,8 @@
     updateHud();
     requestAnimationFrame(gameLoop);
   }
+
+  /* ---------- background & snow ---------- */
 
   function drawBackground() {
     const w = canvas.width;
@@ -1387,6 +1431,8 @@
     }
   }
 
+  /* ---------- trail ---------- */
+
   function updateTrail(speed) {
     for (const p of trail) {
       p.y -= speed;
@@ -1422,12 +1468,16 @@
     ctx.stroke();
   }
 
+  /* ---------- trees ---------- */
+
   function spawnObstacle() {
     const width = 45;
     const height = 70;
     const margin = 40;
 
-    const doCluster = Math.random() < 0.5;
+    // on desktop we sometimes spawn clusters; on mobile we always spawn single trees
+    const allowClusters = !isMobile;
+    const doCluster = allowClusters && Math.random() < 0.5;
 
     if (!doCluster) {
       const x = margin + Math.random() * (canvas.width - 2 * margin - width);
@@ -1436,7 +1486,7 @@
       return;
     }
 
-    const count = 2 + Math.floor(Math.random() * 3);
+    const count = 2 + Math.floor(Math.random() * 3); // 2–4 trees
     const spacing = width + 18;
     const clusterSpan = (count - 1) * spacing + width;
     const xMin = margin;
@@ -1460,7 +1510,7 @@
     lives--;
     hitCooldown = 60;
     playHitSound();
-    vibrate([0, 60, 40, 40]);
+    vibrate([0, 60, 40, 40]); // stronger crash vibration
     glitchFrames = 10;
     if (lives > 0) {
       lifePaused = true;
@@ -1527,6 +1577,8 @@
     });
   }
 
+  /* ---------- big rolling snowballs (bottom → top chase) ---------- */
+
   function spawnBigSnowball() {
     const radius = 45;
 
@@ -1538,7 +1590,7 @@
     );
 
     const y = canvas.height + radius * 2;
-    const vx = (Math.random() - 0.5) * 1.0;
+    const vx = (Math.random() - 0.5) * 1.0; // gentle sideways
 
     bigSnowballs.push({
       x,
@@ -1549,22 +1601,13 @@
     });
   }
 
-  // distance-scaled big snowball speed
-  function updateBigSnowballs(speed, dist) {
+  function updateBigSnowballs(speed) {
     for (let i = 0; i < bigSnowballs.length; i++) {
       const b = bigSnowballs[i];
 
-      let upMult, downMult;
-      if (dist < 3000) {
-        upMult = 0.16;
-        downMult = 0.28;
-      } else if (dist < 8000) {
-        upMult = 0.24;
-        downMult = 0.36;
-      } else {
-        upMult = 0.38;
-        downMult = 0.58;
-      }
+      // slow snowballs (tuned for mobile)
+      const upMult = 0.35;
+      const downMult = 0.55;
 
       if (b.direction === "up") {
         b.y -= speed * upMult;
@@ -1616,6 +1659,8 @@
       ctx.fill();
     });
   }
+
+  /* ---------- Ice Golems & snowballs ---------- */
 
   function spawnIceGolem() {
     const margin = 60;
@@ -1775,6 +1820,8 @@
     });
   }
 
+  /* ---------- gifts ---------- */
+
   function spawnGift() {
     const width = 40;
     const height = 40;
@@ -1800,11 +1847,11 @@
         if (g.type === "points") {
           score += 200;
           playGiftSound();
-          vibrate([0, 25]);
+          vibrate([0, 25]); // small pulse
         } else if (g.type === "life" && lives < maxLives) {
           lives++;
           playLifeSound();
-          vibrate([0, 20, 40, 20]);
+          vibrate([0, 20, 40, 20]); // double pulse
         }
         gifts.splice(i, 1);
         i--;
@@ -1829,6 +1876,8 @@
       }
     });
   }
+
+  /* ---------- overlays / HUD ---------- */
 
   function drawLifeLostOverlay() {
     ctx.fillStyle = "rgba(0,0,0,0.35)";
@@ -1858,6 +1907,7 @@
     const runDist = Math.floor(score);
     lastRunDistance = runDist;
 
+    const prevBest = bestDistance;
     if (runDist > bestDistance) {
       bestDistance = runDist;
       localStorage.setItem("snowglide_best", bestDistance);
@@ -1882,7 +1932,9 @@
 
     document.getElementById("gameOverScreen").style.display = "flex";
 
-    autoSubmitScore();
+    // auto upload only if this is a NEW best
+    const isNewBest = runDist > prevBest;
+    autoSubmitScore(runDist, isNewBest);
   }
 
   function updateHud() {
@@ -1897,207 +1949,170 @@
     playerSpriteImg.style.display = "none";
   }
 
-/* ---------- Leaderboard modal + API ---------- */
+  /* ---------- Leaderboard modal + API ---------- */
 
-// Deno leaderboard URL
-const API_BASE = "https://snow-glide.deno.dev";
+  // Deno leaderboard URL
+  const API_BASE = "https://snow-glide.deno.dev";
 
-// best score that has already been uploaded for this device
-let bestUploaded = parseInt(localStorage.getItem("snowglide_bestUploaded") || "0", 10);
+  function openLeaderboard() {
+    const modal = document.getElementById("leaderboardModal");
+    const lastRunEl = document.getElementById("leaderboardLastRun");
+    const nameInput = document.getElementById("playerNameInput");
 
-function openLeaderboard() {
-  const modal = document.getElementById("leaderboardModal");
-  const lastRunEl = document.getElementById("leaderboardLastRun");
-  const nameInput = document.getElementById("playerNameInput");
+    if (bestDistance > 0) {
+      lastRunEl.textContent = "Best local distance: " + bestDistance + " m";
+    } else if (lastRunDistance > 0) {
+      lastRunEl.textContent = "Your last run: " + lastRunDistance + " m";
+    } else {
+      lastRunEl.textContent = "Play a run to submit a score.";
+    }
 
-  if (bestDistance > 0) {
-    lastRunEl.textContent = "Best local distance: " + bestDistance + " m";
-  } else if (lastRunDistance > 0) {
-    lastRunEl.textContent = "Your last run: " + lastRunDistance + " m";
-  } else {
-    lastRunEl.textContent = "Play a run to submit a score.";
+    if (nameInput) nameInput.value = playerName || "";
+    document.getElementById("leaderboardStatus").textContent = "";
+    modal.style.display = "flex";
+    fetchLeaderboard();
   }
 
-  if (nameInput) nameInput.value = playerName || "";
-  document.getElementById("leaderboardStatus").textContent = "";
-  modal.style.display = "flex";
-  fetchLeaderboard();
-}
-
-function closeLeaderboard() {
-  document.getElementById("leaderboardModal").style.display = "none";
-}
-
-async function fetchLeaderboard() {
-  const container = document.getElementById("leaderboardTableContainer");
-
-  if (!API_BASE) {
-    container.innerHTML =
-      "<p style='font-size:8px;opacity:0.7;'>Leaderboard server not configured yet.</p>";
-    return;
+  function closeLeaderboard() {
+    document.getElementById("leaderboardModal").style.display = "none";
   }
 
-  container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>Loading highscores...</p>";
+  async function fetchLeaderboard() {
+    const container = document.getElementById("leaderboardTableContainer");
 
-  try {
-    const res = await fetch(API_BASE + "/api/leaderboard");
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    const items = data.items || [];
-
-    if (!items.length) {
-      container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>No scores yet. Be the first!</p>";
+    if (!API_BASE) {
+      container.innerHTML =
+        "<p style='font-size:8px;opacity:0.7;'>Leaderboard server not configured yet.</p>";
       return;
     }
 
-    // figure out which score to highlight for this device
-    const highlightName = (playerName || "").trim();
-    let highlightScore = 0;
-    if (bestUploaded > 0) {
-      highlightScore = bestUploaded;
-    } else if (bestDistance > 0) {
-      highlightScore = bestDistance;
-    } else if (lastRunDistance > 0) {
-      highlightScore = lastRunDistance;
+    container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>Loading highscores...</p>";
+
+    try {
+      const res = await fetch(API_BASE + "/api/leaderboard");
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      const items = data.items || [];
+
+      if (!items.length) {
+        container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>No scores yet. Be the first!</p>";
+        return;
+      }
+
+      const highlightName = (playerName || "").trim();
+      const highlightScore = bestDistance || lastRunDistance || 0;
+
+      let html =
+        "<table><thead><tr><th>#</th><th>Name</th><th style='text-align:right;'>Distance</th></tr></thead><tbody>";
+      items.forEach((item, idx) => {
+        const safeName = (item.name || "Player")
+          .toString()
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;");
+
+        const isMe =
+          highlightName &&
+          safeName.trim() === highlightName &&
+          Number(item.score) === Number(highlightScore);
+
+        const rowClass = isMe ? " class=\"myScoreRow\"" : "";
+
+        html += `<tr${rowClass}>
+          <td>${idx + 1}</td>
+          <td>${safeName}</td>
+          <td style="text-align:right;">${item.score} m</td>
+        </tr>`;
+      });
+      html += "</tbody></table>";
+      container.innerHTML = html;
+    } catch (err) {
+      container.innerHTML =
+        "<p style='font-size:8px;color:#ff8080;'>Unable to load leaderboard right now.</p>";
     }
-
-    let html =
-      "<table><thead><tr><th>#</th><th>Name</th><th style='text-align:right;'>Distance</th></tr></thead><tbody>";
-    items.forEach((item, idx) => {
-      const safeName = (item.name || "Player")
-        .toString()
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-
-      const isMe =
-        highlightName &&
-        safeName.trim() === highlightName &&
-        Number(item.score) === Number(highlightScore);
-
-      const rowClass = isMe ? " class=\"myScoreRow\"" : "";
-
-      html += `<tr${rowClass}>
-        <td>${idx + 1}</td>
-        <td>${safeName}</td>
-        <td style="text-align:right;">${item.score} m</td>
-      </tr>`;
-    });
-    html += "</tbody></table>";
-    container.innerHTML = html;
-  } catch (err) {
-    container.innerHTML =
-      "<p style='font-size:8px;color:#ff8080;'>Unable to load leaderboard right now.</p>";
-  }
-}
-
-/**
- * Send score to server.
- * This is the ONLY place that actually uploads.
- * We only ever send when scoreToSend > bestUploaded.
- */
-async function sendScoreToServer(scoreToSend, showStatus) {
-  if (!playerId || !Number.isFinite(scoreToSend) || scoreToSend <= 0) return;
-
-  const statusEl = document.getElementById("leaderboardStatus");
-
-  if (!API_BASE) {
-    if (showStatus && statusEl) {
-      statusEl.style.color = "#ff8080";
-      statusEl.textContent = "Leaderboard server URL not set.";
-    }
-    return;
   }
 
-  // important: only upload if this beats our previous uploaded best
-  if (scoreToSend <= bestUploaded) {
+  async function sendScoreToServer(scoreToSend, showStatus) {
+    if (!playerId || !Number.isFinite(scoreToSend) || scoreToSend <= 0) return;
+
+    const statusEl = document.getElementById("leaderboardStatus");
+
+    if (!API_BASE) {
+      if (showStatus && statusEl) {
+        statusEl.style.color = "#ff8080";
+        statusEl.textContent = "Leaderboard server URL not set.";
+      }
+      return;
+    }
+
+    ensurePlayerNameForScore();
+
     if (showStatus && statusEl) {
       statusEl.style.color = "#c9e265";
-      statusEl.textContent = "Your best score is already saved.";
-    }
-    return;
-  }
-
-  ensurePlayerNameForScore();
-
-  if (showStatus && statusEl) {
-    statusEl.style.color = "#c9e265";
-    statusEl.textContent = "Saving best score...";
-  }
-
-  try {
-    const res = await fetch(API_BASE + "/api/leaderboard", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        playerId,          // unique per device
-        name: playerName,  // current display name
-        score: Math.floor(scoreToSend)
-      })
-    });
-
-    if (!res.ok) throw new Error("HTTP " + res.status);
-    const data = await res.json();
-    if (!data.success) throw new Error("API error");
-
-    // store uploaded best locally so we never upload worse scores again
-    bestUploaded = Math.max(bestUploaded, Math.floor(scoreToSend));
-    localStorage.setItem("snowglide_bestUploaded", String(bestUploaded));
-
-    if (showStatus && statusEl) {
-      statusEl.style.color = "#6dc1f6";
-      statusEl.textContent = "Best score saved!";
+      statusEl.textContent = "Saving best score...";
     }
 
-    // reload leaderboard so row highlighting is accurate
-    fetchLeaderboard();
-  } catch (err) {
-    if (showStatus && statusEl) {
-      statusEl.style.color = "#ff8080";
-      statusEl.textContent = "Could not save score right now.";
-    }
-  }
-}
+    try {
+      const res = await fetch(API_BASE + "/api/leaderboard", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          playerId,
+          name: playerName,
+          score: Math.floor(scoreToSend)
+        })
+      });
 
-/**
- * Called from endGame()
- * First ever run: uploads that score.
- * Later: only uploads if this run beats previous bestUploaded.
- */
-function autoSubmitScore() {
-  if (!lastRunDistance || lastRunDistance < 1) return;
-  sendScoreToServer(lastRunDistance, false);
-}
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (!data.success) throw new Error("API error");
 
-/**
- * Manual button in the leaderboard:
- * – lets the player update their name
- * – re-uploads only if best distance beat the previously uploaded best.
- */
-function submitLeaderboardScore() {
-  const input = document.getElementById("playerNameInput");
-  const statusEl = document.getElementById("leaderboardStatus");
+      if (showStatus && statusEl) {
+        statusEl.style.color = "#6dc1f6";
+        statusEl.textContent = "Best score saved!";
+      }
 
-  if (input) {
-    const name = (input.value || "").trim();
-    if (name) {
-      playerName = name.slice(0, 20);
-      localStorage.setItem("snowglide_playerName", playerName);
+      fetchLeaderboard();
+    } catch (err) {
+      if (showStatus && statusEl) {
+        statusEl.style.color = "#ff8080";
+        statusEl.textContent = "Could not save score right now.";
+      }
     }
   }
 
-  const best = bestDistance || lastRunDistance || 0;
-  if (!best) {
-    if (statusEl) {
-      statusEl.style.color = "#c9e265";
-      statusEl.textContent = "Play a run first, then save.";
-    }
-    return;
+  function autoSubmitScore(runDist, isNewBest) {
+    if (!runDist || runDist < 1) return;
+    if (!isNewBest) return;
+    // silent auto upload of new best
+    sendScoreToServer(runDist, false);
   }
 
-  // this will only upload if `best > bestUploaded`
-  sendScoreToServer(best, true);
-}
+  function submitLeaderboardScore() {
+    const input = document.getElementById("playerNameInput");
+    const statusEl = document.getElementById("leaderboardStatus");
 
+    if (input) {
+      const name = (input.value || "").trim();
+      if (name) {
+        playerName = name.slice(0, 20);
+        localStorage.setItem("snowglide_playerName", playerName);
+      }
+    }
+
+    const best = bestDistance || lastRunDistance || 0;
+    if (!best) {
+      if (statusEl) {
+        statusEl.style.color = "#c9e265";
+        statusEl.textContent = "Play a run first, then save.";
+      }
+      return;
+    }
+
+    // manual save always tries – useful if auto-save failed earlier
+    sendScoreToServer(best, true);
+  }
+
+  /* ---------- pause handling ---------- */
 
   function togglePause() {
     if (!gameRunning || lifePaused) return;
@@ -2109,6 +2124,8 @@ function submitLeaderboardScore() {
     gamePaused = false;
     document.getElementById("pauseScreen").style.display = "none";
   }
+
+  /* ---------- input / resume after life ---------- */
 
   function tryResumeFromPauseLife() {
     if (!gameRunning || !lifePaused) return false;
@@ -2187,6 +2204,7 @@ function submitLeaderboardScore() {
     canvas.height = window.innerHeight;
   });
 
+  // Show name modal only if user never set a name
   window.addEventListener("load", () => {
     if (!playerName) {
       openNameModal();
