@@ -21,7 +21,7 @@
       overflow: hidden;
       background: #0d1b2a;
       font-family: 'Press Start 2P', monospace;
-      touch-action: none; /* prevent scroll / zoom on mobile while dragging */
+      touch-action: none;
     }
 
     #gameCanvas {
@@ -116,7 +116,6 @@
       opacity: 0.75;
     }
 
-    /* menu snow texture */
     #startScreen::after,
     #characterScreen::after {
       content: "";
@@ -133,7 +132,6 @@
       to   { background-position: 0 8px; }
     }
 
-    /* sound toggle (reused) */
     .soundToggle {
       position: absolute;
       top: 10px;
@@ -146,8 +144,6 @@
       cursor: pointer;
       z-index: 25;
     }
-
-    /* character select */
 
     #charRow {
       display: flex;
@@ -233,8 +229,6 @@
 
     #charLeaderboardBtn span.icon { font-size: 12px; }
 
-    /* HUD */
-
     #score {
       position: absolute;
       top: 8px;
@@ -287,8 +281,6 @@
       z-index: 5;
       border: 1px solid #c9e265;
     }
-
-    /* overlays */
 
     #gameOverScreen,
     #pauseScreen {
@@ -347,8 +339,6 @@
       border: 2px solid #c9e265;
       box-shadow: none;
     }
-
-    /* ---------- modals (How to Play / Leaderboard) ---------- */
 
     .modalOverlay {
       position: fixed;
@@ -424,7 +414,6 @@
       color: #0d1b2a;
     }
 
-    /* leaderboard-specific */
     #leaderboardModal .modalText table {
       width: 100%;
       border-collapse: collapse;
@@ -486,8 +475,6 @@
       margin-top: 2px;
       min-height: 11px;
     }
-
-    /* ---- first-time name modal ---- */
 
     #nameModal .modalBox {
       max-width: 360px;
@@ -566,7 +553,6 @@
 <canvas id="gameCanvas"></canvas>
 <img id="playerSprite" src="" alt="player" />
 
-<!-- START MENU -->
 <div id="startScreen">
   <div id="soundToggleMain" class="soundToggle" onclick="toggleSound()"></div>
 
@@ -582,7 +568,6 @@
   <div class="byText">By Rapidbott</div>
 </div>
 
-<!-- CHARACTER SELECT -->
 <div id="characterScreen">
   <div id="soundToggleChar" class="soundToggle" onclick="toggleSound()"></div>
 
@@ -609,7 +594,6 @@
 </div>
 <div id="pauseBtn" onclick="playUiClick(); togglePause()">Pause</div>
 
-<!-- GAME OVER -->
 <div id="gameOverScreen">
   <div class="title">GAME OVER</div>
   <div id="finalScoreText"></div>
@@ -618,7 +602,6 @@
   <div class="smallBtn secondary" onclick="playUiClick(); backToMainMenu()">Main Menu</div>
 </div>
 
-<!-- PAUSE SCREEN -->
 <div id="pauseScreen">
   <div class="title">PAUSED</div>
   <div class="smallBtn" onclick="playUiClick(); resumeFromPause()">Resume</div>
@@ -626,7 +609,6 @@
   <div class="smallBtn secondary" onclick="playUiClick(); backToMainMenu()">Main Menu</div>
 </div>
 
-<!-- HOW TO PLAY MODAL -->
 <div id="howToModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'howToModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeHowToPlay()">✕</div>
@@ -673,7 +655,6 @@
   </div>
 </div>
 
-<!-- LEADERBOARD MODAL -->
 <div id="leaderboardModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'leaderboardModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeLeaderboard()">✕</div>
@@ -694,9 +675,7 @@
 
         <div id="leaderboardTableWrap">
           <p style="font-size:8px;margin:3px 0 3px 0;opacity:0.8;">Top runs</p>
-          <div id="leaderboardTableContainer">
-            <!-- table injected by JS -->
-          </div>
+          <div id="leaderboardTableContainer"></div>
         </div>
       </div>
     </div>
@@ -704,7 +683,6 @@
   </div>
 </div>
 
-<!-- FIRST-TIME NAME MODAL -->
 <div id="nameModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'nameModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeNameModal()">✕</div>
@@ -737,7 +715,6 @@
   let gamePaused = false;
   let score = 0;
   let bestDistance = parseInt(localStorage.getItem("snowglide_best") || "0", 10);
-  // Best score that has already been uploaded to the server
   let bestUploaded = parseInt(localStorage.getItem("snowglide_bestUploaded") || "0", 10);
 
   let obstacles = [];
@@ -757,7 +734,6 @@
   let bgTime = 0;
   let glitchFrames = 0;
 
-  // tutorial
   let tutorialRun = localStorage.getItem("snowglide_tutorialDone") !== "1";
   let tutorialStage = 0;
   let tutorialActive = false;
@@ -782,15 +758,11 @@
     ArrowDown: false
   };
 
-  /* ---------- vibration helpers (mobile feedback) ---------- */
-
   function vibrate(pattern) {
     if (navigator.vibrate) {
       navigator.vibrate(pattern);
     }
   }
-
-  /* ---------- background MUSIC ---------- */
 
   const musicUrls = [
     "https://static.wixstatic.com/mp3/526e04_95f7861eae324e5d8d4639bc42421f66.mp3",
@@ -834,7 +806,6 @@
     }
   }
 
-  /* ---------- WebAudio SFX & sound toggle ---------- */
   let audioCtx = null;
   let soundMuted = localStorage.getItem("snowglide_soundMuted") === "1";
 
@@ -889,7 +860,7 @@
   }
   function playUiClick() {
     playBeep(600, 0.06, "square", 0.18);
-    ensureMusicPlaying();   // start music on first interaction
+    ensureMusicPlaying();
   }
   function playUiSelect() {
     playBeep(360, 0.08, "triangle", 0.18);
@@ -915,14 +886,12 @@
 
   updateSoundButtons();
 
-  /* ---------- character sprites ---------- */
-
   const spriteUrls = {
     skater: "https://static.wixstatic.com/media/526e04_fdcc62e1239f4d9f99ca919124fa61ea~mv2.gif",
     santa:  "https://static.wixstatic.com/media/526e04_442ddcff77ab4db08d32d4d8afa080e6~mv2.gif",
     elf:    "https://static.wixstatic.com/media/526e04_bcb3066ff6ca4a6084532f3488d9e60b~mv2.gif",
     snowman:"https://static.wixstatic.com/media/526e04_abd71acd4e914bc9a4a28e748a88e6b0~mv2.gif",
-    penguin: null, // placeholder
+    penguin: null,
     polar:  "https://static.wixstatic.com/media/526e04_2441b9e5ede14c2182a8dc2ff5464b22~mv2.gif",
     mrsclaus:"https://static.wixstatic.com/media/526e04_18c403f1cd3447da9d2c0cd378fc8e4c~mv2.gif"
   };
@@ -961,8 +930,6 @@
   function saveUnlocks() {
     localStorage.setItem("snowglide_unlockedChars", JSON.stringify(unlocked));
   }
-
-  /* ---------- player identity & names ---------- */
 
   let playerId = localStorage.getItem("snowglide_playerId");
   if (!playerId) {
@@ -1034,8 +1001,6 @@
     closeNameModal();
   }
 
-  /* ---------- menu actions ---------- */
-
   function openCharacterSelect() {
     document.getElementById("startScreen").style.display = "none";
     document.getElementById("characterScreen").style.display = "flex";
@@ -1064,8 +1029,6 @@
       document.getElementById(modalId).style.display = "none";
     }
   }
-
-  /* ---------- character select ---------- */
 
   function renderCharacters() {
     const row = document.getElementById("charRow");
@@ -1134,8 +1097,6 @@
     }
   }
 
-  /* ---------- start game ---------- */
-
   function startGame() {
     document.getElementById("characterScreen").style.display = "none";
     document.getElementById("gameOverScreen").style.display = "none";
@@ -1179,7 +1140,6 @@
     requestAnimationFrame(gameLoop);
   }
 
-  /* ---------- speed curve ---------- */
   function computeSpeed() {
     if (score < 500) {
       return 2.8 + (score / 500) * 1.2;
@@ -1209,8 +1169,6 @@
     if (player.x + player.width > canvas.width)  player.x = canvas.width - player.width;
     if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
   }
-
-  /* ---------- tutorial helpers ---------- */
 
   function startTutorial(lines) {
     tutorialActive = true;
@@ -1283,11 +1241,10 @@
     });
   }
 
-  /* ---------- main loop ---------- */
-
   function gameLoop() {
     if (!gameRunning) return;
 
+    const distBefore = Math.floor(score);
     currentSpeed = computeSpeed();
     const worldSpeed = tutorialActive ? currentSpeed * 0.25 : currentSpeed;
 
@@ -1337,7 +1294,7 @@
     updateObstacles(worldSpeed);
     renderObstacles();
 
-    updateBigSnowballs(worldSpeed);
+    updateBigSnowballs(worldSpeed, distBefore);
     renderBigSnowballs();
 
     updateIceGolems(worldSpeed);
@@ -1355,9 +1312,20 @@
     if (distInt % 80 === 0) spawnObstacle();
     if (distInt % 250 === 0) spawnGift();
 
-    if (distInt >= 300 && distInt % 200 === 0 && Math.random() < 0.6) {
-      spawnBigSnowball();
+    // Big snowball spawn:
+    // - before 1500m: none at all (except the tutorial one)
+    // - 1500–8000m: very rare
+    // - 8000m+: more frequent
+    if (distInt >= 1500 && distInt < 8000) {
+      if (distInt % 1200 === 0 && Math.random() < 0.25) {
+        spawnBigSnowball();
+      }
+    } else if (distInt >= 8000) {
+      if (distInt % 600 === 0 && Math.random() < 0.65) {
+        spawnBigSnowball();
+      }
     }
+
     if (distInt >= 600 && distInt % 900 === 0 && Math.random() < 0.8) {
       spawnIceGolem();
     }
@@ -1369,8 +1337,6 @@
     updateHud();
     requestAnimationFrame(gameLoop);
   }
-
-  /* ---------- background & snow ---------- */
 
   function drawBackground() {
     const w = canvas.width;
@@ -1413,8 +1379,6 @@
     }
   }
 
-  /* ---------- trail ---------- */
-
   function updateTrail(speed) {
     for (const p of trail) {
       p.y -= speed;
@@ -1450,8 +1414,6 @@
     ctx.stroke();
   }
 
-  /* ---------- trees ---------- */
-
   function spawnObstacle() {
     const width = 45;
     const height = 70;
@@ -1466,7 +1428,7 @@
       return;
     }
 
-    const count = 2 + Math.floor(Math.random() * 3); // 2–4 trees
+    const count = 2 + Math.floor(Math.random() * 3);
     const spacing = width + 18;
     const clusterSpan = (count - 1) * spacing + width;
     const xMin = margin;
@@ -1490,7 +1452,7 @@
     lives--;
     hitCooldown = 60;
     playHitSound();
-    vibrate([0, 60, 40, 40]); // stronger crash vibration
+    vibrate([0, 60, 40, 40]);
     glitchFrames = 10;
     if (lives > 0) {
       lifePaused = true;
@@ -1557,8 +1519,6 @@
     });
   }
 
-  /* ---------- big rolling snowballs (bottom → top chase) ---------- */
-
   function spawnBigSnowball() {
     const radius = 45;
 
@@ -1570,7 +1530,7 @@
     );
 
     const y = canvas.height + radius * 2;
-    const vx = (Math.random() - 0.5) * 1.0; // gentle sideways
+    const vx = (Math.random() - 0.5) * 1.0;
 
     bigSnowballs.push({
       x,
@@ -1581,13 +1541,22 @@
     });
   }
 
-  function updateBigSnowballs(speed) {
+  // distance-scaled big snowball speed
+  function updateBigSnowballs(speed, dist) {
     for (let i = 0; i < bigSnowballs.length; i++) {
       const b = bigSnowballs[i];
 
-      // all snowballs are slow now
-      const upMult = 0.35;
-      const downMult = 0.55;
+      let upMult, downMult;
+      if (dist < 3000) {
+        upMult = 0.16;
+        downMult = 0.28;
+      } else if (dist < 8000) {
+        upMult = 0.24;
+        downMult = 0.36;
+      } else {
+        upMult = 0.38;
+        downMult = 0.58;
+      }
 
       if (b.direction === "up") {
         b.y -= speed * upMult;
@@ -1639,8 +1608,6 @@
       ctx.fill();
     });
   }
-
-  /* ---------- Ice Golems & snowballs ---------- */
 
   function spawnIceGolem() {
     const margin = 60;
@@ -1800,8 +1767,6 @@
     });
   }
 
-  /* ---------- gifts ---------- */
-
   function spawnGift() {
     const width = 40;
     const height = 40;
@@ -1827,11 +1792,11 @@
         if (g.type === "points") {
           score += 200;
           playGiftSound();
-          vibrate([0, 25]); // small pulse
+          vibrate([0, 25]);
         } else if (g.type === "life" && lives < maxLives) {
           lives++;
           playLifeSound();
-          vibrate([0, 20, 40, 20]); // double pulse
+          vibrate([0, 20, 40, 20]);
         }
         gifts.splice(i, 1);
         i--;
@@ -1856,8 +1821,6 @@
       }
     });
   }
-
-  /* ---------- overlays / HUD ---------- */
 
   function drawLifeLostOverlay() {
     ctx.fillStyle = "rgba(0,0,0,0.35)";
@@ -1926,9 +1889,6 @@
     playerSpriteImg.style.display = "none";
   }
 
-  /* ---------- Leaderboard modal + API ---------- */
-
-  // Deno leaderboard URL
   const API_BASE = "https://snow-glide.deno.dev";
 
   function openLeaderboard() {
@@ -2028,7 +1988,6 @@
       const data = await res.json();
       if (!data.success) throw new Error("API error");
 
-      // update bestUploaded locally
       bestUploaded = Math.max(bestUploaded, Math.floor(scoreToSend));
       localStorage.setItem("snowglide_bestUploaded", String(bestUploaded));
 
@@ -2048,7 +2007,6 @@
 
   function autoSubmitScore() {
     if (!lastRunDistance || lastRunDistance < 1) return;
-    // Only upload if this run beats what we've already uploaded
     if (lastRunDistance <= bestUploaded) return;
     sendScoreToServer(lastRunDistance, false);
   }
@@ -2084,8 +2042,6 @@
     sendScoreToServer(best, true);
   }
 
-  /* ---------- pause handling ---------- */
-
   function togglePause() {
     if (!gameRunning || lifePaused) return;
     gamePaused = !gamePaused;
@@ -2096,8 +2052,6 @@
     gamePaused = false;
     document.getElementById("pauseScreen").style.display = "none";
   }
-
-  /* ---------- input / resume after life ---------- */
 
   function tryResumeFromPauseLife() {
     if (!gameRunning || !lifePaused) return false;
@@ -2133,7 +2087,7 @@
     if (!gameRunning || lifePaused || gamePaused || !touchActive) return;
     const t = e.touches[0];
     const rect = canvas.getBoundingClientRect();
-       const x = t.clientX - rect.left;
+    const x = t.clientX - rect.left;
     const y = t.clientY - rect.top;
     player.x = x - player.width / 2;
     player.y = y - player.height / 2;
@@ -2176,7 +2130,6 @@
     canvas.height = window.innerHeight;
   });
 
-  // Show name modal only if user never set a name
   window.addEventListener("load", () => {
     if (!playerName) {
       openNameModal();
