@@ -852,7 +852,7 @@
   let bgTime = 0;
   let glitchFrames = 0;
 
-    // Avalanche / Glacier event state
+  // Avalanche / Glacier event state
   let glacier = {
     active: false,       // true only while the avalanche wall is actually moving
     warning: false,      // true during the pre-warning popup phase
@@ -865,7 +865,6 @@
     speed: 0,
     intensity: 0
   };
-
 
   // tutorial
   let tutorialRun = localStorage.getItem("snowglide_tutorialDone") !== "1";
@@ -947,13 +946,27 @@
   }
 
   function getHazardSpeedMultiplier() {
-    if (selectedDifficulty === "easy") return 0.8;
-    if (selectedDifficulty === "medium") return 1.0;
-    if (selectedDifficulty === "hard") return 1.2;
-    // Auto
-    if (bestDistance < 1000) return 0.85;
-    if (bestDistance < 4000) return 1.0;
-    return 1.1;
+    let mul;
+    if (selectedDifficulty === "easy") {
+      mul = 0.8;
+    } else if (selectedDifficulty === "medium") {
+      mul = 1.0;
+    } else if (selectedDifficulty === "hard") {
+      mul = 1.2;
+    } else {
+      // Auto
+      if (bestDistance < 1000) mul = 0.85;
+      else if (bestDistance < 4000) mul = 1.0;
+      else mul = 1.1;
+    }
+
+    // On mobile, hazards gently ramp faster as you survive longer
+    if (isMobile && score > 2500 && score <= 7000) {
+      mul *= 1.08;
+    } else if (isMobile && score > 7000) {
+      mul *= 1.16;
+    }
+    return mul;
   }
 
   function getDifficultyLabel() {
@@ -1324,14 +1337,12 @@
 
   /* ---------- Avalanche / Glacier helpers ---------- */
 
-    /* ---------- Avalanche / Glacier helpers ---------- */
-
   // 1) Start just the warning phase (slow game + popup)
   function startGlacierWarning() {
     if (glacier.active || glacier.warning) return;
 
     glacier.warning = true;
-    glacier.warningFrames = Math.round(1.8 * 60); // ~1.8 seconds of warning
+    glacier.warningFrames = Math.round(3 * 60); // ~3 seconds of warning
 
     // use the existing tutorial overlay system to show warning text
     tutorialActive = true;
@@ -1345,9 +1356,9 @@
 
     glacier.level += 1;
 
-    const baseDuration = 7;      // seconds
-    const extraPerLevel = 2;     // seconds per event
-    const maxDuration = 18;      // cap
+    const baseDuration = 8.5;      // seconds
+    const extraPerLevel = 2.5;     // seconds per event
+    const maxDuration = 22;        // cap
 
     glacier.duration = Math.min(
       baseDuration + extraPerLevel * (glacier.level - 1),
@@ -1363,11 +1374,11 @@
     // Stop warning overlay
     tutorialActive = false;
 
-    // Start a bit above the screen so you SEE it entering
-    glacier.y = -canvas.height * 0.25;
+    // Start higher above the screen so you see it rolling in slowly
+    glacier.y = -canvas.height * 0.4;
 
-    const baseSpeed = 1.8;
-    const speedPerLevel = 0.4;
+    const baseSpeed = isMobile ? 0.9 : 1.2;
+    const speedPerLevel = isMobile ? 0.18 : 0.3;
     glacier.speed = baseSpeed + speedPerLevel * (glacier.level - 1);
 
     glacier.intensity = Math.min(0.35 + 0.05 * (glacier.level - 1), 0.6);
@@ -1432,8 +1443,9 @@
     if (gamePaused || lifePaused) return;
 
     // Move glacier "front" downward a bit each frame
-    glacier.y += glacier.speed;
-    const maxFront = canvas.height * 0.38;
+    const speedMul = isMobile ? 0.85 : 1;
+    glacier.y += glacier.speed * speedMul;
+    const maxFront = canvas.height * (isMobile ? 0.32 : 0.36);
     if (glacier.y > maxFront) glacier.y = maxFront;
 
     // Countdown timer
@@ -1501,13 +1513,14 @@
     ctx.lineWidth = 4;
     ctx.stroke();
 
-    // blue tint
-    ctx.fillStyle = `rgba(0,30,60,${0.10 + glacier.intensity * 0.25})`;
+    // blue tint – stronger on mobile so it’s clearly visible
+    let overlayAlpha = 0.10 + glacier.intensity * 0.25;
+    if (isMobile) {
+      overlayAlpha = 0.18 + glacier.intensity * 0.35;
+    }
+    ctx.fillStyle = `rgba(0,30,60,${overlayAlpha})`;
     ctx.fillRect(0, 0, w, h);
   }
-
-
-
 
   /* ---------- start game ---------- */
 
@@ -1700,7 +1713,7 @@
 
     currentSpeed = computeSpeed();
 
-        // Handle pending avalanche warning countdown
+    // Handle pending avalanche warning countdown
     if (glacier.warning && !gamePaused && !lifePaused) {
       glacier.warningFrames--;
 
@@ -1712,11 +1725,10 @@
       }
     }
 
-
-    // During avalanche give a small extra world speed boost (feels more intense)
+    // During avalanche give a very small world speed boost (feel, but not brutal)
     let worldSpeed = tutorialActive ? currentSpeed * 0.25 : currentSpeed;
     if (glacier.active && !lifePaused && !gamePaused) {
-      worldSpeed *= 1.08;
+      worldSpeed *= 1.02;
     }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1797,25 +1809,49 @@
     // spawn frequencies tuned separately for mobile / desktop + difficulty
     const spawnFactor = getDifficultySpawnFactor();
 
+    let treeIntervalBase = isMobile ? 110 : 80;
+    let bigEarlyBase = isMobile ? 1200 : 1000;
+    let bigLateBase = isMobile ? 650 : 500;
+    let golemIntervalBase = isMobile ? 1500 : 1400;
+    let giftInterval = isMobile ? 260 : 240;
+
+    // After mid-game, tighten mobile intervals
+    if (isMobile && distInt > 2500 && distInt <= 6000) {
+      treeIntervalBase *= 0.9;
+      bigEarlyBase *= 0.9;
+      bigLateBase *= 0.9;
+      golemIntervalBase *= 0.9;
+    } else if (isMobile && distInt > 6000) {
+      treeIntervalBase *= 0.75;
+      bigEarlyBase *= 0.75;
+      bigLateBase *= 0.8;
+      golemIntervalBase *= 0.8;
+      giftInterval = 230;
+    }
+
     const treeInterval = Math.max(
-      60,
-      Math.round((isMobile ? 120 : 80) * spawnFactor)
+      55,
+      Math.round(treeIntervalBase * spawnFactor)
     );
-    const giftInterval = isMobile ? 280 : 240;
     const bigEarlyInterval = Math.max(
-      400,
-      Math.round((isMobile ? 1300 : 1000) * spawnFactor)
+      380,
+      Math.round(bigEarlyBase * spawnFactor)
     );
     const bigLateInterval = Math.max(
-      280,
-      Math.round((isMobile ? 700 : 500) * spawnFactor)
+      260,
+      Math.round(bigLateBase * spawnFactor)
     );
-    const bigEarlyChance = isMobile ? 0.12 : 0.2;
-    const bigLateChance = isMobile ? 0.35 : 0.55;
     const golemInterval = Math.max(
-      600,
-      Math.round((isMobile ? 1700 : 1400) * spawnFactor)
+      580,
+      Math.round(golemIntervalBase * spawnFactor)
     );
+
+    let bigEarlyChance = isMobile ? 0.16 : 0.2;
+    let bigLateChance = isMobile ? 0.38 : 0.55;
+    if (isMobile && distInt > 6000) {
+      bigEarlyChance = 0.2;
+      bigLateChance = 0.45;
+    }
 
     // trees
     if (distInt > 0 && distInt % treeInterval === 0) spawnObstacle();
@@ -1859,10 +1895,6 @@
     updateHud();
     requestAnimationFrame(gameLoop);
   }
-
-
-
-
 
   /* ---------- background & snow ---------- */
 
@@ -1972,9 +2004,10 @@
     const height = 70;
     const margin = 40;
 
-    // on desktop we sometimes spawn clusters; on mobile we always spawn single trees
-    const allowClusters = !isMobile;
-    const doCluster = allowClusters && Math.random() < 0.5;
+    // on desktop we sometimes spawn clusters; on mobile we unlock clusters after 2000m
+    let allowClusters = !isMobile;
+    if (isMobile && score > 2000) allowClusters = true;
+    const doCluster = allowClusters && Math.random() < (isMobile ? 0.35 : 0.5);
 
     if (!doCluster) {
       const x = margin + Math.random() * (canvas.width - 2 * margin - width);
@@ -2486,7 +2519,10 @@
       if (glacier.active && glacier.timeLeft > 0) {
         avHud.style.display = "block";
         avHud.textContent = "Avalanche: " + glacier.timeLeft.toFixed(1) + "s";
-      } else if (!glacier.active) {
+      } else if (glacier.warning) {
+        avHud.style.display = "block";
+        avHud.textContent = "Avalanche incoming!";
+      } else if (!glacier.active && !glacier.warning) {
         avHud.style.display = "none";
       }
     }
