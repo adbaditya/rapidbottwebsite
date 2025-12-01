@@ -852,9 +852,11 @@
   let bgTime = 0;
   let glitchFrames = 0;
 
-  // Avalanche / Glacier event state
+    // Avalanche / Glacier event state
   let glacier = {
-    active: false,
+    active: false,       // true only while the avalanche wall is actually moving
+    warning: false,      // true during the pre-warning popup phase
+    warningFrames: 0,    // countdown for the warning message
     level: 0,
     framesLeft: 0,
     timeLeft: 0,
@@ -863,6 +865,7 @@
     speed: 0,
     intensity: 0
   };
+
 
   // tutorial
   let tutorialRun = localStorage.getItem("snowglide_tutorialDone") !== "1";
@@ -1321,60 +1324,79 @@
 
   /* ---------- Avalanche / Glacier helpers ---------- */
 
-  function startGlacierEvent() {
-  if (glacier.active) return;
+    /* ---------- Avalanche / Glacier helpers ---------- */
 
-  glacier.level += 1;
+  // 1) Start just the warning phase (slow game + popup)
+  function startGlacierWarning() {
+    if (glacier.active || glacier.warning) return;
 
-  const baseDuration = 7;      // seconds
-  const extraPerLevel = 2;     // seconds per event
-  const maxDuration = 18;      // cap
+    glacier.warning = true;
+    glacier.warningFrames = Math.round(1.8 * 60); // ~1.8 seconds of warning
 
-  glacier.duration = Math.min(
-    baseDuration + extraPerLevel * (glacier.level - 1),
-    maxDuration
-  );
-  glacier.framesLeft = Math.round(glacier.duration * 60);
-  glacier.timeLeft = glacier.duration;
-
-  glacier.active = true;
-
-  // Start a bit above the screen so you SEE it entering
-  glacier.y = -canvas.height * 0.25;
-
-  const baseSpeed = 1.8;         // faster than before
-  const speedPerLevel = 0.4;
-  glacier.speed = baseSpeed + speedPerLevel * (glacier.level - 1);
-
-  glacier.intensity = Math.min(0.35 + 0.05 * (glacier.level - 1), 0.6);
-
-  const avHud = document.getElementById("avalancheHud");
-  if (avHud) {
-    avHud.style.display = "block";
+    // use the existing tutorial overlay system to show warning text
+    tutorialActive = true;
+    tutorialLines = ["⚠ AVALANCHE INCOMING!", "Move fast to escape!"];
+    tutorialTimer = glacier.warningFrames;
   }
 
-  showAvalancheWarning();
+  // 2) Start the actual moving avalanche wall
+  function startGlacierEvent() {
+    if (glacier.active) return;
 
-// screen shake
-const gc = document.getElementById("gameCanvas");
-gc.classList.add("shake");
-setTimeout(() => gc.classList.remove("shake"), 400);
+    glacier.level += 1;
 
-// mobile vibration
-vibrate([0, 70, 60, 40]);
+    const baseDuration = 7;      // seconds
+    const extraPerLevel = 2;     // seconds per event
+    const maxDuration = 18;      // cap
 
-}
+    glacier.duration = Math.min(
+      baseDuration + extraPerLevel * (glacier.level - 1),
+      maxDuration
+    );
+    glacier.framesLeft = Math.round(glacier.duration * 60);
+    glacier.timeLeft = glacier.duration;
 
-function showAvalancheWarning() {
-  tutorialActive = true;
-  tutorialLines = ["⚠ AVALANCHE INCOMING!", "Move fast to escape!"];
-  tutorialTimer = 120; // stays for 2 seconds
-}
+    glacier.active = true;
+    glacier.warning = false;
+    glacier.warningFrames = 0;
 
+    // Stop warning overlay
+    tutorialActive = false;
 
+    // Start a bit above the screen so you SEE it entering
+    glacier.y = -canvas.height * 0.25;
+
+    const baseSpeed = 1.8;
+    const speedPerLevel = 0.4;
+    glacier.speed = baseSpeed + speedPerLevel * (glacier.level - 1);
+
+    glacier.intensity = Math.min(0.35 + 0.05 * (glacier.level - 1), 0.6);
+
+    const avHud = document.getElementById("avalancheHud");
+    if (avHud) {
+      avHud.style.display = "block";
+    }
+
+    // screen shake
+    const gc = document.getElementById("gameCanvas");
+    gc.classList.add("shake");
+    setTimeout(() => gc.classList.remove("shake"), 400);
+
+    // mobile vibration
+    vibrate([0, 70, 60, 40]);
+  }
+
+  // (kept for clarity, but now unused – warning text handled in startGlacierWarning)
+  function showAvalancheWarning() {
+    tutorialActive = true;
+    tutorialLines = ["⚠ AVALANCHE INCOMING!", "Move fast to escape!"];
+    tutorialTimer = 120;
+  }
 
   function endGlacierEvent() {
     glacier.active = false;
+    glacier.warning = false;
+    glacier.warningFrames = 0;
     glacier.framesLeft = 0;
     glacier.timeLeft = 0;
     glacier.y = 0;
@@ -1383,10 +1405,15 @@ function showAvalancheWarning() {
     if (avHud) {
       avHud.style.display = "none";
     }
+
+    // make sure warning overlay is gone
+    tutorialActive = false;
   }
 
   function checkGlacierTrigger(distInt) {
-    if (glacier.active || gamePaused || lifePaused) return;
+    // don’t re-trigger if already warning or active,
+    // or if paused / in life-pause
+    if (glacier.active || glacier.warning || gamePaused || lifePaused) return;
 
     const firstThreshold = 3000;
     const step = 3000;
@@ -1394,7 +1421,7 @@ function showAvalancheWarning() {
 
     // small window so we don't re-trigger multiple times due to frame stepping
     if (distInt >= nextThreshold && distInt < nextThreshold + 40) {
-      startGlacierEvent();
+      startGlacierWarning();
     }
   }
 
@@ -1422,7 +1449,8 @@ function showAvalancheWarning() {
     const ph = getPlayerHitBox();
     const glacierFrontY = glacier.y + 140; // effective front line
 
-    if (glacierFrontY > ph.y + ph.height * 0.3 && hitCooldown <= 0) {
+    // IMPORTANT: skip glacier collision on mobile so it’s just “pressure”
+    if (!isMobile && glacierFrontY > ph.y + ph.height * 0.3 && hitCooldown <= 0) {
       if (handleLifeLoss()) {
         endGlacierEvent();
         return;
@@ -1431,52 +1459,53 @@ function showAvalancheWarning() {
   }
 
   function drawGlacierOverlay() {
-  if (!glacier.active) return;
+    if (!glacier.active) return;
 
-  const w = canvas.width;
-  const h = canvas.height;
+    const w = canvas.width;
+    const h = canvas.height;
 
-  const frontY = Math.min(glacier.y + 180, h);
+    const frontY = Math.min(glacier.y + 180, h);
 
-  // fog
-  const grad = ctx.createLinearGradient(0, 0, 0, frontY);
-  grad.addColorStop(0, `rgba(255,255,255,0.95)`);
-  grad.addColorStop(0.5, `rgba(230,240,255,0.8)`);
-  grad.addColorStop(1, `rgba(220,235,255,0.0)`);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, w, frontY);
+    // fog
+    const grad = ctx.createLinearGradient(0, 0, 0, frontY);
+    grad.addColorStop(0, `rgba(255,255,255,0.95)`);
+    grad.addColorStop(0.5, `rgba(230,240,255,0.8)`);
+    grad.addColorStop(1, `rgba(220,235,255,0.0)`);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, frontY);
 
-  // snow wall
-  const wallHeight = 90;
-  const crestY = frontY - 30;
+    // snow wall
+    const wallHeight = 90;
+    const crestY = frontY - 30;
 
-  ctx.beginPath();
-  ctx.moveTo(0, frontY + wallHeight);
+    ctx.beginPath();
+    ctx.moveTo(0, frontY + wallHeight);
 
-  const bumps = 12;
-  for (let i = 0; i <= bumps; i++) {
-    const x = (w / bumps) * i;
-    const mid = x - (w / bumps) * 0.5;
-    const offset = (Math.sin(i + glacier.y * 0.02) * 25);
-    ctx.quadraticCurveTo(mid, crestY + offset, x, crestY);
+    const bumps = 12;
+    for (let i = 0; i <= bumps; i++) {
+      const x = (w / bumps) * i;
+      const mid = x - (w / bumps) * 0.5;
+      const offset = (Math.sin(i + glacier.y * 0.02) * 25);
+      ctx.quadraticCurveTo(mid, crestY + offset, x, crestY);
+    }
+
+    ctx.lineTo(w, frontY + wallHeight);
+    ctx.closePath();
+
+    // fill snow wall
+    ctx.fillStyle = "rgba(255,255,255,0.95)";
+    ctx.fill();
+
+    // border
+    ctx.strokeStyle = "rgba(150,180,220,0.9)";
+    ctx.lineWidth = 4;
+    ctx.stroke();
+
+    // blue tint
+    ctx.fillStyle = `rgba(0,30,60,${0.10 + glacier.intensity * 0.25})`;
+    ctx.fillRect(0, 0, w, h);
   }
 
-  ctx.lineTo(w, frontY + wallHeight);
-  ctx.closePath();
-
-  // fill snow wall
-  ctx.fillStyle = "rgba(255,255,255,0.95)";
-  ctx.fill();
-
-  // border
-  ctx.strokeStyle = "rgba(150,180,220,0.9)";
-  ctx.lineWidth = 4;
-  ctx.stroke();
-
-  // blue tint
-  ctx.fillStyle = `rgba(0,30,60,${0.10 + glacier.intensity * 0.25})`;
-  ctx.fillRect(0, 0, w, h);
-}
 
 
 
@@ -1516,6 +1545,8 @@ function showAvalancheWarning() {
 
     // reset glacier state for a fresh run
     glacier.active = false;
+    glacier.warning = false;
+    glacier.warningFrames = 0;
     glacier.level = 0;
     glacier.framesLeft = 0;
     glacier.timeLeft = 0;
@@ -1669,6 +1700,19 @@ function showAvalancheWarning() {
 
     currentSpeed = computeSpeed();
 
+        // Handle pending avalanche warning countdown
+    if (glacier.warning && !gamePaused && !lifePaused) {
+      glacier.warningFrames--;
+
+      // when warning finishes, start the actual avalanche wall
+      if (glacier.warningFrames <= 0) {
+        glacier.warning = false;
+        tutorialActive = false; // stop warning text
+        startGlacierEvent();
+      }
+    }
+
+
     // During avalanche give a small extra world speed boost (feels more intense)
     let worldSpeed = tutorialActive ? currentSpeed * 0.25 : currentSpeed;
     if (glacier.active && !lifePaused && !gamePaused) {
@@ -1815,6 +1859,10 @@ function showAvalancheWarning() {
     updateHud();
     requestAnimationFrame(gameLoop);
   }
+
+
+
+
 
   /* ---------- background & snow ---------- */
 
