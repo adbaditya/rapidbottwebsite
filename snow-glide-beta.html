@@ -184,41 +184,18 @@
     }
 
     /* menu snow texture */
-    /* existing small flake layer */
-#startScreen::after,
-#characterScreen::after {
+    #startScreen::after,
+    #characterScreen::after {
   content: "";
   position: absolute;
   inset: 0;
   background-image: radial-gradient(#ffffff 1px, transparent 1px);
   background-size: 4px 4px;
-  opacity: 0.14;
+  opacity: 0.12;
   pointer-events: none;
-  animation: menuSnow 1.5s linear infinite;
+  animation: menuSnow 1.2s linear infinite;
 }
 
-/* NEW: bigger slow flakes */
-#startScreen::before,
-#characterScreen::before {
-  content: "";
-  position: absolute;
-  inset: -20px 0 0 0;
-  background-image: radial-gradient(#ffffff 2px, transparent 2px);
-  background-size: 10px 10px;
-  opacity: 0.22;
-  pointer-events: none;
-  animation: menuSnowBig 3.5s linear infinite;
-}
-
-@keyframes menuSnow {
-  from { background-position: 0 0; }
-  to   { background-position: 0 12px; }
-}
-
-@keyframes menuSnowBig {
-  from { background-position: 0 -20px; }
-  to   { background-position: 0 40px; }
-}
 
 
     /* sound toggle (reused) */
