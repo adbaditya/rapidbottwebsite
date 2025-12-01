@@ -838,6 +838,16 @@
 
   const playerSpriteImg = document.getElementById("playerSprite");
 
+  function getPlayerHitBox() {
+  // Smaller, centered hitbox so collisions feel fair
+  const hbWidth  = player.width * 0.55;   // 55% width
+  const hbHeight = player.height * 0.5;   // 50% height
+  const hbX = player.x + (player.width  - hbWidth)  / 2;
+  const hbY = player.y + player.height * 0.25;  // move up a bit (ignore skis/trail)
+  return { x: hbX, y: hbY, width: hbWidth, height: hbHeight };
+}
+
+
   const keys = {
     ArrowLeft: false,
     ArrowRight: false,
@@ -1689,35 +1699,36 @@
     return false;
   }
 
-  function updateObstacles(speed) {
-    for (let i = 0; i < obstacles.length; i++) {
-      const o = obstacles[i];
-      // move upward (bottom -> top) to simulate downhill ride
-      o.y -= speed;
+function updateObstacles(speed) {
+  const ph = getPlayerHitBox();
 
-      // softer hitbox: only lower 65% of tree, narrower by 40%
-      const collX = o.x + o.width * 0.2;
-      const collY = o.y + o.height * 0.35;
-      const collW = o.width * 0.6;
-      const collH = o.height * 0.65;
+  for (let i = 0; i < obstacles.length; i++) {
+    const o = obstacles[i];
+    o.y -= speed;
 
-      if (
-        collX < player.x + player.width &&
-        collX + collW > player.x &&
-        collY < player.y + player.height &&
-        collY + collH > player.y
-      ) {
-        if (hitCooldown <= 0) {
-          obstacles.splice(i, 1);
-          i--;
-          if (handleLifeLoss()) return;
-        }
+    // softer tree hitbox (already there)
+    const collX = o.x + o.width * 0.2;
+    const collY = o.y + o.height * 0.35;
+    const collW = o.width * 0.6;
+    const collH = o.height * 0.65;
+
+    if (
+      collX < ph.x + ph.width &&
+      collX + collW > ph.x &&
+      collY < ph.y + ph.height &&
+      collH + collY > ph.y
+    ) {
+      if (hitCooldown <= 0) {
+        obstacles.splice(i, 1);
+        i--;
+        if (handleLifeLoss()) return;
       }
     }
-
-    // cull once they move well above the top
-    obstacles = obstacles.filter(o => o.y + o.height > -120);
   }
+
+  obstacles = obstacles.filter(o => o.y + o.height > -120);
+}
+
 
   function renderObstacles() {
     obstacles.forEach(o => {
@@ -1776,6 +1787,7 @@
   }
 
   function updateBigSnowballs(speed) {
+    const ph = getPlayerHitBox();
     const hazardMul = getHazardSpeedMultiplier();
 
     // slightly slower baseline than before
@@ -1795,25 +1807,24 @@
     }
 
     for (let i = 0; i < bigSnowballs.length; i++) {
-      const b = bigSnowballs[i];
+    const b = bigSnowballs[i];
+    b.y += speed * downMult;
+    b.x += b.vx;
 
-      // move downward from top
-      b.y += speed * downMult;
-      b.x += b.vx;
+    // use player hitbox instead of full sprite
+    const closestX = Math.max(ph.x, Math.min(b.x, ph.x + ph.width));
+    const closestY = Math.max(ph.y, Math.min(b.y, ph.y + ph.height));
+    const dx = b.x - closestX;
+    const dy = b.y - closestY;
+    const collR = b.r * 0.78;
+    const distSq = dx * dx + dy * dy;
 
-      const closestX = Math.max(player.x, Math.min(b.x, player.x + player.width));
-      const closestY = Math.max(player.y, Math.min(b.y, player.y + player.height));
-      const dx = b.x - closestX;
-      const dy = b.y - closestY;
-      const collR = b.r * 0.78; // softer radius
-      const distSq = dx * dx + dy * dy;
-
-      if (distSq < collR * collR && hitCooldown <= 0) {
-        bigSnowballs.splice(i, 1);
-        i--;
-        if (handleLifeLoss()) return;
-      }
+    if (distSq < collR * collR && hitCooldown <= 0) {
+      bigSnowballs.splice(i, 1);
+      i--;
+      if (handleLifeLoss()) return;
     }
+  }
 
     bigSnowballs = bigSnowballs.filter(
       b =>
@@ -1873,25 +1884,26 @@
   }
 
   function updateIceGolems(speed) {
-    for (let i = 0; i < iceGolems.length; i++) {
-      const g = iceGolems[i];
+    const ph = getPlayerHitBox();
 
-      // move upward with the world (bottom -> top)
-      g.y -= speed * 0.9;
+  for (let i = 0; i < iceGolems.length; i++) {
+    const g = iceGolems[i];
+    g.y -= speed * 0.9;
 
-      if (
-        g.x < player.x + player.width &&
-        g.x + g.width > player.x &&
-        g.y < player.y + player.height &&
-        g.y + g.height > player.y
-      ) {
-        if (hitCooldown <= 0) {
-          iceGolems.splice(i, 1);
-          i--;
-          if (handleLifeLoss()) return;
-          continue;
-        }
+    if (
+      g.x < ph.x + ph.width &&
+      g.x + g.width > ph.x &&
+      g.y < ph.y + ph.height &&
+      g.y + g.height > ph.y
+    ) {
+      if (hitCooldown <= 0) {
+        iceGolems.splice(i, 1);
+        i--;
+        if (handleLifeLoss()) return;
+        continue;
       }
+    }
+      
 
       g.shootCooldown--;
       if (g.shootCooldown <= 0 && !lifePaused && !gamePaused) {
@@ -1946,26 +1958,28 @@
   }
 
   function updateGolemSnowballs() {
-    for (let i = 0; i < golemSnowballs.length; i++) {
-      const b = golemSnowballs[i];
-      b.x += b.vx;
-      b.y += b.vy;
+  const ph = getPlayerHitBox();
 
-      const closestX = Math.max(player.x, Math.min(b.x, player.x + player.width));
-      const closestY = Math.max(player.y, Math.min(b.y, player.y + player.height));
-      const dx = b.x - closestX;
-      const dy = b.y - closestY;
-      const collR = b.r * 0.75; // softer radius
-      const distSq = dx * dx + dy * dy;
+  for (let i = 0; i < golemSnowballs.length; i++) {
+    const b = golemSnowballs[i];
+    b.x += b.vx;
+    b.y += b.vy;
 
-      if (distSq < collR * collR && hitCooldown <= 0) {
-        golemSnowballs.splice(i, 1);
-        i--;
-        playGolemSnowballWhoosh();
-        if (handleLifeLoss()) return;
-        continue;
-      }
+    const closestX = Math.max(ph.x, Math.min(b.x, ph.x + ph.width));
+    const closestY = Math.max(ph.y, Math.min(b.y, ph.y + ph.height));
+    const dx = b.x - closestX;
+    const dy = b.y - closestY;
+    const collR = b.r * 0.75;
+    const distSq = dx * dx + dy * dy;
+
+    if (distSq < collR * collR && hitCooldown <= 0) {
+      golemSnowballs.splice(i, 1);
+      i--;
+      playGolemSnowballWhoosh();
+      if (handleLifeLoss()) return;
+      continue;
     }
+  }
 
     golemSnowballs = golemSnowballs.filter(
       b =>
@@ -2051,33 +2065,34 @@
   }
 
   function updateGifts(speed) {
-    for (let i = 0; i < gifts.length; i++) {
-      const g = gifts[i];
-      // move upward with world
-      g.y -= speed * 0.9;
+  const ph = getPlayerHitBox();
 
-      if (
-        g.x < player.x + player.width &&
-        g.x + g.width > player.x &&
-        g.y < player.y + player.height &&
-        g.y + g.height > player.y
-      ) {
-        if (g.type === "points") {
-          score += 200;
-          playGiftSound();
-          vibrate([0, 25]); // small pulse
-        } else if (g.type === "life" && lives < maxLives) {
-          lives++;
-          playLifeSound();
-          vibrate([0, 20, 40, 20]); // double pulse
-        }
-        gifts.splice(i, 1);
-        i--;
+  for (let i = 0; i < gifts.length; i++) {
+    const g = gifts[i];
+    g.y -= speed * 0.9;
+
+    if (
+      g.x < ph.x + ph.width &&
+      g.x + g.width > ph.x &&
+      g.y < ph.y + ph.height &&
+      g.y + g.height > ph.y
+    ) {
+      if (g.type === "points") {
+        score += 200;
+        playGiftSound();
+        vibrate([0, 25]);
+      } else if (g.type === "life" && lives < maxLives) {
+        lives++;
+        playLifeSound();
+        vibrate([0, 20, 40, 20]);
       }
+      gifts.splice(i, 1);
+      i--;
     }
-
-    gifts = gifts.filter(g => g.y + g.height > -80);
   }
+
+  gifts = gifts.filter(g => g.y + g.height > -80);
+}
 
   function renderGifts() {
     gifts.forEach(g => {
