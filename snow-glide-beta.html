@@ -2004,10 +2004,17 @@
     const height = 70;
     const margin = 40;
 
-    // on desktop we sometimes spawn clusters; on mobile we unlock clusters after 2000m
-    let allowClusters = !isMobile;
-    if (isMobile && score > 2000) allowClusters = true;
-    const doCluster = allowClusters && Math.random() < (isMobile ? 0.35 : 0.5);
+    // On mobile: NEVER spawn clusters – only single trees for better playability
+    if (isMobile) {
+      const x = margin + Math.random() * (canvas.width - 2 * margin - width);
+      const y = canvas.height + 130; // spawn from bottom and move upward
+      obstacles.push({ x, y, width, height });
+      return;
+    }
+
+    // Desktop only: allow clusters
+    let allowClusters = true;
+    const doCluster = allowClusters && Math.random() < 0.5;
 
     if (!doCluster) {
       const x = margin + Math.random() * (canvas.width - 2 * margin - width);
@@ -2803,7 +2810,7 @@
     if (player.x < 0) player.x = 0;
     if (player.y < 0) player.y = 0;
     if (player.x + player.width > canvas.width)  player.x = canvas.width - player.width;
-    if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+    if (player.y + player.height > canvas.height)  player.y = canvas.height - player.height;
 
     clampPlayerYForMobile();
   });
