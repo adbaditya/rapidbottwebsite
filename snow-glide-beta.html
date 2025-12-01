@@ -1529,31 +1529,48 @@ function updateDifficultyButtons() {
     renderGifts();
 
     // scoring – still counts distance downhill
-    score += tutorialActive ? 0.25 : 1;
-    const distInt = Math.floor(score);
-
     // spawn frequencies tuned separately for mobile / desktop + difficulty
-    const spawnFactor = getDifficultySpawnFactor();
+const spawnFactor = getDifficultySpawnFactor();
 
-    const treeInterval = Math.max(
-      60,
-      Math.round((isMobile ? 120 : 80) * spawnFactor)
-    );
-    const giftInterval = isMobile ? 280 : 240;
-    const bigEarlyInterval = Math.max(
-      400,
-      Math.round((isMobile ? 1300 : 1000) * spawnFactor)
-    );
-    const bigLateInterval = Math.max(
-      280,
-      Math.round((isMobile ? 700 : 500) * spawnFactor)
-    );
-    const bigEarlyChance = isMobile ? 0.12 : 0.2;
-    const bigLateChance = isMobile ? 0.35 : 0.55;
-    const golemInterval = Math.max(
-      600,
-      Math.round((isMobile ? 1700 : 1400) * spawnFactor)
-    );
+// depth-based density: after some distance, make the slope busier
+let depthFactor = 1; // 1 = current behaviour
+
+if (score > 2000 && score <= 5000) {
+  depthFactor = 0.85;        // a bit more frequent
+} else if (score > 5000 && score <= 10000) {
+  depthFactor = 0.7;         // noticeably denser
+} else if (score > 10000) {
+  depthFactor = 0.6;         // high-distance = lots of action
+}
+
+// combine difficulty + distance
+const effectiveSpawnFactor = spawnFactor * depthFactor;
+
+const treeInterval = Math.max(
+  60,
+  Math.round((isMobile ? 120 : 80) * effectiveSpawnFactor)
+);
+
+const giftInterval = isMobile ? 280 : 240; // gifts unchanged
+
+const bigEarlyInterval = Math.max(
+  400,
+  Math.round((isMobile ? 1300 : 1000) * effectiveSpawnFactor)
+);
+
+const bigLateInterval = Math.max(
+  280,
+  Math.round((isMobile ? 700 : 500) * effectiveSpawnFactor)
+);
+
+const bigEarlyChance = isMobile ? 0.12 : 0.2;
+const bigLateChance  = isMobile ? 0.35 : 0.55;
+
+const golemInterval = Math.max(
+  600,
+  Math.round((isMobile ? 1700 : 1400) * effectiveSpawnFactor)
+);
+
 
     // trees
     if (distInt > 0 && distInt % treeInterval === 0) spawnObstacle();
