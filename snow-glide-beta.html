@@ -184,21 +184,45 @@
     }
 
     /* menu snow texture */
-    #startScreen::after,
-    #characterScreen::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(#ffffff 1px, transparent 1px);
-      background-size: 4px 4px;
-      opacity: 0.12;
-      pointer-events: none;
-      animation: menuSnow 1.2s linear infinite;
-    }
-    @keyframes menuSnow {
-      from { background-position: 0 0; }
-      to   { background-position: 0 8px; }
-    }
+    /* Clean winter snowfall for menu screens */
+#startScreen::before,
+#characterScreen::before,
+#startScreen::after,
+#characterScreen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Layer 1 – small fast snow */
+#startScreen::before,
+#characterScreen::before {
+  background-image: radial-gradient(rgba(255,255,255,0.7) 2px, transparent 2px);
+  background-size: 6px 6px;
+  opacity: 0.12;
+  animation: winterSnowSmall 2.5s linear infinite;
+}
+
+/* Layer 2 – larger slow snow */
+#startScreen::after,
+#characterScreen::after {
+  background-image: radial-gradient(rgba(255,255,255,0.5) 3px, transparent 3px);
+  background-size: 12px 12px;
+  opacity: 0.09;
+  animation: winterSnowBig 5s linear infinite;
+}
+
+@keyframes winterSnowSmall {
+  from { background-position: 0 0; }
+  to   { background-position: 0 20px; }
+}
+
+@keyframes winterSnowBig {
+  from { background-position: 0 -20px; }
+  to   { background-position: 0 40px; }
+}
+
 
 
 
