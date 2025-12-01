@@ -77,7 +77,7 @@
 
     .title {
       font-size: 24px;
-      margin-bottom: 20px;
+      margin-bottom: 6px;
       text-shadow: 0 0 6px #6dc1f6;
     }
 
@@ -114,6 +114,33 @@
       transform: translateX(-50%);
       font-size: 8px;
       opacity: 0.75;
+    }
+
+    /* Difficulty selector */
+
+    #difficultyRow {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .diffBtn {
+      font-size: 8px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.45);
+      background: rgba(0,0,0,0.35);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .diffBtn.selected {
+      border-color: #c9e265;
+      background: rgba(201,226,101,0.18);
+      color: #c9e265;
+      box-shadow: 0 0 10px rgba(0,0,0,0.6);
     }
 
     /* menu snow texture */
@@ -578,6 +605,15 @@
 
   <div>
     <div class="title">❄ SNOW GLIDE ❄<br/>PIXEL XMAS RUN</div>
+
+    <div class="subtitle" style="margin-top:4px;">Choose your difficulty</div>
+    <div id="difficultyRow">
+      <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto')">Auto</div>
+      <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy')">Easy</div>
+      <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium')">Medium</div>
+      <div class="diffBtn" data-diff="hard" onclick="playUiClick(); setDifficulty('hard')">Hard</div>
+    </div>
+
     <div class="btn" onclick="playUiClick(); openCharacterSelect()">PLAY GAME</div>
     <div class="btn secondary" onclick="playUiClick(); openHowToPlay()">HOW TO PLAY</div>
     <div class="btn secondary" onclick="playUiClick(); openLeaderboard()">LEADERBOARD</div>
@@ -650,7 +686,8 @@
 
         <p><b>Mobile controls</b></p>
         <ul>
-          <li>Tap &amp; drag anywhere on the snow to move the skater.</li>
+          <li>Use the bottom half of the screen as a touch pad.</li>
+          <li>Your skater stays in the top half of the slope.</li>
           <li>Tap the Pause button to pause.</li>
         </ul>
 
@@ -663,7 +700,7 @@
         <p><b>What to dodge</b></p>
         <ul>
           <li>Pine trees and tree clusters.</li>
-          <li>Huge rolling snowballs (from the top of the slope).</li>
+          <li>Huge rolling snowballs from the top.</li>
           <li>Ice golems and the snowballs they throw.</li>
         </ul>
 
@@ -791,6 +828,58 @@
     ArrowDown: false
   };
 
+  // Difficulty selection
+  let selectedDifficulty = localStorage.getItem("snowglide_diff") || "auto";
+
+  function setDifficulty(diff) {
+    selectedDifficulty = diff;
+    localStorage.setItem("snowglide_diff", diff);
+    updateDifficultyButtons();
+  }
+
+  function updateDifficultyButtons() {
+    const row = document.getElementById("difficultyRow");
+    if (!row) return;
+    const btns = row.querySelectorAll(".diffBtn");
+    btns.forEach(btn => {
+      const d = btn.getAttribute("data-diff");
+      if (d === selectedDifficulty) btn.classList.add("selected");
+      else btn.classList.remove("selected");
+    });
+  }
+
+  // Skill-based speed & spawn tuning
+  function getDifficultySpeedMultiplier() {
+    if (selectedDifficulty === "easy") return 0.8;
+    if (selectedDifficulty === "medium") return 1.0;
+    if (selectedDifficulty === "hard") return 1.25;
+    // Auto: scale by player skill (best distance)
+    if (bestDistance < 1000) return 0.85;
+    if (bestDistance < 4000) return 1.0;
+    return 1.15;
+  }
+
+  function getDifficultySpawnFactor() {
+    // >1 = gentler (less frequent hazards), <1 = more frequent hazards
+    if (selectedDifficulty === "easy") return 1.35;
+    if (selectedDifficulty === "medium") return 1.0;
+    if (selectedDifficulty === "hard") return 0.8;
+    // Auto: ramp based on best distance
+    if (bestDistance < 1000) return 1.25;
+    if (bestDistance < 4000) return 1.0;
+    return 0.9;
+  }
+
+  function getHazardSpeedMultiplier() {
+    if (selectedDifficulty === "easy") return 0.8;
+    if (selectedDifficulty === "medium") return 1.0;
+    if (selectedDifficulty === "hard") return 1.2;
+    // Auto
+    if (bestDistance < 1000) return 0.85;
+    if (bestDistance < 4000) return 1.0;
+    return 1.1;
+  }
+
   /* ---------- vibration helpers (mobile feedback) ---------- */
 
   function vibrate(pattern) {
@@ -838,7 +927,7 @@
   function ensureMusicPlaying() {
     if (soundMuted) return;
     initMusic();
-    if (musicAudio.paused) {
+    if (musicAudio && musicAudio.paused) {
       playNextTrack();
     }
   }
@@ -923,6 +1012,7 @@
   }
 
   updateSoundButtons();
+  updateDifficultyButtons();
 
   /* ---------- character sprites ---------- */
 
@@ -1190,19 +1280,31 @@
 
   /* ---------- speed curve ---------- */
   function computeSpeed() {
+    let base;
     if (score < 500) {
-      return 2.8 + (score / 500) * 1.2;
+      base = 2.8 + (score / 500) * 1.2;
     } else if (score < 1500) {
-      return 4.0 + ((score - 500) / 1000) * 3.0;
+      base = 4.0 + ((score - 500) / 1000) * 3.0;
     } else {
       const extra = Math.min((score - 1500) / 1500 * 3.0, 3.0);
-      return 7.0 + extra;
+      base = 7.0 + extra;
     }
+
+    const mult = getDifficultySpeedMultiplier();
+
+    // After 10k, slowly ramp further for deep runs
+    let deepRunBoost = 1;
+    if (score > 10000) {
+      deepRunBoost = 1 + Math.min((score - 10000) / 10000, 0.7); // up to +70%
+    }
+
+    return base * mult * deepRunBoost;
   }
 
   function clampPlayerYForMobile() {
     if (isMobile) {
-      const maxY = canvas.height * 0.8;
+      // Limit skater to the top half of the screen
+      const maxY = canvas.height * 0.5 - player.height * 0.2;
       if (player.y > maxY) player.y = maxY;
     }
   }
@@ -1372,33 +1474,58 @@
     score += tutorialActive ? 0.25 : 1;
     const distInt = Math.floor(score);
 
-    // spawn frequencies tuned separately for mobile / desktop
-    const treeInterval = isMobile ? 120 : 80;
-    const giftInterval = isMobile ? 300 : 250;
-    const bigEarlyInterval = isMobile ? 900 : 600;
-    const bigLateInterval = isMobile ? 400 : 250;
-    const bigEarlyChance = isMobile ? 0.15 : 0.25;
-    const bigLateChance = isMobile ? 0.5 : 0.8;
-    const golemInterval = isMobile ? 1200 : 900;
+    // spawn frequencies tuned separately for mobile / desktop + difficulty
+    const spawnFactor = getDifficultySpawnFactor();
+
+    const treeInterval = Math.max(
+      60,
+      Math.round((isMobile ? 120 : 80) * spawnFactor)
+    );
+    const giftInterval = isMobile ? 280 : 240;
+    const bigEarlyInterval = Math.max(
+      400,
+      Math.round((isMobile ? 1300 : 1000) * spawnFactor)
+    );
+    const bigLateInterval = Math.max(
+      280,
+      Math.round((isMobile ? 700 : 500) * spawnFactor)
+    );
+    const bigEarlyChance = isMobile ? 0.12 : 0.2;
+    const bigLateChance = isMobile ? 0.35 : 0.55;
+    const golemInterval = Math.max(
+      600,
+      Math.round((isMobile ? 1700 : 1400) * spawnFactor)
+    );
 
     // trees
-    if (distInt % treeInterval === 0) spawnObstacle();
+    if (distInt > 0 && distInt % treeInterval === 0) spawnObstacle();
 
     // gifts
-    if (distInt % giftInterval === 0) spawnGift();
+    if (distInt > 0 && distInt % giftInterval === 0) spawnGift();
 
-    // big snowballs – now from top -> bottom
-    if (distInt >= 800 && distInt < 8000 &&
-        distInt % bigEarlyInterval === 0 && Math.random() < bigEarlyChance) {
+    // big snowballs – from top -> bottom
+    if (
+      distInt >= 800 &&
+      distInt < 8000 &&
+      distInt % bigEarlyInterval === 0 &&
+      Math.random() < bigEarlyChance
+    ) {
       spawnBigSnowball();
     }
-    if (distInt >= 8000 &&
-        distInt % bigLateInterval === 0 && Math.random() < bigLateChance) {
+    if (
+      distInt >= 8000 &&
+      distInt % bigLateInterval === 0 &&
+      Math.random() < bigLateChance
+    ) {
       spawnBigSnowball();
     }
 
     // golems
-    if (distInt >= 600 && distInt % golemInterval === 0 && Math.random() < 0.8) {
+    if (
+      distInt >= 600 &&
+      distInt % golemInterval === 0 &&
+      Math.random() < 0.8
+    ) {
       spawnIceGolem();
     }
 
@@ -1626,7 +1753,13 @@
   }
 
   function updateBigSnowballs(speed) {
-    const downMult = isMobile ? 0.45 : 0.7; // slower on mobile so players can see
+    const hazardMul = getHazardSpeedMultiplier();
+    let downMult = (isMobile ? 0.35 : 0.5) * hazardMul; // slower for both
+
+    // After 10k, ramp snowball fall speed
+    if (score > 10000) {
+      downMult *= 1 + Math.min((score - 10000) / 15000, 1); // up to 2x
+    }
 
     for (let i = 0; i < bigSnowballs.length; i++) {
       const b = bigSnowballs[i];
@@ -1749,8 +1882,15 @@
     dx /= mag;
     dy /= mag;
 
-    const baseSpeed = isMobile ? 4 : 7;
-    const speed = baseSpeed + currentSpeed * (isMobile ? 0.15 : 0.3);
+    const hazardMul = getHazardSpeedMultiplier();
+    const baseSpeed = isMobile ? 3 : 5; // slower base
+    let speed = baseSpeed + currentSpeed * (isMobile ? 0.12 : 0.22);
+    speed *= hazardMul;
+
+    // After 10k, ramp projectile speed a bit
+    if (score > 10000) {
+      speed *= 1 + Math.min((score - 10000) / 15000, 0.8);
+    }
 
     golemSnowballs.push({
       x: originX,
@@ -2196,10 +2336,30 @@
     if (!gameRunning || lifePaused || gamePaused || !touchActive) return;
     const t = e.touches[0];
     const rect = canvas.getBoundingClientRect();
-    const x = t.clientX - rect.left;
-    const y = t.clientY - rect.top;
-    player.x = x - player.width / 2;
-    player.y = y - player.height / 2;
+    const touchX = t.clientX - rect.left;
+    const touchY = t.clientY - rect.top;
+
+    if (isMobile) {
+      // bottom half = control area, top half = play area
+      const controlTop = canvas.height * 0.5;
+      const controlBottom = canvas.height;
+
+      const clampedY = Math.min(Math.max(touchY, controlTop), controlBottom);
+      const ratioY = (clampedY - controlTop) / (controlBottom - controlTop); // 0..1
+
+      const playerMinY = 0;
+      const playerMaxY = canvas.height * 0.5 - player.height;
+      const targetY = playerMinY + ratioY * (playerMaxY - playerMinY);
+
+      player.y = targetY;
+      player.x = touchX - player.width / 2;
+    } else {
+      // desktop touch devices (rare) – direct mapping
+      const x = touchX;
+      const y = touchY;
+      player.x = x - player.width / 2;
+      player.y = y - player.height / 2;
+    }
 
     if (player.x < 0) player.x = 0;
     if (player.y < 0) player.y = 0;
@@ -2248,6 +2408,7 @@
     if (!playerName) {
       openNameModal();
     }
+    updateDifficultyButtons();
   });
 </script>
 </body>
