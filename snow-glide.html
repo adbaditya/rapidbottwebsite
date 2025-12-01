@@ -21,7 +21,7 @@
       overflow: hidden;
       background: #0d1b2a;
       font-family: 'Press Start 2P', monospace;
-      touch-action: none; /* prevent scroll / zoom on mobile while dragging */
+      touch-action: none;
     }
 
     #gameCanvas {
@@ -52,8 +52,6 @@
       z-index: 3;
       display: none;
     }
-
-    /* ---------- shared menu layout ---------- */
 
     #startScreen,
     #characterScreen {
@@ -116,7 +114,6 @@
       opacity: 0.75;
     }
 
-    /* menu snow texture */
     #startScreen::after,
     #characterScreen::after {
       content: "";
@@ -133,7 +130,6 @@
       to   { background-position: 0 8px; }
     }
 
-    /* sound toggle (reused) */
     .soundToggle {
       position: absolute;
       top: 10px;
@@ -146,8 +142,6 @@
       cursor: pointer;
       z-index: 25;
     }
-
-    /* character select */
 
     #charRow {
       display: flex;
@@ -233,8 +227,6 @@
 
     #charLeaderboardBtn span.icon { font-size: 12px; }
 
-    /* HUD */
-
     #score {
       position: absolute;
       top: 8px;
@@ -287,8 +279,6 @@
       z-index: 5;
       border: 1px solid #c9e265;
     }
-
-    /* overlays */
 
     #gameOverScreen,
     #pauseScreen {
@@ -347,8 +337,6 @@
       border: 2px solid #c9e265;
       box-shadow: none;
     }
-
-    /* ---------- modals (How to Play / Leaderboard) ---------- */
 
     .modalOverlay {
       position: fixed;
@@ -424,7 +412,6 @@
       color: #0d1b2a;
     }
 
-    /* leaderboard-specific */
     #leaderboardModal .modalText table {
       width: 100%;
       border-collapse: collapse;
@@ -487,13 +474,10 @@
       min-height: 11px;
     }
 
-    /* highlight my own score row in leaderboard */
     .myScoreRow td {
       background: rgba(201, 226, 101, 0.18) !important;
       color: #c9e265;
     }
-
-    /* ---- first-time name modal ---- */
 
     #nameModal .modalBox {
       max-width: 360px;
@@ -572,7 +556,6 @@
 <canvas id="gameCanvas"></canvas>
 <img id="playerSprite" src="" alt="player" />
 
-<!-- START MENU -->
 <div id="startScreen">
   <div id="soundToggleMain" class="soundToggle" onclick="toggleSound()"></div>
 
@@ -588,7 +571,6 @@
   <div class="byText">By Rapidbott</div>
 </div>
 
-<!-- CHARACTER SELECT -->
 <div id="characterScreen">
   <div id="soundToggleChar" class="soundToggle" onclick="toggleSound()"></div>
 
@@ -615,7 +597,6 @@
 </div>
 <div id="pauseBtn" onclick="playUiClick(); togglePause()">Pause</div>
 
-<!-- GAME OVER -->
 <div id="gameOverScreen">
   <div class="title">GAME OVER</div>
   <div id="finalScoreText"></div>
@@ -624,7 +605,6 @@
   <div class="smallBtn secondary" onclick="playUiClick(); backToMainMenu()">Main Menu</div>
 </div>
 
-<!-- PAUSE SCREEN -->
 <div id="pauseScreen">
   <div class="title">PAUSED</div>
   <div class="smallBtn" onclick="playUiClick(); resumeFromPause()">Resume</div>
@@ -632,7 +612,6 @@
   <div class="smallBtn secondary" onclick="playUiClick(); backToMainMenu()">Main Menu</div>
 </div>
 
-<!-- HOW TO PLAY MODAL -->
 <div id="howToModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'howToModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeHowToPlay()">✕</div>
@@ -663,7 +642,7 @@
         <p><b>What to dodge</b></p>
         <ul>
           <li>Pine trees and tree clusters.</li>
-          <li>Huge rolling snowballs (chasing up the hill).</li>
+          <li>Huge rolling snowballs.</li>
           <li>Ice golems and the snowballs they throw.</li>
         </ul>
 
@@ -679,7 +658,6 @@
   </div>
 </div>
 
-<!-- LEADERBOARD MODAL -->
 <div id="leaderboardModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'leaderboardModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeLeaderboard()">✕</div>
@@ -700,9 +678,7 @@
 
         <div id="leaderboardTableWrap">
           <p style="font-size:8px;margin:3px 0 3px 0;opacity:0.8;">Top runs</p>
-          <div id="leaderboardTableContainer">
-            <!-- table injected by JS -->
-          </div>
+          <div id="leaderboardTableContainer"></div>
         </div>
       </div>
     </div>
@@ -710,7 +686,6 @@
   </div>
 </div>
 
-<!-- FIRST-TIME NAME MODAL -->
 <div id="nameModal" class="modalOverlay" onclick="overlayBackgroundClick(event, 'nameModal')">
   <div class="modalBox">
     <div class="modalClose" onclick="closeNameModal()">✕</div>
@@ -739,7 +714,6 @@
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 
-  // basic mobile detection just to tweak difficulty
   const isMobile =
     /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent) ||
     window.innerWidth < 800;
@@ -753,7 +727,6 @@
   let gifts = [];
   let trail = [];
   let snowflakes = [];
-
   let bigSnowballs = [];
   let iceGolems = [];
   let golemSnowballs = [];
@@ -766,7 +739,6 @@
   let bgTime = 0;
   let glitchFrames = 0;
 
-  // tutorial
   let tutorialRun = localStorage.getItem("snowglide_tutorialDone") !== "1";
   let tutorialStage = 0;
   let tutorialActive = false;
@@ -791,15 +763,9 @@
     ArrowDown: false
   };
 
-  /* ---------- vibration helpers (mobile feedback) ---------- */
-
   function vibrate(pattern) {
-    if (navigator.vibrate) {
-      navigator.vibrate(pattern);
-    }
+    if (navigator.vibrate) navigator.vibrate(pattern);
   }
-
-  /* ---------- background MUSIC ---------- */
 
   const musicUrls = [
     "https://static.wixstatic.com/mp3/526e04_95f7861eae324e5d8d4639bc42421f66.mp3",
@@ -816,20 +782,16 @@
     musicInitialised = true;
     musicAudio = new Audio();
     musicAudio.volume = 0.4;
-    musicAudio.addEventListener("ended", () => {
-      playNextTrack();
-    });
+    musicAudio.addEventListener("ended", playNextTrack);
   }
 
   function playNextTrack() {
     if (soundMuted || !musicInitialised) return;
     if (!musicUrls.length) return;
-
     let nextIndex;
     do {
       nextIndex = Math.floor(Math.random() * musicUrls.length);
     } while (musicUrls.length > 1 && nextIndex === musicIndex);
-
     musicIndex = nextIndex;
     musicAudio.src = musicUrls[musicIndex];
     musicAudio.play().catch(() => {});
@@ -838,12 +800,9 @@
   function ensureMusicPlaying() {
     if (soundMuted) return;
     initMusic();
-    if (musicAudio.paused) {
-      playNextTrack();
-    }
+    if (musicAudio.paused) playNextTrack();
   }
 
-  /* ---------- WebAudio SFX & sound toggle ---------- */
   let audioCtx = null;
   let soundMuted = localStorage.getItem("snowglide_soundMuted") === "1";
 
@@ -868,7 +827,7 @@
       const now = ctxA.currentTime;
       osc.start(now);
       osc.stop(now + duration);
-    } catch (e) {}
+    } catch {}
   }
 
   function playHitSound() {
@@ -898,7 +857,7 @@
   }
   function playUiClick() {
     playBeep(600, 0.06, "square", 0.18);
-    ensureMusicPlaying();   // start music on first interaction
+    ensureMusicPlaying();
   }
   function playUiSelect() {
     playBeep(360, 0.08, "triangle", 0.18);
@@ -921,17 +880,14 @@
       else ensureMusicPlaying();
     }
   }
-
   updateSoundButtons();
-
-  /* ---------- character sprites ---------- */
 
   const spriteUrls = {
     skater: "https://static.wixstatic.com/media/526e04_fdcc62e1239f4d9f99ca919124fa61ea~mv2.gif",
     santa:  "https://static.wixstatic.com/media/526e04_442ddcff77ab4db08d32d4d8afa080e6~mv2.gif",
     elf:    "https://static.wixstatic.com/media/526e04_bcb3066ff6ca4a6084532f3488d9e60b~mv2.gif",
     snowman:"https://static.wixstatic.com/media/526e04_abd71acd4e914bc9a4a28e748a88e6b0~mv2.gif",
-    penguin: null, // placeholder
+    penguin: null,
     polar:  "https://static.wixstatic.com/media/526e04_2441b9e5ede14c2182a8dc2ff5464b22~mv2.gif",
     mrsclaus:"https://static.wixstatic.com/media/526e04_18c403f1cd3447da9d2c0cd378fc8e4c~mv2.gif"
   };
@@ -971,8 +927,6 @@
     localStorage.setItem("snowglide_unlockedChars", JSON.stringify(unlocked));
   }
 
-  /* ---------- player identity & names ---------- */
-
   let playerId = localStorage.getItem("snowglide_playerId");
   if (!playerId) {
     playerId = (crypto && crypto.randomUUID) ? crypto.randomUUID() : ("p-" + Math.random().toString(36).slice(2));
@@ -1008,25 +962,18 @@
 
   function openNameModal() {
     const modal = document.getElementById("nameModal");
-    if (!modal) return;
     const input = document.getElementById("nameInput");
     if (input) input.value = playerName || "";
     modal.style.display = "flex";
   }
-
   function closeNameModal() {
-    const modal = document.getElementById("nameModal");
-    if (!modal) return;
-    modal.style.display = "none";
+    document.getElementById("nameModal").style.display = "none";
   }
-
   function pickRandomName() {
     playUiClick();
     const input = document.getElementById("nameInput");
-    if (!input) return;
-    input.value = generateXmasName();
+    if (input) input.value = generateXmasName();
   }
-
   function saveNameFromModal() {
     playUiClick();
     const input = document.getElementById("nameInput");
@@ -1037,13 +984,10 @@
     localStorage.setItem("snowglide_playerName", playerName);
     closeNameModal();
   }
-
   function skipName() {
     playUiClick();
     closeNameModal();
   }
-
-  /* ---------- menu actions ---------- */
 
   function openCharacterSelect() {
     document.getElementById("startScreen").style.display = "none";
@@ -1074,12 +1018,9 @@
     }
   }
 
-  /* ---------- character select ---------- */
-
   function renderCharacters() {
     const row = document.getElementById("charRow");
     row.innerHTML = "";
-
     characterList.forEach(char => {
       const box = document.createElement("div");
       box.className = "charBox" + (selectedCharacter === char.id ? " selectedChar" : "");
@@ -1143,7 +1084,23 @@
     }
   }
 
-  /* ---------- start game ---------- */
+  function getPlayerHitBox() {
+    const padX = player.width * 0.22;
+    const padY = player.height * 0.25;
+    return {
+      x: player.x + padX,
+      y: player.y + padY,
+      width: player.width - padX * 2,
+      height: player.height - padY * 1.3
+    };
+  }
+
+  function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+    return ax < bx + bw &&
+           ax + aw > bx &&
+           ay < by + bh &&
+           ay + ah > by;
+  }
 
   function startGame() {
     document.getElementById("characterScreen").style.display = "none";
@@ -1188,15 +1145,32 @@
     requestAnimationFrame(gameLoop);
   }
 
-  /* ---------- speed curve ---------- */
+  // MOBILE: much slower, only very fast after 20k+
   function computeSpeed() {
-    if (score < 500) {
-      return 2.8 + (score / 500) * 1.2;
-    } else if (score < 1500) {
-      return 4.0 + ((score - 500) / 1000) * 3.0;
+    if (isMobile) {
+      if (score < 1000) {
+        // 2.2 -> 3.0 over first 1k
+        return 2.2 + (score / 1000) * 0.8;
+      } else if (score < 5000) {
+        // 3.0 -> 4.5 up to 5k
+        return 3.0 + ((score - 1000) / 4000) * 1.5;
+      } else if (score < 20000) {
+        // 4.5 -> 6.0 up to 20k
+        return 4.5 + ((score - 5000) / 15000) * 1.5;
+      } else {
+        // after 20k, ramp up to 8.0 max
+        return 6.0 + Math.min((score - 20000) / 20000 * 2.0, 2.0);
+      }
     } else {
-      const extra = Math.min((score - 1500) / 1500 * 3.0, 3.0);
-      return 7.0 + extra;
+      // desktop: keep the faster, more intense curve
+      if (score < 500) {
+        return 2.8 + (score / 500) * 1.2;
+      } else if (score < 1500) {
+        return 4.0 + ((score - 500) / 1000) * 3.0;
+      } else {
+        const extra = Math.min((score - 1500) / 1500 * 3.0, 3.0);
+        return 7.0 + extra;
+      }
     }
   }
 
@@ -1218,8 +1192,6 @@
     if (player.x + player.width > canvas.width)  player.x = canvas.width - player.width;
     if (player.y + player.height > canvas.height)  player.y = canvas.height - player.height;
   }
-
-  /* ---------- tutorial helpers ---------- */
 
   function startTutorial(lines) {
     tutorialActive = true;
@@ -1292,8 +1264,6 @@
     });
   }
 
-  /* ---------- main loop ---------- */
-
   function gameLoop() {
     if (!gameRunning) return;
 
@@ -1303,15 +1273,11 @@
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBackground();
 
-    if (!gamePaused) {
-      updateSnow(lifePaused ? 0.3 : 1);
-    }
+    if (!gamePaused) updateSnow(lifePaused ? 0.3 : 1);
     drawSnow();
 
-    if (!gamePaused) {
-      if (!lifePaused) updatePlayerPosition(worldSpeed);
-      if (!lifePaused) updateTrail(worldSpeed);
-    }
+    if (!gamePaused && !lifePaused) updatePlayerPosition(worldSpeed);
+    if (!gamePaused && !lifePaused) updateTrail(worldSpeed);
     renderTrail();
 
     if (playerSpriteImg.style.display === "block") {
@@ -1361,23 +1327,33 @@
     score += tutorialActive ? 0.25 : 1;
     const distInt = Math.floor(score);
 
-    // trees
     if (distInt % 80 === 0) spawnObstacle();
-
-    // gifts
     if (distInt % 250 === 0) spawnGift();
 
-    // big snowballs – very low rate until 8000, then more often
-    if (distInt >= 800 && distInt < 8000 && distInt % 600 === 0 && Math.random() < 0.25) {
-      spawnBigSnowball();
-    }
-    if (distInt >= 8000 && distInt % 250 === 0 && Math.random() < 0.8) {
-      spawnBigSnowball();
+    if (!isMobile) {
+      if (distInt >= 800 && distInt < 8000 && distInt % 600 === 0 && Math.random() < 0.25) {
+        spawnBigSnowball();
+      }
+      if (distInt >= 8000 && distInt % 250 === 0 && Math.random() < 0.8) {
+        spawnBigSnowball();
+      }
+    } else {
+      if (distInt >= 1200 && distInt % 1200 === 0 && Math.random() < 0.25) {
+        spawnBigSnowball();
+      }
+      if (distInt >= 6000 && distInt % 900 === 0 && Math.random() < 0.4) {
+        spawnBigSnowball();
+      }
     }
 
-    // golems
-    if (distInt >= 600 && distInt % 900 === 0 && Math.random() < 0.8) {
-      spawnIceGolem();
+    if (!isMobile) {
+      if (distInt >= 600 && distInt % 900 === 0 && Math.random() < 0.8) {
+        spawnIceGolem();
+      }
+    } else {
+      if (distInt >= 1500 && distInt % 1600 === 0 && Math.random() < 0.5) {
+        spawnIceGolem();
+      }
     }
 
     handleTutorialTriggers(distInt);
@@ -1388,22 +1364,69 @@
     requestAnimationFrame(gameLoop);
   }
 
-  /* ---------- background & snow ---------- */
+  // DESKTOP: simpler static gradient "old" style
+  function drawBackgroundDesktop() {
+    const w = canvas.width;
+    const h = canvas.height;
 
-  function drawBackground() {
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, "#0b1b2e");
+    g.addColorStop(0.4, "#10263a");
+    g.addColorStop(1, "#17364d");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+
+    const slopeWidth = w * 0.6;
+    const slopeX = (w - slopeWidth) / 2;
+
+    const slopeGrad = ctx.createLinearGradient(0, 0, 0, h);
+    slopeGrad.addColorStop(0, "rgba(255,255,255,0.95)");
+    slopeGrad.addColorStop(1, "rgba(235,245,255,0.9)");
+    ctx.fillStyle = slopeGrad;
+    ctx.beginPath();
+    ctx.moveTo(slopeX, 0);
+    ctx.lineTo(slopeX + slopeWidth, 0);
+    ctx.lineTo(slopeX + slopeWidth * 0.78, h);
+    ctx.lineTo(slopeX + slopeWidth * 0.22, h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // MOBILE: keep the newer dynamic gradient / slope
+  function drawBackgroundMobile() {
     const w = canvas.width;
     const h = canvas.height;
 
     bgTime += 0.002;
-
-    const topHue = 190 + 10 * Math.sin(bgTime);
-    const bottomHue = 35 + 8 * Math.sin(bgTime + 1.5);
+    const t = Math.sin(bgTime);
+    const topHue = 210 + 8 * t;
+    const bottomHue = 195 + 10 * Math.cos(bgTime * 0.8);
 
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, `hsl(${topHue}, 70%, 88%)`);
-    g.addColorStop(1, `hsl(${bottomHue}, 90%, 96%)`);
+    g.addColorStop(0, `hsl(${topHue}, 60%, 32%)`);
+    g.addColorStop(0.35, `hsl(${topHue + 5}, 65%, 40%)`);
+    g.addColorStop(1, `hsl(${bottomHue}, 70%, 68%)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
+
+    const slopeWidth = w * 0.7;
+    const slopeX = (w - slopeWidth) / 2;
+    const slopeGrad = ctx.createLinearGradient(0, 0, 0, h);
+    slopeGrad.addColorStop(0, "rgba(255,255,255,0.9)");
+    slopeGrad.addColorStop(1, "rgba(240,250,255,0.85)");
+    ctx.fillStyle = slopeGrad;
+    ctx.beginPath();
+    ctx.moveTo(slopeX, 0);
+    ctx.lineTo(slopeX + slopeWidth, 0);
+    ctx.lineTo(slopeX + slopeWidth * 0.8, h);
+    ctx.lineTo(slopeX + slopeWidth * 0.2, h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  function drawBackground() {
+    if (isMobile) drawBackgroundMobile();
+    else drawBackgroundDesktop();
   }
 
   function updateSnow(speedFactor) {
@@ -1431,36 +1454,30 @@
     }
   }
 
-  /* ---------- trail ---------- */
-
   function updateTrail(speed) {
-    for (const p of trail) {
-      p.y -= speed;
-    }
+    for (const p of trail) p.y -= speed;
     trail = trail.filter(p => p.y > -50);
 
     if (Math.floor(score) % 2 === 0) {
-      trail.push({
-        x: player.x + player.width / 2,
-        y: player.y + player.height
-      });
+      trail.push({ x: player.x + player.width / 2, y: player.y + player.height });
       if (trail.length > 200) trail.shift();
     }
   }
 
+  // Trail rendered behind character: stop a few points before the current position
   function renderTrail() {
-    if (trail.length < 2) return;
+    if (trail.length < 3) return;
+
+    const endIndex = Math.max(0, trail.length - 6); // leave a gap behind skater
 
     ctx.lineCap = "round";
     ctx.beginPath();
-
-    for (let i = 0; i < trail.length; i++) {
+    for (let i = 0; i <= endIndex; i++) {
       const p = trail[i];
       if (i === 0) ctx.moveTo(p.x, p.y);
       else ctx.lineTo(p.x, p.y);
     }
-
-    const last = trail[trail.length - 1];
+    const last = trail[endIndex];
     const first = trail[0];
     const factor = Math.max(0.4, (last.y - first.y) / canvas.height);
     ctx.strokeStyle = "#6dc1f6";
@@ -1468,14 +1485,11 @@
     ctx.stroke();
   }
 
-  /* ---------- trees ---------- */
-
   function spawnObstacle() {
     const width = 45;
     const height = 70;
     const margin = 40;
 
-    // on desktop we sometimes spawn clusters; on mobile we always spawn single trees
     const allowClusters = !isMobile;
     const doCluster = allowClusters && Math.random() < 0.5;
 
@@ -1486,7 +1500,7 @@
       return;
     }
 
-    const count = 2 + Math.floor(Math.random() * 3); // 2–4 trees
+    const count = 2 + Math.floor(Math.random() * 3);
     const spacing = width + 18;
     const clusterSpan = (count - 1) * spacing + width;
     const xMin = margin;
@@ -1510,7 +1524,7 @@
     lives--;
     hitCooldown = 60;
     playHitSound();
-    vibrate([0, 60, 40, 40]); // stronger crash vibration
+    vibrate([0, 60, 40, 40]);
     glitchFrames = 10;
     if (lives > 0) {
       lifePaused = true;
@@ -1523,16 +1537,26 @@
   }
 
   function updateObstacles(speed) {
+    const hb = getPlayerHitBox();
+
     for (let i = 0; i < obstacles.length; i++) {
       const o = obstacles[i];
       o.y += speed;
 
-      if (
-        o.x < player.x + player.width &&
-        o.x + o.width > player.x &&
-        o.y < player.y + player.height &&
-        o.y + o.height > player.y
-      ) {
+      // much smaller collision box around the trunk,
+      // extra forgiving on mobile so you can slip between trees
+      let treePadX = o.width * 0.30;
+      let treePadY = o.height * 0.20;
+      if (isMobile) {
+        treePadX = o.width * 0.35;
+        treePadY = o.height * 0.25;
+      }
+      let treeX = o.x + treePadX;
+      let treeY = o.y + treePadY;
+      let treeW = o.width - treePadX * 2;
+      let treeH = o.height - treePadY * 1.8;
+
+      if (rectsOverlap(hb.x, hb.y, hb.width, hb.height, treeX, treeY, treeW, treeH)) {
         if (hitCooldown <= 0) {
           obstacles.splice(i, 1);
           i--;
@@ -1540,7 +1564,6 @@
         }
       }
     }
-
     obstacles = obstacles.filter(o => o.y < canvas.height + 120);
   }
 
@@ -1577,53 +1600,41 @@
     });
   }
 
-  /* ---------- big rolling snowballs (bottom → top chase) ---------- */
-
   function spawnBigSnowball() {
     const radius = 45;
-
     const baseX = player.x + player.width / 2;
     const jitter = (Math.random() - 0.5) * 220;
     const x = Math.min(
       canvas.width - radius - 20,
       Math.max(radius + 20, baseX + jitter)
     );
-
     const y = canvas.height + radius * 2;
-    const vx = (Math.random() - 0.5) * 1.0; // gentle sideways
-
-    bigSnowballs.push({
-      x,
-      y,
-      r: radius,
-      vx,
-      direction: "up"
-    });
+    const vx = (Math.random() - 0.5) * 1.0;
+    bigSnowballs.push({ x, y, r: radius, vx, direction: "up" });
   }
 
   function updateBigSnowballs(speed) {
+    const hb = getPlayerHitBox();
+
     for (let i = 0; i < bigSnowballs.length; i++) {
       const b = bigSnowballs[i];
 
-      // slow snowballs (tuned for mobile)
-      const upMult = 0.35;
-      const downMult = 0.55;
+      const upMult = isMobile ? 0.22 : 0.35;
+      const downMult = isMobile ? 0.4 : 0.55;
 
-      if (b.direction === "up") {
-        b.y -= speed * upMult;
-      } else {
-        b.y += speed * downMult;
-      }
+      if (b.direction === "up") b.y -= speed * upMult;
+      else b.y += speed * downMult;
 
       b.x += b.vx;
 
-      const closestX = Math.max(player.x, Math.min(b.x, player.x + player.width));
-      const closestY = Math.max(player.y, Math.min(b.y, player.y + player.height));
+      const closestX = Math.max(hb.x, Math.min(b.x, hb.x + hb.width));
+      const closestY = Math.max(hb.y, Math.min(b.y, hb.y + hb.height));
       const dx = b.x - closestX;
       const dy = b.y - closestY;
       const distSq = dx * dx + dy * dy;
+      const effectiveR = b.r * 0.8;
 
-      if (distSq < b.r * b.r && hitCooldown <= 0) {
+      if (distSq < effectiveR * effectiveR && hitCooldown <= 0) {
         bigSnowballs.splice(i, 1);
         i--;
         if (handleLifeLoss()) return;
@@ -1637,7 +1648,7 @@
 
   function renderBigSnowballs() {
     bigSnowballs.forEach(b => {
-      ctx.fillStyle = "rgba(0,0,0,0.18)";
+      ctx.fillStyle = "rgba(0,0,0,0.25)";
       ctx.beginPath();
       ctx.ellipse(b.x, b.y + b.r * 0.9, b.r * 0.9, b.r * 0.4, 0, 0, Math.PI * 2);
       ctx.fill();
@@ -1647,20 +1658,26 @@
         b.x, b.y, b.r
       );
       gradient.addColorStop(0, "#ffffff");
-      gradient.addColorStop(1, "#cfe5f8");
+      gradient.addColorStop(0.4, "#d6f0ff");
+      gradient.addColorStop(0.75, "#9ac3ff");
+      gradient.addColorStop(1, "#385a8a");
       ctx.fillStyle = gradient;
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
 
-      ctx.fillStyle = "rgba(255,255,255,0.7)";
+      ctx.strokeStyle = "rgba(10,30,70,0.95)";
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.stroke();
+
+      ctx.fillStyle = "rgba(255,255,255,0.8)";
       ctx.beginPath();
       ctx.arc(b.x - b.r * 0.3, b.y - b.r * 0.4, b.r * 0.25, 0, Math.PI * 2);
       ctx.fill();
     });
   }
-
-  /* ---------- Ice Golems & snowballs ---------- */
 
   function spawnIceGolem() {
     const margin = 60;
@@ -1668,28 +1685,22 @@
     const height = 90;
     const x = margin + Math.random() * (canvas.width - 2 * margin - width);
     const y = -height - 60;
-
-    iceGolems.push({
-      x,
-      y,
-      width,
-      height,
-      shootCooldown: 40 + Math.random() * 40
-    });
+    iceGolems.push({ x, y, width, height, shootCooldown: 40 + Math.random() * 40 });
   }
 
   function updateIceGolems(speed) {
+    const hb = getPlayerHitBox();
+
     for (let i = 0; i < iceGolems.length; i++) {
       const g = iceGolems[i];
-
       g.y += speed * 0.9;
 
-      if (
-        g.x < player.x + player.width &&
-        g.x + g.width > player.x &&
-        g.y < player.y + player.height &&
-        g.y + g.height > player.y
-      ) {
+      const gx = g.x + g.width * 0.15;
+      const gy = g.y + g.height * 0.2;
+      const gw = g.width * 0.7;
+      const gh = g.height * 0.8;
+
+      if (rectsOverlap(hb.x, hb.y, hb.width, hb.height, gx, gy, gw, gh)) {
         if (hitCooldown <= 0) {
           iceGolems.splice(i, 1);
           i--;
@@ -1721,7 +1732,9 @@
     dx /= mag;
     dy /= mag;
 
-    const speed = 6 + currentSpeed * 0.3;
+    const baseSpeed = isMobile ? 3.5 : 6;
+    const scale = isMobile ? 0.15 : 0.3;
+    const speed = baseSpeed + currentSpeed * scale;
 
     golemSnowballs.push({
       x: originX,
@@ -1735,18 +1748,21 @@
   }
 
   function updateGolemSnowballs() {
+    const hb = getPlayerHitBox();
+
     for (let i = 0; i < golemSnowballs.length; i++) {
       const b = golemSnowballs[i];
       b.x += b.vx;
       b.y += b.vy;
 
-      const closestX = Math.max(player.x, Math.min(b.x, player.x + player.width));
-      const closestY = Math.max(player.y, Math.min(b.y, player.y + player.height));
+      const closestX = Math.max(hb.x, Math.min(b.x, hb.x + hb.width));
+      const closestY = Math.max(hb.y, Math.min(b.y, hb.y + hb.height));
       const dx = b.x - closestX;
       const dy = b.y - closestY;
       const distSq = dx * dx + dy * dy;
+      const effectiveR = b.r * 0.85;
 
-      if (distSq < b.r * b.r && hitCooldown <= 0) {
+      if (distSq < effectiveR * effectiveR && hitCooldown <= 0) {
         golemSnowballs.splice(i, 1);
         i--;
         playGolemSnowballWhoosh();
@@ -1800,7 +1816,7 @@
 
   function renderGolemSnowballs() {
     golemSnowballs.forEach(b => {
-      ctx.strokeStyle = "rgba(173,216,255,0.5)";
+      ctx.strokeStyle = "rgba(173,216,255,0.8)";
       ctx.lineWidth = 4;
       ctx.beginPath();
       ctx.moveTo(b.x - b.vx * 0.2, b.y - b.vy * 0.2);
@@ -1812,15 +1828,21 @@
         b.x, b.y, b.r
       );
       grad.addColorStop(0, "#ffffff");
-      grad.addColorStop(1, "#b7ddff");
+      grad.addColorStop(0.6, "#d1ecff");
+      grad.addColorStop(0.85, "#7fb4ff");
+      grad.addColorStop(1, "#264573");
       ctx.fillStyle = grad;
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
+
+      ctx.strokeStyle = "rgba(10,40,90,0.9)";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.stroke();
     });
   }
-
-  /* ---------- gifts ---------- */
 
   function spawnGift() {
     const width = 40;
@@ -1829,35 +1851,30 @@
     const x = margin + Math.random() * (canvas.width - 2 * margin - width);
     const y = -70;
     const type = Math.random() < 0.75 ? "points" : "life";
-
     gifts.push({ x, y, width, height, type });
   }
 
   function updateGifts(speed) {
+    const hb = getPlayerHitBox();
+
     for (let i = 0; i < gifts.length; i++) {
       const g = gifts[i];
       g.y += speed * 0.9;
 
-      if (
-        g.x < player.x + player.width &&
-        g.x + g.width > player.x &&
-        g.y < player.y + player.height &&
-        g.y + g.height > player.y
-      ) {
+      if (rectsOverlap(hb.x, hb.y, hb.width, hb.height, g.x, g.y, g.width, g.height)) {
         if (g.type === "points") {
           score += 200;
           playGiftSound();
-          vibrate([0, 25]); // small pulse
+          vibrate([0, 25]);
         } else if (g.type === "life" && lives < maxLives) {
           lives++;
           playLifeSound();
-          vibrate([0, 20, 40, 20]); // double pulse
+          vibrate([0, 20, 40, 20]);
         }
         gifts.splice(i, 1);
         i--;
       }
     }
-
     gifts = gifts.filter(g => g.y < canvas.height + 80);
   }
 
@@ -1876,8 +1893,6 @@
       }
     });
   }
-
-  /* ---------- overlays / HUD ---------- */
 
   function drawLifeLostOverlay() {
     ctx.fillStyle = "rgba(0,0,0,0.35)";
@@ -1914,9 +1929,7 @@
     }
 
     for (const key in unlockRequirements) {
-      if (runDist >= unlockRequirements[key]) {
-        unlocked[key] = true;
-      }
+      if (runDist >= unlockRequirements[key]) unlocked[key] = true;
     }
     saveUnlocks();
 
@@ -1932,7 +1945,6 @@
 
     document.getElementById("gameOverScreen").style.display = "flex";
 
-    // auto upload only if this is a NEW best
     const isNewBest = runDist > prevBest;
     autoSubmitScore(runDist, isNewBest);
   }
@@ -1949,9 +1961,6 @@
     playerSpriteImg.style.display = "none";
   }
 
-  /* ---------- Leaderboard modal + API ---------- */
-
-  // Deno leaderboard URL
   const API_BASE = "https://snow-glide.deno.dev";
 
   function openLeaderboard() {
@@ -1992,28 +2001,42 @@
       const res = await fetch(API_BASE + "/api/leaderboard");
       if (!res.ok) throw new Error("HTTP " + res.status);
       const data = await res.json();
-      const items = data.items || [];
+      let items = data.items || [];
 
       if (!items.length) {
-        container.innerHTML = "<p style='font-size:8px;opacity:0.7;'>No scores yet. Be the first!</p>";
+        container.innerHTML =
+          "<p style='font-size:8px;opacity:0.7;'>No scores yet. Be the first!</p>";
         return;
       }
 
-      const highlightName = (playerName || "").trim();
+      items = items.slice().sort((a, b) => (Number(b.score) || 0) - (Number(a.score) || 0));
+
+      const seen = new Set();
+      const deduped = [];
+      for (const item of items) {
+        const key = item.playerId || (String(item.name) + "|" + String(item.score));
+        if (seen.has(key)) continue;
+        seen.add(key);
+        deduped.push(item);
+      }
+
+      const myId = playerId;
       const highlightScore = bestDistance || lastRunDistance || 0;
+      const currentName = (playerName || "").trim();
 
       let html =
         "<table><thead><tr><th>#</th><th>Name</th><th style='text-align:right;'>Distance</th></tr></thead><tbody>";
-      items.forEach((item, idx) => {
+      deduped.forEach((item, idx) => {
         const safeName = (item.name || "Player")
           .toString()
           .replace(/</g, "&lt;")
           .replace(/>/g, "&gt;");
 
         const isMe =
-          highlightName &&
-          safeName.trim() === highlightName &&
-          Number(item.score) === Number(highlightScore);
+          (item.playerId && myId && item.playerId === myId) ||
+          (!item.playerId && currentName &&
+           safeName.trim() === currentName &&
+           Number(item.score) === Number(highlightScore));
 
         const rowClass = isMe ? " class=\"myScoreRow\"" : "";
 
@@ -2083,7 +2106,6 @@
   function autoSubmitScore(runDist, isNewBest) {
     if (!runDist || runDist < 1) return;
     if (!isNewBest) return;
-    // silent auto upload of new best
     sendScoreToServer(runDist, false);
   }
 
@@ -2108,11 +2130,8 @@
       return;
     }
 
-    // manual save always tries – useful if auto-save failed earlier
     sendScoreToServer(best, true);
   }
-
-  /* ---------- pause handling ---------- */
 
   function togglePause() {
     if (!gameRunning || lifePaused) return;
@@ -2124,8 +2143,6 @@
     gamePaused = false;
     document.getElementById("pauseScreen").style.display = "none";
   }
-
-  /* ---------- input / resume after life ---------- */
 
   function tryResumeFromPauseLife() {
     if (!gameRunning || !lifePaused) return false;
@@ -2153,9 +2170,7 @@
     touchActive = true;
   }, { passive: false });
 
-  window.addEventListener("touchend", () => {
-    touchActive = false;
-  });
+  window.addEventListener("touchend", () => { touchActive = false; });
 
   window.addEventListener("touchmove", e => {
     if (!gameRunning || lifePaused || gamePaused || !touchActive) return;
@@ -2181,9 +2196,7 @@
     mouseDown = true;
   });
 
-  window.addEventListener("mouseup", () => {
-    mouseDown = false;
-  });
+  window.addEventListener("mouseup", () => { mouseDown = false; });
 
   window.addEventListener("mousemove", e => {
     if (!mouseDown || !gameRunning || lifePaused || gamePaused) return;
@@ -2204,11 +2217,8 @@
     canvas.height = window.innerHeight;
   });
 
-  // Show name modal only if user never set a name
   window.addEventListener("load", () => {
-    if (!playerName) {
-      openNameModal();
-    }
+    if (!playerName) openNameModal();
   });
 </script>
 </body>
