@@ -652,20 +652,21 @@
   </div>
 
 <div>
-  <div class="title">SELECT CHARACTER</div>
-  <div class="subtitle">Unlock more skaters by reaching longer distances!</div>
+<div class="title">SELECT CHARACTER</div>
+<div class="subtitle" style="margin-bottom:10px;">Unlock more skaters by reaching longer distances!</div>
 
-  <!-- Difficulty selector also on character screen -->
-  <div class="subtitle" style="margin-top:10px;">Difficulty</div>
-  <div id="difficultyRowChar">
-    <div class="diffBtn" data-diff="auto"   onclick="playUiClick(); setDifficulty('auto')">Auto</div>
-    <div class="diffBtn" data-diff="easy"   onclick="playUiClick(); setDifficulty('easy')">Easy</div>
-    <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium')">Medium</div>
-    <div class="diffBtn" data-diff="hard"   onclick="playUiClick(); setDifficulty('hard')">Hard</div>
-  </div>
+<!-- Difficulty Row (same design as main menu) -->
+<div class="difficultyRow" id="difficultyRowChar">
+  <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto'); updateDifficultyButtons()">Auto</div>
+  <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy'); updateDifficultyButtons()">Easy</div>
+  <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium'); updateDifficultyButtons()">Medium</div>
+  <div class="diffBtn" data-diff="hard" onclick="playUiClick(); setDifficulty('hard'); updateDifficultyButtons()">Hard</div>
+</div>
 
-  <div id="charRow"></div>
-  <div class="btn" style="margin-top:24px;" onclick="playUiClick(); startGame()">PLAY >>></div>
+<div id="charRow" style="margin-top:15px;"></div>
+
+<div class="btn" style="margin-top:24px;" onclick="playUiClick(); startGame()">PLAY >>></div>
+
 </div>
 
 
