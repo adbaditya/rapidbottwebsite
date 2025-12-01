@@ -877,9 +877,10 @@
   }
 
 function updateDifficultyButtons() {
-  ["difficultyRow", "difficultyRowChar"].forEach(id => {
-    const row = document.getElementById(id);
+  ["difficultyRow", "difficultyRowChar"].forEach(rowId => {
+    const row = document.getElementById(rowId);
     if (!row) return;
+
     const btns = row.querySelectorAll(".diffBtn");
     btns.forEach(btn => {
       const d = btn.getAttribute("data-diff");
@@ -888,6 +889,7 @@ function updateDifficultyButtons() {
     });
   });
 }
+
 
 
   // Skill-based speed & spawn tuning
@@ -2205,8 +2207,9 @@ function updateHud() {
   const distInt = Math.floor(score);
   const diffLabel = getDifficultyLabel();
   document.getElementById("score").innerText =
-    "Score: " + distInt + "m | Best: " + bestDistance + "m | Lives: " + lives +
-    " | Diff: " + diffLabel;
+  "Score: " + distInt + "m | Best: " + bestDistance + "m | Lives: " + lives +
+  " | " + selectedDifficulty.toUpperCase();
+
 }
 
 
