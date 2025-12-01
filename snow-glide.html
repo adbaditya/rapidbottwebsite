@@ -663,7 +663,7 @@
         <p><b>What to dodge</b></p>
         <ul>
           <li>Pine trees and tree clusters.</li>
-          <li>Huge rolling snowballs (chasing up the hill).</li>
+          <li>Huge rolling snowballs (from the top of the slope).</li>
           <li>Ice golems and the snowballs they throw.</li>
         </ul>
 
@@ -777,7 +777,7 @@
 
   const player = {
     x: canvas.width / 2 - 40,
-    y: canvas.height * 0.7,
+    y: canvas.height * 0.2,  // start closer to the top (downhill)
     width: 80,
     height: 120
   };
@@ -1127,7 +1127,7 @@
 
   function resetPlayerPosition() {
     player.x = canvas.width / 2 - player.width / 2;
-    player.y = canvas.height * 0.7;
+    player.y = canvas.height * 0.2; // keep near top for downhill feel
   }
 
   function initSnow() {
@@ -1200,6 +1200,13 @@
     }
   }
 
+  function clampPlayerYForMobile() {
+    if (isMobile) {
+      const maxY = canvas.height * 0.8;
+      if (player.y > maxY) player.y = maxY;
+    }
+  }
+
   function updatePlayerPosition(speed) {
     const baseStep = 4.5;
     const step = baseStep + (speed - 3) * 0.4;
@@ -1217,6 +1224,8 @@
     if (player.y < 0) player.y = 0;
     if (player.x + player.width > canvas.width)  player.x = canvas.width - player.width;
     if (player.y + player.height > canvas.height)  player.y = canvas.height - player.height;
+
+    clampPlayerYForMobile();
   }
 
   /* ---------- tutorial helpers ---------- */
@@ -1239,7 +1248,7 @@
     } else if (tutorialStage === 1 && dist >= 300) {
       spawnBigSnowball();
       startTutorial([
-        "Huge snowballs chase you!",
+        "Huge snowballs from above!",
         "Stay clear of them!"
       ]);
       tutorialStage = 2;
@@ -1304,7 +1313,8 @@
     drawBackground();
 
     if (!gamePaused) {
-      updateSnow(lifePaused ? 0.3 : 1);
+      if (!lifePaused) updateSnow(1);
+      else updateSnow(0.3);
     }
     drawSnow();
 
@@ -1358,25 +1368,37 @@
     updateGifts(worldSpeed);
     renderGifts();
 
+    // scoring – still counts distance downhill
     score += tutorialActive ? 0.25 : 1;
     const distInt = Math.floor(score);
 
+    // spawn frequencies tuned separately for mobile / desktop
+    const treeInterval = isMobile ? 120 : 80;
+    const giftInterval = isMobile ? 300 : 250;
+    const bigEarlyInterval = isMobile ? 900 : 600;
+    const bigLateInterval = isMobile ? 400 : 250;
+    const bigEarlyChance = isMobile ? 0.15 : 0.25;
+    const bigLateChance = isMobile ? 0.5 : 0.8;
+    const golemInterval = isMobile ? 1200 : 900;
+
     // trees
-    if (distInt % 80 === 0) spawnObstacle();
+    if (distInt % treeInterval === 0) spawnObstacle();
 
     // gifts
-    if (distInt % 250 === 0) spawnGift();
+    if (distInt % giftInterval === 0) spawnGift();
 
-    // big snowballs – very low rate until 8000, then more often
-    if (distInt >= 800 && distInt < 8000 && distInt % 600 === 0 && Math.random() < 0.25) {
+    // big snowballs – now from top -> bottom
+    if (distInt >= 800 && distInt < 8000 &&
+        distInt % bigEarlyInterval === 0 && Math.random() < bigEarlyChance) {
       spawnBigSnowball();
     }
-    if (distInt >= 8000 && distInt % 250 === 0 && Math.random() < 0.8) {
+    if (distInt >= 8000 &&
+        distInt % bigLateInterval === 0 && Math.random() < bigLateChance) {
       spawnBigSnowball();
     }
 
     // golems
-    if (distInt >= 600 && distInt % 900 === 0 && Math.random() < 0.8) {
+    if (distInt >= 600 && distInt % golemInterval === 0 && Math.random() < 0.8) {
       spawnIceGolem();
     }
 
@@ -1432,6 +1454,7 @@
   }
 
   /* ---------- trail ---------- */
+  /* NOTE: kept exactly as before (upward trail) – looks like a downhill track */
 
   function updateTrail(speed) {
     for (const p of trail) {
@@ -1481,7 +1504,7 @@
 
     if (!doCluster) {
       const x = margin + Math.random() * (canvas.width - 2 * margin - width);
-      const y = -130;
+      const y = canvas.height + 130; // spawn from bottom and move upward
       obstacles.push({ x, y, width, height });
       return;
     }
@@ -1492,7 +1515,7 @@
     const xMin = margin;
     const xMax = canvas.width - margin - clusterSpan;
     const baseX = xMin + Math.random() * Math.max(10, xMax - xMin);
-    const y = -130;
+    const y = canvas.height + 130;
 
     for (let i = 0; i < count; i++) {
       const jitterX = (Math.random() - 0.5) * 10;
@@ -1525,7 +1548,8 @@
   function updateObstacles(speed) {
     for (let i = 0; i < obstacles.length; i++) {
       const o = obstacles[i];
-      o.y += speed;
+      // move upward (bottom -> top) to simulate downhill ride
+      o.y -= speed;
 
       if (
         o.x < player.x + player.width &&
@@ -1541,7 +1565,8 @@
       }
     }
 
-    obstacles = obstacles.filter(o => o.y < canvas.height + 120);
+    // cull once they move well above the top
+    obstacles = obstacles.filter(o => o.y + o.height > -120);
   }
 
   function renderObstacles() {
@@ -1577,7 +1602,7 @@
     });
   }
 
-  /* ---------- big rolling snowballs (bottom → top chase) ---------- */
+  /* ---------- big rolling snowballs (TOP → BOTTOM avalanche) ---------- */
 
   function spawnBigSnowball() {
     const radius = 45;
@@ -1589,32 +1614,25 @@
       Math.max(radius + 20, baseX + jitter)
     );
 
-    const y = canvas.height + radius * 2;
+    const y = -radius * 2; // spawn above the screen
     const vx = (Math.random() - 0.5) * 1.0; // gentle sideways
 
     bigSnowballs.push({
       x,
       y,
       r: radius,
-      vx,
-      direction: "up"
+      vx
     });
   }
 
   function updateBigSnowballs(speed) {
+    const downMult = isMobile ? 0.45 : 0.7; // slower on mobile so players can see
+
     for (let i = 0; i < bigSnowballs.length; i++) {
       const b = bigSnowballs[i];
 
-      // slow snowballs (tuned for mobile)
-      const upMult = 0.35;
-      const downMult = 0.55;
-
-      if (b.direction === "up") {
-        b.y -= speed * upMult;
-      } else {
-        b.y += speed * downMult;
-      }
-
+      // move downward from top
+      b.y += speed * downMult;
       b.x += b.vx;
 
       const closestX = Math.max(player.x, Math.min(b.x, player.x + player.width));
@@ -1631,7 +1649,11 @@
     }
 
     bigSnowballs = bigSnowballs.filter(
-      b => b.y - b.r < canvas.height + 80 && b.x + b.r > -80 && b.x - b.r < canvas.width + 80
+      b =>
+        b.y - b.r < canvas.height + 80 &&
+        b.y + b.r > -80 &&
+        b.x + b.r > -80 &&
+        b.x - b.r < canvas.width + 80
     );
   }
 
@@ -1653,6 +1675,11 @@
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
 
+      // darker outline for visibility
+      ctx.strokeStyle = "rgba(0,0,0,0.55)";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
       ctx.fillStyle = "rgba(255,255,255,0.7)";
       ctx.beginPath();
       ctx.arc(b.x - b.r * 0.3, b.y - b.r * 0.4, b.r * 0.25, 0, Math.PI * 2);
@@ -1667,7 +1694,7 @@
     const width = 70;
     const height = 90;
     const x = margin + Math.random() * (canvas.width - 2 * margin - width);
-    const y = -height - 60;
+    const y = canvas.height + height + 60; // spawn from bottom and move upward
 
     iceGolems.push({
       x,
@@ -1682,7 +1709,8 @@
     for (let i = 0; i < iceGolems.length; i++) {
       const g = iceGolems[i];
 
-      g.y += speed * 0.9;
+      // move upward with the world (bottom -> top)
+      g.y -= speed * 0.9;
 
       if (
         g.x < player.x + player.width &&
@@ -1705,7 +1733,7 @@
       }
     }
 
-    iceGolems = iceGolems.filter(g => g.y < canvas.height + 120);
+    iceGolems = iceGolems.filter(g => g.y + g.height > -120);
   }
 
   function fireGolemSnowball(golem) {
@@ -1721,7 +1749,8 @@
     dx /= mag;
     dy /= mag;
 
-    const speed = 6 + currentSpeed * 0.3;
+    const baseSpeed = isMobile ? 4 : 7;
+    const speed = baseSpeed + currentSpeed * (isMobile ? 0.15 : 0.3);
 
     golemSnowballs.push({
       x: originX,
@@ -1817,6 +1846,11 @@
       ctx.beginPath();
       ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
       ctx.fill();
+
+      // darker outline for visibility
+      ctx.strokeStyle = "rgba(0,0,0,0.55)";
+      ctx.lineWidth = 2;
+      ctx.stroke();
     });
   }
 
@@ -1827,7 +1861,7 @@
     const height = 40;
     const margin = 40;
     const x = margin + Math.random() * (canvas.width - 2 * margin - width);
-    const y = -70;
+    const y = canvas.height + 70; // spawn from bottom and move upward
     const type = Math.random() < 0.75 ? "points" : "life";
 
     gifts.push({ x, y, width, height, type });
@@ -1836,7 +1870,8 @@
   function updateGifts(speed) {
     for (let i = 0; i < gifts.length; i++) {
       const g = gifts[i];
-      g.y += speed * 0.9;
+      // move upward with world
+      g.y -= speed * 0.9;
 
       if (
         g.x < player.x + player.width &&
@@ -1858,7 +1893,7 @@
       }
     }
 
-    gifts = gifts.filter(g => g.y < canvas.height + 80);
+    gifts = gifts.filter(g => g.y + g.height > -80);
   }
 
   function renderGifts() {
@@ -2171,6 +2206,8 @@
     if (player.x + player.width > canvas.width)  player.x = canvas.width - player.width;
     if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
 
+    clampPlayerYForMobile();
+
     e.preventDefault();
   }, { passive: false });
 
@@ -2197,6 +2234,8 @@
     if (player.y < 0) player.y = 0;
     if (player.x + player.width > canvas.width)  player.x = canvas.width - player.width;
     if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+
+    clampPlayerYForMobile();
   });
 
   window.addEventListener("resize", () => {
