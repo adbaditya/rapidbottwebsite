@@ -651,12 +651,23 @@
     </div>
   </div>
 
-  <div>
-    <div class="title">SELECT CHARACTER</div>
-    <div class="subtitle">Unlock more skaters by reaching longer distances!</div>
-    <div id="charRow"></div>
-    <div class="btn" style="margin-top:24px;" onclick="playUiClick(); startGame()">PLAY >>></div>
+<div>
+  <div class="title">SELECT CHARACTER</div>
+  <div class="subtitle">Unlock more skaters by reaching longer distances!</div>
+
+  <!-- Difficulty selector also on character screen -->
+  <div class="subtitle" style="margin-top:10px;">Difficulty</div>
+  <div id="difficultyRowChar">
+    <div class="diffBtn" data-diff="auto"   onclick="playUiClick(); setDifficulty('auto')">Auto</div>
+    <div class="diffBtn" data-diff="easy"   onclick="playUiClick(); setDifficulty('easy')">Easy</div>
+    <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium')">Medium</div>
+    <div class="diffBtn" data-diff="hard"   onclick="playUiClick(); setDifficulty('hard')">Hard</div>
   </div>
+
+  <div id="charRow"></div>
+  <div class="btn" style="margin-top:24px;" onclick="playUiClick(); startGame()">PLAY >>></div>
+</div>
+
 
   <div class="byText">By Rapidbott</div>
 </div>
@@ -864,8 +875,9 @@
     updateDifficultyButtons();
   }
 
-  function updateDifficultyButtons() {
-    const row = document.getElementById("difficultyRow");
+function updateDifficultyButtons() {
+  ["difficultyRow", "difficultyRowChar"].forEach(id => {
+    const row = document.getElementById(id);
     if (!row) return;
     const btns = row.querySelectorAll(".diffBtn");
     btns.forEach(btn => {
@@ -873,7 +885,9 @@
       if (d === selectedDifficulty) btn.classList.add("selected");
       else btn.classList.remove("selected");
     });
-  }
+  });
+}
+
 
   // Skill-based speed & spawn tuning
   function getDifficultySpeedMultiplier() {
@@ -906,6 +920,17 @@
     if (bestDistance < 4000) return 1.0;
     return 1.1;
   }
+
+  function getDifficultyLabel() {
+  switch (selectedDifficulty) {
+    case "easy": return "Easy";
+    case "medium": return "Medium";
+    case "hard": return "Hard";
+    case "auto":
+    default: return "Auto";
+  }
+}
+
 
   /* ---------- vibration helpers (mobile feedback) ---------- */
 
@@ -2175,11 +2200,14 @@ function updateObstacles(speed) {
     autoSubmitScore(runDist, isNewBest);
   }
 
-  function updateHud() {
-    const distInt = Math.floor(score);
-    document.getElementById("score").innerText =
-      "Score: " + distInt + "m | Best: " + bestDistance + "m | Lives: " + lives;
-  }
+function updateHud() {
+  const distInt = Math.floor(score);
+  const diffLabel = getDifficultyLabel();
+  document.getElementById("score").innerText =
+    "Score: " + distInt + "m | Best: " + bestDistance + "m | Lives: " + lives +
+    " | Diff: " + diffLabel;
+}
+
 
   function goToCharacterSelectFromGameOver() {
     document.getElementById("gameOverScreen").style.display = "none";
