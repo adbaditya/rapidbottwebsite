@@ -1352,7 +1352,25 @@
   if (avHud) {
     avHud.style.display = "block";
   }
+
+  showAvalancheWarning();
+
+// screen shake
+const gc = document.getElementById("gameCanvas");
+gc.classList.add("shake");
+setTimeout(() => gc.classList.remove("shake"), 400);
+
+// mobile vibration
+vibrate([0, 70, 60, 40]);
+
 }
+
+function showAvalancheWarning() {
+  tutorialActive = true;
+  tutorialLines = ["⚠ AVALANCHE INCOMING!", "Move fast to escape!"];
+  tutorialTimer = 120; // stays for 2 seconds
+}
+
 
 
   function endGlacierEvent() {
@@ -1388,7 +1406,7 @@
 
     // Move glacier "front" downward a bit each frame
     glacier.y += glacier.speed;
-    const maxFront = canvas.height * 0.65;
+    const maxFront = canvas.height * 0.38;
     if (glacier.y > maxFront) glacier.y = maxFront;
 
     // Countdown timer
@@ -1418,53 +1436,48 @@
   const w = canvas.width;
   const h = canvas.height;
 
-  // Where the front of the avalanche is
-  const frontY = Math.min(glacier.y + 220, h);
+  const frontY = Math.min(glacier.y + 180, h);
 
-  // Bright icy fog coming from the top
+  // fog
   const grad = ctx.createLinearGradient(0, 0, 0, frontY);
-  grad.addColorStop(0, `rgba(235, 250, 255, ${0.95})`);
-  grad.addColorStop(0.4, `rgba(220, 238, 255, ${0.8})`);
-  grad.addColorStop(1, `rgba(210, 230, 255, 0.0)`);
+  grad.addColorStop(0, `rgba(255,255,255,0.95)`);
+  grad.addColorStop(0.5, `rgba(230,240,255,0.8)`);
+  grad.addColorStop(1, `rgba(220,235,255,0.0)`);
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, w, frontY);
 
-  // SNOW WAVE / WALL at the front edge
-  const crestY = frontY - 20;
-  const wallHeight = 60;
+  // snow wall
+  const wallHeight = 90;
+  const crestY = frontY - 30;
 
   ctx.beginPath();
   ctx.moveTo(0, frontY + wallHeight);
 
-  const bumps = 7; // number of wave “humps”
+  const bumps = 12;
   for (let i = 0; i <= bumps; i++) {
     const x = (w / bumps) * i;
-    const midX = x - (w / bumps) * 0.5;
-    const offset = (i % 2 === 0 ? -1 : 1) * 14; // jagged wave
-    ctx.quadraticCurveTo(
-      midX,
-      crestY + offset,
-      x,
-      crestY
-    );
+    const mid = x - (w / bumps) * 0.5;
+    const offset = (Math.sin(i + glacier.y * 0.02) * 25);
+    ctx.quadraticCurveTo(mid, crestY + offset, x, crestY);
   }
 
   ctx.lineTo(w, frontY + wallHeight);
   ctx.closePath();
 
-  // Fill the wall
-  ctx.fillStyle = "rgba(240, 252, 255, 0.95)";
+  // fill snow wall
+  ctx.fillStyle = "rgba(255,255,255,0.95)";
   ctx.fill();
 
-  // Outline so it really pops
-  ctx.strokeStyle = "rgba(120, 160, 200, 0.95)";
-  ctx.lineWidth = 3;
+  // border
+  ctx.strokeStyle = "rgba(150,180,220,0.9)";
+  ctx.lineWidth = 4;
   ctx.stroke();
 
-  // Overall cold blue tint during avalanche
-  ctx.fillStyle = `rgba(5, 20, 40, ${0.14 + glacier.intensity * 0.25})`;
+  // blue tint
+  ctx.fillStyle = `rgba(0,30,60,${0.10 + glacier.intensity * 0.25})`;
   ctx.fillRect(0, 0, w, h);
 }
+
 
 
   /* ---------- start game ---------- */
