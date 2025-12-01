@@ -624,12 +624,13 @@
     <div class="title">❄ SNOW GLIDE ❄<br/>PIXEL XMAS RUN</div>
 
     <div class="subtitle" style="margin-top:4px;">Choose your difficulty</div>
-    <div class="difficultyRow" id="difficultyRowChar">
-      <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto')">Auto</div>
-      <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy')">Easy</div>
-      <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium')">Medium</div>
-      <div class="diffBtn" data-diff="hard" onclick="playUiClick(); setDifficulty('hard')">Hard</div>
-    </div>
+<div class="difficultyRow" id="difficultyRow">
+  <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto')">Auto</div>
+  <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy')">Easy</div>
+  <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium')">Medium</div>
+  <div class="diffBtn" data-diff="hard" onclick="playUiClick(); setDifficulty('hard')">Hard</div>
+</div>
+
 
     <div class="btn" onclick="playUiClick(); openCharacterSelect()">PLAY GAME</div>
     <div class="btn secondary" onclick="playUiClick(); openHowToPlay()">HOW TO PLAY</div>
@@ -1191,10 +1192,12 @@ function updateDifficultyButtons() {
   /* ---------- menu actions ---------- */
 
   function openCharacterSelect() {
-    document.getElementById("startScreen").style.display = "none";
-    document.getElementById("characterScreen").style.display = "flex";
-    renderCharacters();
-  }
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("characterScreen").style.display = "flex";
+  renderCharacters();
+  updateDifficultyButtons(); // sync selected difficulty pill on this screen
+}
+
 
   function backToMainMenu() {
     gameRunning = false;
