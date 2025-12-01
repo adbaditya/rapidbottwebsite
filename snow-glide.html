@@ -118,13 +118,13 @@
 
     /* Difficulty selector */
 
-    #difficultyRow {
-      display: flex;
-      gap: 6px;
-      margin-top: 6px;
-      justify-content: center;
-      flex-wrap: wrap;
-    }
+   .difficultyRow {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
 
     .diffBtn {
       font-size: 8px;
@@ -624,7 +624,7 @@
     <div class="title">❄ SNOW GLIDE ❄<br/>PIXEL XMAS RUN</div>
 
     <div class="subtitle" style="margin-top:4px;">Choose your difficulty</div>
-    <div id="difficultyRow">
+    <div class="difficultyRow" id="difficultyRowChar">
       <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto')">Auto</div>
       <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy')">Easy</div>
       <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium')">Medium</div>
