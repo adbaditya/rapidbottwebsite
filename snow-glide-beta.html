@@ -118,13 +118,13 @@
 
     /* Difficulty selector */
 
-   .difficultyRow {
-  display: flex;
-  gap: 6px;
-  margin-top: 6px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
+    .difficultyRow {
+      display: flex;
+      gap: 6px;
+      margin-top: 6px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
     .diffBtn {
       font-size: 8px;
@@ -313,6 +313,23 @@
       cursor: pointer;
       z-index: 5;
       border: 1px solid #c9e265;
+    }
+
+    /* Avalanche HUD pill */
+    #avalancheHud {
+      position: absolute;
+      top: 32px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      color: #c9e265;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 8px;
+      border: 1px solid #c9e265;
+      z-index: 6;
+      display: none;
+      white-space: nowrap;
     }
 
     /* overlays */
@@ -607,6 +624,10 @@
         min-width: 60px;
         padding: 0 8px;
       }
+      #avalancheHud {
+        top: 56px;
+        font-size: 7px;
+      }
     }
   </style>
 </head>
@@ -624,13 +645,12 @@
     <div class="title">❄ SNOW GLIDE ❄<br/>PIXEL XMAS RUN</div>
 
     <div class="subtitle" style="margin-top:4px;">Choose your difficulty</div>
-<div class="difficultyRow" id="difficultyRow">
-  <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto')">Auto</div>
-  <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy')">Easy</div>
-  <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium')">Medium</div>
-  <div class="diffBtn" data-diff="hard" onclick="playUiClick(); setDifficulty('hard')">Hard</div>
-</div>
-
+    <div class="difficultyRow" id="difficultyRow">
+      <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto')">Auto</div>
+      <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy')">Easy</div>
+      <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium')">Medium</div>
+      <div class="diffBtn" data-diff="hard" onclick="playUiClick(); setDifficulty('hard')">Hard</div>
+    </div>
 
     <div class="btn" onclick="playUiClick(); openCharacterSelect()">PLAY GAME</div>
     <div class="btn secondary" onclick="playUiClick(); openHowToPlay()">HOW TO PLAY</div>
@@ -652,24 +672,22 @@
     </div>
   </div>
 
-<div>
-<div class="title">SELECT CHARACTER</div>
-<div class="subtitle" style="margin-bottom:10px;">Unlock more skaters by reaching longer distances!</div>
+  <div>
+    <div class="title">SELECT CHARACTER</div>
+    <div class="subtitle" style="margin-bottom:10px;">Unlock more skaters by reaching longer distances!</div>
 
-<!-- Difficulty Row (same design as main menu) -->
-<div class="difficultyRow" id="difficultyRowChar">
-  <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto'); updateDifficultyButtons()">Auto</div>
-  <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy'); updateDifficultyButtons()">Easy</div>
-  <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium'); updateDifficultyButtons()">Medium</div>
-  <div class="diffBtn" data-diff="hard" onclick="playUiClick(); setDifficulty('hard'); updateDifficultyButtons()">Hard</div>
-</div>
+    <!-- Difficulty Row (same design as main menu) -->
+    <div class="difficultyRow" id="difficultyRowChar">
+      <div class="diffBtn" data-diff="auto" onclick="playUiClick(); setDifficulty('auto'); updateDifficultyButtons()">Auto</div>
+      <div class="diffBtn" data-diff="easy" onclick="playUiClick(); setDifficulty('easy'); updateDifficultyButtons()">Easy</div>
+      <div class="diffBtn" data-diff="medium" onclick="playUiClick(); setDifficulty('medium'); updateDifficultyButtons()">Medium</div>
+      <div class="diffBtn" data-diff="hard" onclick="playUiClick(); setDifficulty('hard'); updateDifficultyButtons()">Hard</div>
+    </div>
 
-<div id="charRow" style="margin-top:15px;"></div>
+    <div id="charRow" style="margin-top:15px;"></div>
 
-<div class="btn" style="margin-top:24px;" onclick="playUiClick(); startGame()">PLAY >>></div>
-
-</div>
-
+    <div class="btn" style="margin-top:24px;" onclick="playUiClick(); startGame()">PLAY >>></div>
+  </div>
 
   <div class="byText">By Rapidbott</div>
 </div>
@@ -680,6 +698,7 @@
   <span>🏆</span><span>Leaderboard</span>
 </div>
 <div id="pauseBtn" onclick="playUiClick(); togglePause()">Pause</div>
+<div id="avalancheHud"></div>
 
 <!-- GAME OVER -->
 <div id="gameOverScreen">
@@ -833,6 +852,18 @@
   let bgTime = 0;
   let glitchFrames = 0;
 
+  // Avalanche / Glacier event state
+  let glacier = {
+    active: false,
+    level: 0,
+    framesLeft: 0,
+    timeLeft: 0,
+    duration: 0,
+    y: 0,
+    speed: 0,
+    intensity: 0
+  };
+
   // tutorial
   let tutorialRun = localStorage.getItem("snowglide_tutorialDone") !== "1";
   let tutorialStage = 0;
@@ -852,14 +883,13 @@
   const playerSpriteImg = document.getElementById("playerSprite");
 
   function getPlayerHitBox() {
-  // Smaller, centered hitbox so collisions feel fair
-  const hbWidth  = player.width * 0.55;   // 55% width
-  const hbHeight = player.height * 0.5;   // 50% height
-  const hbX = player.x + (player.width  - hbWidth)  / 2;
-  const hbY = player.y + player.height * 0.25;  // move up a bit (ignore skis/trail)
-  return { x: hbX, y: hbY, width: hbWidth, height: hbHeight };
-}
-
+    // Smaller, centered hitbox so collisions feel fair
+    const hbWidth  = player.width * 0.55;   // 55% width
+    const hbHeight = player.height * 0.5;   // 50% height
+    const hbX = player.x + (player.width  - hbWidth)  / 2;
+    const hbY = player.y + player.height * 0.25;  // move up a bit (ignore skis/trail)
+    return { x: hbX, y: hbY, width: hbWidth, height: hbHeight };
+  }
 
   const keys = {
     ArrowLeft: false,
@@ -877,21 +907,19 @@
     updateDifficultyButtons();
   }
 
-function updateDifficultyButtons() {
-  ["difficultyRow", "difficultyRowChar"].forEach(rowId => {
-    const row = document.getElementById(rowId);
-    if (!row) return;
+  function updateDifficultyButtons() {
+    ["difficultyRow", "difficultyRowChar"].forEach(rowId => {
+      const row = document.getElementById(rowId);
+      if (!row) return;
 
-    const btns = row.querySelectorAll(".diffBtn");
-    btns.forEach(btn => {
-      const d = btn.getAttribute("data-diff");
-      if (d === selectedDifficulty) btn.classList.add("selected");
-      else btn.classList.remove("selected");
+      const btns = row.querySelectorAll(".diffBtn");
+      btns.forEach(btn => {
+        const d = btn.getAttribute("data-diff");
+        if (d === selectedDifficulty) btn.classList.add("selected");
+        else btn.classList.remove("selected");
+      });
     });
-  });
-}
-
-
+  }
 
   // Skill-based speed & spawn tuning
   function getDifficultySpeedMultiplier() {
@@ -926,15 +954,14 @@ function updateDifficultyButtons() {
   }
 
   function getDifficultyLabel() {
-  switch (selectedDifficulty) {
-    case "easy": return "Easy";
-    case "medium": return "Medium";
-    case "hard": return "Hard";
-    case "auto":
-    default: return "Auto";
+    switch (selectedDifficulty) {
+      case "easy": return "Easy";
+      case "medium": return "Medium";
+      case "hard": return "Hard";
+      case "auto":
+      default: return "Auto";
+    }
   }
-}
-
 
   /* ---------- vibration helpers (mobile feedback) ---------- */
 
@@ -1192,12 +1219,11 @@ function updateDifficultyButtons() {
   /* ---------- menu actions ---------- */
 
   function openCharacterSelect() {
-  document.getElementById("startScreen").style.display = "none";
-  document.getElementById("characterScreen").style.display = "flex";
-  renderCharacters();
-  updateDifficultyButtons(); // sync selected difficulty pill on this screen
-}
-
+    document.getElementById("startScreen").style.display = "none";
+    document.getElementById("characterScreen").style.display = "flex";
+    renderCharacters();
+    updateDifficultyButtons(); // sync selected difficulty pill on this screen
+  }
 
   function backToMainMenu() {
     gameRunning = false;
@@ -1207,6 +1233,8 @@ function updateDifficultyButtons() {
     document.getElementById("pauseScreen").style.display = "none";
     document.getElementById("characterScreen").style.display = "none";
     document.getElementById("startScreen").style.display = "flex";
+    const avHud = document.getElementById("avalancheHud");
+    if (avHud) avHud.style.display = "none";
   }
 
   function openHowToPlay() {
@@ -1291,6 +1319,118 @@ function updateDifficultyButtons() {
     }
   }
 
+  /* ---------- Avalanche / Glacier helpers ---------- */
+
+  function startGlacierEvent() {
+    if (glacier.active) return;
+
+    glacier.level += 1;
+
+    const baseDuration = 7;      // seconds
+    const extraPerLevel = 2;     // seconds per event
+    const maxDuration = 18;      // cap
+
+    glacier.duration = Math.min(
+      baseDuration + extraPerLevel * (glacier.level - 1),
+      maxDuration
+    );
+    glacier.framesLeft = Math.round(glacier.duration * 60);
+    glacier.timeLeft = glacier.duration;
+
+    glacier.active = true;
+    glacier.y = -canvas.height * 0.4; // starts above screen
+    const baseSpeed = 1.2;
+    const speedPerLevel = 0.3;
+    glacier.speed = baseSpeed + speedPerLevel * (glacier.level - 1);
+
+    glacier.intensity = Math.min(0.35 + 0.05 * (glacier.level - 1), 0.6);
+
+    const avHud = document.getElementById("avalancheHud");
+    if (avHud) {
+      avHud.style.display = "block";
+    }
+  }
+
+  function endGlacierEvent() {
+    glacier.active = false;
+    glacier.framesLeft = 0;
+    glacier.timeLeft = 0;
+    glacier.y = 0;
+
+    const avHud = document.getElementById("avalancheHud");
+    if (avHud) {
+      avHud.style.display = "none";
+    }
+  }
+
+  function checkGlacierTrigger(distInt) {
+    if (glacier.active || gamePaused || lifePaused) return;
+
+    const firstThreshold = 3000;
+    const step = 3000;
+    const nextThreshold = firstThreshold + step * glacier.level;
+
+    // small window so we don't re-trigger multiple times due to frame stepping
+    if (distInt >= nextThreshold && distInt < nextThreshold + 40) {
+      startGlacierEvent();
+    }
+  }
+
+  function updateGlacier(worldSpeed) {
+    if (!glacier.active) return;
+
+    // Don't progress timer or movement if paused/lifePaused
+    if (gamePaused || lifePaused) return;
+
+    // Move glacier "front" downward a bit each frame
+    glacier.y += glacier.speed;
+    const maxFront = canvas.height * 0.65;
+    if (glacier.y > maxFront) glacier.y = maxFront;
+
+    // Countdown timer
+    glacier.framesLeft -= 1;
+    glacier.timeLeft = Math.max(glacier.framesLeft / 60, 0);
+
+    if (glacier.framesLeft <= 0) {
+      endGlacierEvent();
+      return;
+    }
+
+    // If glacier front reaches the player hitbox => lose a life
+    const ph = getPlayerHitBox();
+    const glacierFrontY = glacier.y + 140; // effective front line
+
+    if (glacierFrontY > ph.y + ph.height * 0.3 && hitCooldown <= 0) {
+      if (handleLifeLoss()) {
+        endGlacierEvent();
+        return;
+      }
+    }
+  }
+
+  function drawGlacierOverlay() {
+    if (!glacier.active) return;
+
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Icy fog gradient from top
+    const frontY = Math.max(glacier.y + 220, 60);
+    const grad = ctx.createLinearGradient(0, 0, 0, frontY);
+    const baseAlpha = 0.25 + glacier.intensity * 0.5;
+
+    grad.addColorStop(0, `rgba(210, 235, 255, ${baseAlpha})`);
+    grad.addColorStop(0.4, `rgba(195, 225, 255, ${baseAlpha * 0.8})`);
+    grad.addColorStop(1, "rgba(195, 225, 255, 0)");
+
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, frontY);
+
+    // Slight blue tint across whole screen
+    ctx.fillStyle = `rgba(10, 30, 60, ${0.10 + glacier.intensity * 0.20})`;
+    ctx.fillRect(0, 0, w, h);
+  }
+
   /* ---------- start game ---------- */
 
   function startGame() {
@@ -1324,6 +1464,18 @@ function updateDifficultyButtons() {
     bgTime = 0;
     glitchFrames = 0;
     lastRunDistance = 0;
+
+    // reset glacier state for a fresh run
+    glacier.active = false;
+    glacier.level = 0;
+    glacier.framesLeft = 0;
+    glacier.timeLeft = 0;
+    glacier.duration = 0;
+    glacier.y = 0;
+    glacier.speed = 0;
+    glacier.intensity = 0;
+    const avHud = document.getElementById("avalancheHud");
+    if (avHud) avHud.style.display = "none";
 
     tutorialActive = false;
     tutorialTimer = 0;
@@ -1467,14 +1619,25 @@ function updateDifficultyButtons() {
     if (!gameRunning) return;
 
     currentSpeed = computeSpeed();
-    const worldSpeed = tutorialActive ? currentSpeed * 0.25 : currentSpeed;
+
+    // During avalanche give a small extra world speed boost (feels more intense)
+    let worldSpeed = tutorialActive ? currentSpeed * 0.25 : currentSpeed;
+    if (glacier.active && !lifePaused && !gamePaused) {
+      worldSpeed *= 1.08;
+    }
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawBackground();
 
+    // Glacier overlay sits over background but under snow / player / obstacles
+    drawGlacierOverlay();
+
     if (!gamePaused) {
-      if (!lifePaused) updateSnow(1);
-      else updateSnow(0.3);
+      let snowFactor = lifePaused ? 0.3 : 1;
+      if (glacier.active && !lifePaused) {
+        snowFactor *= 1.4; // heavier snow during avalanche
+      }
+      updateSnow(snowFactor);
     }
     drawSnow();
 
@@ -1509,6 +1672,7 @@ function updateDifficultyButtons() {
 
     if (lifePaused) {
       drawLifeLostOverlay();
+      updateHud();
       requestAnimationFrame(gameLoop);
       return;
     }
@@ -1528,49 +1692,37 @@ function updateDifficultyButtons() {
     updateGifts(worldSpeed);
     renderGifts();
 
+    // Avalanche / glacier update (after movement & hazards)
+    if (glacier.active) {
+      updateGlacier(worldSpeed);
+    }
+
     // scoring – still counts distance downhill
+    score += tutorialActive ? 0.25 : 1;
+    const distInt = Math.floor(score);
+
     // spawn frequencies tuned separately for mobile / desktop + difficulty
-const spawnFactor = getDifficultySpawnFactor();
+    const spawnFactor = getDifficultySpawnFactor();
 
-// depth-based density: after some distance, make the slope busier
-let depthFactor = 1; // 1 = current behaviour
-
-if (score > 2000 && score <= 5000) {
-  depthFactor = 0.85;        // a bit more frequent
-} else if (score > 5000 && score <= 10000) {
-  depthFactor = 0.7;         // noticeably denser
-} else if (score > 10000) {
-  depthFactor = 0.6;         // high-distance = lots of action
-}
-
-// combine difficulty + distance
-const effectiveSpawnFactor = spawnFactor * depthFactor;
-
-const treeInterval = Math.max(
-  60,
-  Math.round((isMobile ? 120 : 80) * effectiveSpawnFactor)
-);
-
-const giftInterval = isMobile ? 280 : 240; // gifts unchanged
-
-const bigEarlyInterval = Math.max(
-  400,
-  Math.round((isMobile ? 1300 : 1000) * effectiveSpawnFactor)
-);
-
-const bigLateInterval = Math.max(
-  280,
-  Math.round((isMobile ? 700 : 500) * effectiveSpawnFactor)
-);
-
-const bigEarlyChance = isMobile ? 0.12 : 0.2;
-const bigLateChance  = isMobile ? 0.35 : 0.55;
-
-const golemInterval = Math.max(
-  600,
-  Math.round((isMobile ? 1700 : 1400) * effectiveSpawnFactor)
-);
-
+    const treeInterval = Math.max(
+      60,
+      Math.round((isMobile ? 120 : 80) * spawnFactor)
+    );
+    const giftInterval = isMobile ? 280 : 240;
+    const bigEarlyInterval = Math.max(
+      400,
+      Math.round((isMobile ? 1300 : 1000) * spawnFactor)
+    );
+    const bigLateInterval = Math.max(
+      280,
+      Math.round((isMobile ? 700 : 500) * spawnFactor)
+    );
+    const bigEarlyChance = isMobile ? 0.12 : 0.2;
+    const bigLateChance = isMobile ? 0.35 : 0.55;
+    const golemInterval = Math.max(
+      600,
+      Math.round((isMobile ? 1700 : 1400) * spawnFactor)
+    );
 
     // trees
     if (distInt > 0 && distInt % treeInterval === 0) spawnObstacle();
@@ -1603,6 +1755,9 @@ const golemInterval = Math.max(
     ) {
       spawnIceGolem();
     }
+
+    // Avalanche trigger (3000m, 6000m, 9000m, ...)
+    checkGlacierTrigger(distInt);
 
     handleTutorialTriggers(distInt);
     updateTutorial();
@@ -1674,31 +1829,46 @@ const golemInterval = Math.max(
   }
 
   function renderTrail() {
-  if (trail.length < 2) return;
+    if (trail.length < 2) return;
 
-  ctx.lineCap = "round";
-  ctx.beginPath();
+    ctx.lineCap = "round";
+    ctx.beginPath();
 
-  // trail is not allowed to go below this Y (keeps it behind the player)
-  const maxY = player.y + player.height * 0.25;
+    // trail is not allowed to go below this Y (keeps it behind the player)
+    const maxY = player.y + player.height * 0.25;
 
-  for (let i = 0; i < trail.length; i++) {
-    const p = trail[i];
-    const y = Math.min(p.y, maxY);   // clamp so it never goes in front
-    if (i === 0) ctx.moveTo(p.x, y);
-    else ctx.lineTo(p.x, y);
+    for (let i = 0; i < trail.length; i++) {
+      const p = trail[i];
+      const y = Math.min(p.y, maxY);   // clamp so it never goes in front
+      if (i === 0) ctx.moveTo(p.x, y);
+      else ctx.lineTo(p.x, y);
+    }
+
+    const last = trail[trail.length - 1];
+    const first = trail[0];
+    const factor = Math.max(0.4, (last.y - first.y) / canvas.height);
+    ctx.strokeStyle = "#6dc1f6";
+    ctx.lineWidth = 4 + 6 * factor;
+    ctx.stroke();
   }
 
-  const last = trail[trail.length - 1];
-  const first = trail[0];
-  const factor = Math.max(0.4, (last.y - first.y) / canvas.height);
-  ctx.strokeStyle = "#6dc1f6";
-  ctx.lineWidth = 4 + 6 * factor;
-  ctx.stroke();
-}
-
-
   /* ---------- trees ---------- */
+
+  function handleLifeLoss() {
+    lives--;
+    hitCooldown = 60;
+    playHitSound();
+    vibrate([0, 60, 40, 40]); // stronger crash vibration
+    glitchFrames = 10;
+    if (lives > 0) {
+      lifePaused = true;
+      resetPlayerPosition();
+    } else {
+      endGame();
+      return true;
+    }
+    return false;
+  }
 
   function spawnObstacle() {
     const width = 45;
@@ -1736,52 +1906,35 @@ const golemInterval = Math.max(
     }
   }
 
-  function handleLifeLoss() {
-    lives--;
-    hitCooldown = 60;
-    playHitSound();
-    vibrate([0, 60, 40, 40]); // stronger crash vibration
-    glitchFrames = 10;
-    if (lives > 0) {
-      lifePaused = true;
-      resetPlayerPosition();
-    } else {
-      endGame();
-      return true;
-    }
-    return false;
-  }
+  function updateObstacles(speed) {
+    const ph = getPlayerHitBox();
 
-function updateObstacles(speed) {
-  const ph = getPlayerHitBox();
+    for (let i = 0; i < obstacles.length; i++) {
+      const o = obstacles[i];
+      o.y -= speed;
 
-  for (let i = 0; i < obstacles.length; i++) {
-    const o = obstacles[i];
-    o.y -= speed;
+      // softer tree hitbox (already there)
+      const collX = o.x + o.width * 0.2;
+      const collY = o.y + o.height * 0.35;
+      const collW = o.width * 0.6;
+      const collH = o.height * 0.65;
 
-    // softer tree hitbox (already there)
-    const collX = o.x + o.width * 0.2;
-    const collY = o.y + o.height * 0.35;
-    const collW = o.width * 0.6;
-    const collH = o.height * 0.65;
-
-    if (
-      collX < ph.x + ph.width &&
-      collX + collW > ph.x &&
-      collY < ph.y + ph.height &&
-      collH + collY > ph.y
-    ) {
-      if (hitCooldown <= 0) {
-        obstacles.splice(i, 1);
-        i--;
-        if (handleLifeLoss()) return;
+      if (
+        collX < ph.x + ph.width &&
+        collX + collW > ph.x &&
+        collY < ph.y + ph.height &&
+        collH + collY > ph.y
+      ) {
+        if (hitCooldown <= 0) {
+          obstacles.splice(i, 1);
+          i--;
+          if (handleLifeLoss()) return;
+        }
       }
     }
+
+    obstacles = obstacles.filter(o => o.y + o.height > -120);
   }
-
-  obstacles = obstacles.filter(o => o.y + o.height > -120);
-}
-
 
   function renderObstacles() {
     obstacles.forEach(o => {
@@ -1860,24 +2013,24 @@ function updateObstacles(speed) {
     }
 
     for (let i = 0; i < bigSnowballs.length; i++) {
-    const b = bigSnowballs[i];
-    b.y += speed * downMult;
-    b.x += b.vx;
+      const b = bigSnowballs[i];
+      b.y += speed * downMult;
+      b.x += b.vx;
 
-    // use player hitbox instead of full sprite
-    const closestX = Math.max(ph.x, Math.min(b.x, ph.x + ph.width));
-    const closestY = Math.max(ph.y, Math.min(b.y, ph.y + ph.height));
-    const dx = b.x - closestX;
-    const dy = b.y - closestY;
-    const collR = b.r * 0.78;
-    const distSq = dx * dx + dy * dy;
+      // use player hitbox instead of full sprite
+      const closestX = Math.max(ph.x, Math.min(b.x, ph.x + ph.width));
+      const closestY = Math.max(ph.y, Math.min(b.y, ph.y + ph.height));
+      const dx = b.x - closestX;
+      const dy = b.y - closestY;
+      const collR = b.r * 0.78;
+      const distSq = dx * dx + dy * dy;
 
-    if (distSq < collR * collR && hitCooldown <= 0) {
-      bigSnowballs.splice(i, 1);
-      i--;
-      if (handleLifeLoss()) return;
+      if (distSq < collR * collR && hitCooldown <= 0) {
+        bigSnowballs.splice(i, 1);
+        i--;
+        if (handleLifeLoss()) return;
+      }
     }
-  }
 
     bigSnowballs = bigSnowballs.filter(
       b =>
@@ -1939,24 +2092,23 @@ function updateObstacles(speed) {
   function updateIceGolems(speed) {
     const ph = getPlayerHitBox();
 
-  for (let i = 0; i < iceGolems.length; i++) {
-    const g = iceGolems[i];
-    g.y -= speed * 0.9;
+    for (let i = 0; i < iceGolems.length; i++) {
+      const g = iceGolems[i];
+      g.y -= speed * 0.9;
 
-    if (
-      g.x < ph.x + ph.width &&
-      g.x + g.width > ph.x &&
-      g.y < ph.y + ph.height &&
-      g.y + g.height > ph.y
-    ) {
-      if (hitCooldown <= 0) {
-        iceGolems.splice(i, 1);
-        i--;
-        if (handleLifeLoss()) return;
-        continue;
+      if (
+        g.x < ph.x + ph.width &&
+        g.x + g.width > ph.x &&
+        g.y < ph.y + ph.height &&
+        g.y + g.height > ph.y
+      ) {
+        if (hitCooldown <= 0) {
+          iceGolems.splice(i, 1);
+          i--;
+          if (handleLifeLoss()) return;
+          continue;
+        }
       }
-    }
-      
 
       g.shootCooldown--;
       if (g.shootCooldown <= 0 && !lifePaused && !gamePaused) {
@@ -2011,28 +2163,28 @@ function updateObstacles(speed) {
   }
 
   function updateGolemSnowballs() {
-  const ph = getPlayerHitBox();
+    const ph = getPlayerHitBox();
 
-  for (let i = 0; i < golemSnowballs.length; i++) {
-    const b = golemSnowballs[i];
-    b.x += b.vx;
-    b.y += b.vy;
+    for (let i = 0; i < golemSnowballs.length; i++) {
+      const b = golemSnowballs[i];
+      b.x += b.vx;
+      b.y += b.vy;
 
-    const closestX = Math.max(ph.x, Math.min(b.x, ph.x + ph.width));
-    const closestY = Math.max(ph.y, Math.min(b.y, ph.y + ph.height));
-    const dx = b.x - closestX;
-    const dy = b.y - closestY;
-    const collR = b.r * 0.75;
-    const distSq = dx * dx + dy * dy;
+      const closestX = Math.max(ph.x, Math.min(b.x, ph.x + ph.width));
+      const closestY = Math.max(ph.y, Math.min(b.y, ph.y + ph.height));
+      const dx = b.x - closestX;
+      const dy = b.y - closestY;
+      const collR = b.r * 0.75;
+      const distSq = dx * dx + dy * dy;
 
-    if (distSq < collR * collR && hitCooldown <= 0) {
-      golemSnowballs.splice(i, 1);
-      i--;
-      playGolemSnowballWhoosh();
-      if (handleLifeLoss()) return;
-      continue;
+      if (distSq < collR * collR && hitCooldown <= 0) {
+        golemSnowballs.splice(i, 1);
+        i--;
+        playGolemSnowballWhoosh();
+        if (handleLifeLoss()) return;
+        continue;
+      }
     }
-  }
 
     golemSnowballs = golemSnowballs.filter(
       b =>
@@ -2118,34 +2270,34 @@ function updateObstacles(speed) {
   }
 
   function updateGifts(speed) {
-  const ph = getPlayerHitBox();
+    const ph = getPlayerHitBox();
 
-  for (let i = 0; i < gifts.length; i++) {
-    const g = gifts[i];
-    g.y -= speed * 0.9;
+    for (let i = 0; i < gifts.length; i++) {
+      const g = gifts[i];
+      g.y -= speed * 0.9;
 
-    if (
-      g.x < ph.x + ph.width &&
-      g.x + g.width > ph.x &&
-      g.y < ph.y + ph.height &&
-      g.y + g.height > ph.y
-    ) {
-      if (g.type === "points") {
-        score += 200;
-        playGiftSound();
-        vibrate([0, 25]);
-      } else if (g.type === "life" && lives < maxLives) {
-        lives++;
-        playLifeSound();
-        vibrate([0, 20, 40, 20]);
+      if (
+        g.x < ph.x + ph.width &&
+        g.x + g.width > ph.x &&
+        g.y < ph.y + ph.height &&
+        g.y + g.height > ph.y
+      ) {
+        if (g.type === "points") {
+          score += 200;
+          playGiftSound();
+          vibrate([0, 25]);
+        } else if (g.type === "life" && lives < maxLives) {
+          lives++;
+          playLifeSound();
+          vibrate([0, 20, 40, 20]);
+        }
+        gifts.splice(i, 1);
+        i--;
       }
-      gifts.splice(i, 1);
-      i--;
     }
-  }
 
-  gifts = gifts.filter(g => g.y + g.height > -80);
-}
+    gifts = gifts.filter(g => g.y + g.height > -80);
+  }
 
   function renderGifts() {
     gifts.forEach(g => {
@@ -2218,20 +2370,30 @@ function updateObstacles(speed) {
 
     document.getElementById("gameOverScreen").style.display = "flex";
 
+    // stop avalanche HUD
+    endGlacierEvent();
+
     // auto upload only if this is a NEW best
     const isNewBest = runDist > prevBest;
     autoSubmitScore(runDist, isNewBest);
   }
 
-function updateHud() {
-  const distInt = Math.floor(score);
-  const diffLabel = getDifficultyLabel();
-  document.getElementById("score").innerText =
-  "Score: " + distInt + "m | Best: " + bestDistance + "m | Lives: " + lives +
-  " | " + selectedDifficulty.toUpperCase();
+  function updateHud() {
+    const distInt = Math.floor(score);
+    document.getElementById("score").innerText =
+      "Score: " + distInt + "m | Best: " + bestDistance + "m | Lives: " + lives +
+      " | " + selectedDifficulty.toUpperCase();
 
-}
-
+    const avHud = document.getElementById("avalancheHud");
+    if (avHud) {
+      if (glacier.active && glacier.timeLeft > 0) {
+        avHud.style.display = "block";
+        avHud.textContent = "Avalanche: " + glacier.timeLeft.toFixed(1) + "s";
+      } else if (!glacier.active) {
+        avHud.style.display = "none";
+      }
+    }
+  }
 
   function goToCharacterSelectFromGameOver() {
     document.getElementById("gameOverScreen").style.display = "none";
