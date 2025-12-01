@@ -58,20 +58,37 @@
       display: none;
     }
 
-    /* custom ice cursor (desktop) */
+    /* custom snowflake cursor (desktop) */
     #iceCursor {
       position: fixed;
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
+      width: 22px;
+      height: 22px;
       pointer-events: none;
       z-index: 50;
-      transform: translate(-50%, -50%);
-      background: radial-gradient(circle at 30% 30%, #ffffff, #cfe9ff 45%, #6dc1f6 80%);
+      transform: translate(-50%, -50%) rotate(45deg);
+      background:
+        radial-gradient(circle at 50% 50%, #ffffff 0, #ffffff 35%, transparent 36%),
+        linear-gradient(#cfe9ff 0 0),
+        linear-gradient(#cfe9ff 0 0),
+        linear-gradient(#6dc1f6 0 0),
+        linear-gradient(#6dc1f6 0 0);
+      background-repeat: no-repeat;
+      background-position:
+        center center,
+        center center,
+        center center,
+        center center,
+        center center;
+      background-size:
+        70% 70%,
+        2px 100%,
+        100% 2px,
+        2px 60%,
+        60% 2px;
       box-shadow:
-        0 0 10px rgba(109,193,246,0.8),
-        0 0 20px rgba(201,226,101,0.5);
-      border: 1px solid rgba(0,80,140,0.6);
+        0 0 8px rgba(255,255,255,0.9),
+        0 0 18px rgba(109,193,246,0.9),
+        0 0 26px rgba(201,226,101,0.5);
       opacity: 0;
       transition: opacity 0.15s ease-out;
     }
@@ -701,7 +718,7 @@
 <canvas id="gameCanvas"></canvas>
 <img id="playerSprite" src="" alt="player" />
 
-<!-- custom ice cursor (desktop only, JS decides visibility) -->
+<!-- custom snowflake cursor (desktop only, JS decides visibility) -->
 <div id="iceCursor"></div>
 
 <!-- START MENU -->
@@ -2096,7 +2113,7 @@
     ctx.stroke();
   }
 
-  /* ---------- trees ---------- */
+  /* ---------- trees (with softer mobile clusters) ---------- */
 
   function handleLifeLoss() {
     lives--;
@@ -2122,7 +2139,9 @@
     // on desktop we sometimes spawn clusters; on mobile we unlock clusters after 2000m
     let allowClusters = !isMobile;
     if (isMobile && score > 2000) allowClusters = true;
-    const doCluster = allowClusters && Math.random() < (isMobile ? 0.35 : 0.5);
+
+    // slightly lower cluster chance on mobile + strict max 3 in a row
+    let doCluster = allowClusters && Math.random() < (isMobile ? 0.28 : 0.5);
 
     if (!doCluster) {
       const x = margin + Math.random() * (canvas.width - 2 * margin - width);
@@ -2131,7 +2150,15 @@
       return;
     }
 
-    const count = 2 + Math.floor(Math.random() * 3); // 2–4 trees
+    let count;
+    if (isMobile) {
+      // MOBILE: only 2 or 3 trees max in a line
+      count = 2 + Math.floor(Math.random() * 2); // 2–3
+    } else {
+      // DESKTOP: 2–4 trees
+      count = 2 + Math.floor(Math.random() * 3); // 2–4
+    }
+
     const spacing = width + 18;
     const clusterSpan = (count - 1) * spacing + width;
     const xMin = margin;
@@ -2921,7 +2948,7 @@
   });
 
   window.addEventListener("mousemove", e => {
-    // ice cursor follow (desktop only)
+    // snowflake cursor follow (desktop only)
     if (useIceCursor) {
       if (!iceCursor) {
         iceCursor = document.getElementById("iceCursor");
@@ -2966,7 +2993,7 @@
     }
     updateDifficultyButtons();
 
-    // set up ice cursor hiding of system cursor on desktop
+    // set up snowflake cursor hiding of system cursor on desktop
     if (useIceCursor) {
       iceCursor = document.getElementById("iceCursor");
       if (iceCursor) {
