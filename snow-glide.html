@@ -544,33 +544,9 @@
       .title { font-size: 18px; }
       .btn { font-size: 11px; padding: 10px 20px; min-width: 160px; }
       .subtitle { font-size: 8px; }
+      #pauseBtn { font-size: 8px; padding: 4px 10px; }
+      #score { font-size: 7px; padding: 5px 8px; }
       .smallBtn { font-size: 9px; padding: 7px 16px; }
-
-      /* push HUD below iOS Safari bar */
-      #score {
-        top: 26px;
-      }
-      #leaderboardIcon {
-        top: 26px;
-      }
-      #pauseBtn {
-        top: 52px;
-      }
-      #soundToggleGame {
-        top: 80px;
-      }
-    }
-
-    @supports(padding: env(safe-area-inset-top)) {
-      body {
-        padding-top: env(safe-area-inset-top);
-      }
-      #score,
-      #leaderboardIcon,
-      #pauseBtn,
-      #soundToggleGame {
-        top: calc(8px + env(safe-area-inset-top));
-      }
     }
   </style>
 </head>
@@ -1109,8 +1085,8 @@
   }
 
   function getPlayerHitBox() {
-    const padX = player.width * (isMobile ? 0.30 : 0.22);
-    const padY = player.height * (isMobile ? 0.32 : 0.25);
+    const padX = player.width * 0.22;
+    const padY = player.height * 0.25;
     return {
       x: player.x + padX,
       y: player.y + padY,
@@ -1170,14 +1146,13 @@
   }
 
   function computeSpeed() {
-    const d = score;
-    if (d < 600) {
-      return 3.0 + (d / 600) * 0.8;        // slow ramp at start
-    } else if (d < 10000) {
-      return 3.8;                          // keep medium speed till 10k
+    if (score < 500) {
+      return 2.8 + (score / 500) * 1.2;
+    } else if (score < 1500) {
+      return 4.0 + ((score - 500) / 1000) * 3.0;
     } else {
-      const extra = Math.min((d - 10000) / 8000 * 3.0, 4.0);
-      return 3.8 + extra;                  // then gradually speed up
+      const extra = Math.min((score - 1500) / 1500 * 3.0, 3.0);
+      return 7.0 + extra;
     }
   }
 
@@ -1285,11 +1260,8 @@
 
     if (!gamePaused && !lifePaused) updatePlayerPosition(worldSpeed);
     if (!gamePaused && !lifePaused) updateTrail(worldSpeed);
-
-    // TRAIL ALWAYS BEHIND PLAYER
     renderTrail();
 
-    // draw player after trail so the line is behind the character
     if (playerSpriteImg.style.display === "block") {
       playerSpriteImg.style.left = player.x + "px";
       playerSpriteImg.style.top  = player.y + "px";
@@ -1315,7 +1287,6 @@
 
     if (lifePaused) {
       drawLifeLostOverlay();
-      updateHud();
       requestAnimationFrame(gameLoop);
       return;
     }
@@ -1379,25 +1350,23 @@
     const w = canvas.width;
     const h = canvas.height;
 
-    bgTime += 0.0015;
-    const t = (Math.sin(bgTime) + 1) / 2;
-
-    const topLight = 60 + t * 8;   // 60–68
-    const bottomLight = 80 - t * 5; // 75–80
+    bgTime += 0.002;
+    const t = Math.sin(bgTime);
+    const topHue = 210 + 8 * t;
+    const bottomHue = 195 + 10 * Math.cos(bgTime * 0.8);
 
     const g = ctx.createLinearGradient(0, 0, 0, h);
-    g.addColorStop(0, `hsl(200, 70%, ${topLight}%)`);
-    g.addColorStop(1, `hsl(210, 80%, ${bottomLight}%)`);
+    g.addColorStop(0, `hsl(${topHue}, 60%, 32%)`);
+    g.addColorStop(0.35, `hsl(${topHue + 5}, 65%, 40%)`);
+    g.addColorStop(1, `hsl(${bottomHue}, 70%, 68%)`);
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
 
     const slopeWidth = w * 0.7;
     const slopeX = (w - slopeWidth) / 2;
-
     const slopeGrad = ctx.createLinearGradient(0, 0, 0, h);
-    slopeGrad.addColorStop(0, "rgba(255,255,255,0.98)");
-    slopeGrad.addColorStop(1, "rgba(230,246,255,0.95)");
-
+    slopeGrad.addColorStop(0, "rgba(255,255,255,0.9)");
+    slopeGrad.addColorStop(1, "rgba(240,250,255,0.85)");
     ctx.fillStyle = slopeGrad;
     ctx.beginPath();
     ctx.moveTo(slopeX, 0);
@@ -1439,31 +1408,22 @@
 
     if (Math.floor(score) % 2 === 0) {
       trail.push({ x: player.x + player.width / 2, y: player.y + player.height });
-      if (trail.length > 220) trail.shift();
+      if (trail.length > 200) trail.shift();
     }
   }
 
   function renderTrail() {
     if (trail.length < 2) return;
-
-    const pts = trail.slice();
-    const last = pts[pts.length - 1];
-
-    // extend trail so it always reaches bottom of screen behind the player
-    if (last.y < canvas.height + 20) {
-      pts.push({ x: last.x, y: canvas.height + 20 });
-    }
-
     ctx.lineCap = "round";
     ctx.beginPath();
-    for (let i = 0; i < pts.length; i++) {
-      const p = pts[i];
+    for (let i = 0; i < trail.length; i++) {
+      const p = trail[i];
       if (i === 0) ctx.moveTo(p.x, p.y);
       else ctx.lineTo(p.x, p.y);
     }
-    const newest = pts[pts.length - 1];
-    const oldest = pts[0];
-    const factor = Math.max(0.4, (newest.y - oldest.y) / canvas.height);
+    const last = trail[trail.length - 1];
+    const first = trail[0];
+    const factor = Math.max(0.4, (last.y - first.y) / canvas.height);
     ctx.strokeStyle = "#6dc1f6";
     ctx.lineWidth = 4 + 6 * factor;
     ctx.stroke();
@@ -1527,13 +1487,11 @@
       const o = obstacles[i];
       o.y += speed;
 
-      const widthFactor = isMobile ? 0.55 : 0.7;
-      const heightFactor = isMobile ? 0.65 : 0.75;
-
-      const treeX = o.x + o.width * ((1 - widthFactor) / 2);
-      const treeY = o.y + o.height * (1 - heightFactor);
-      const treeW = o.width * widthFactor;
-      const treeH = o.height * heightFactor;
+      // shrink tree collision box so you can slip between them
+      const treeX = o.x + o.width * 0.15;
+      const treeY = o.y + o.height * 0.15;
+      const treeW = o.width * 0.7;
+      const treeH = o.height * 0.75;
 
       if (rectsOverlap(hb.x, hb.y, hb.width, hb.height, treeX, treeY, treeW, treeH)) {
         if (hitCooldown <= 0) {
@@ -1611,7 +1569,7 @@
       const dx = b.x - closestX;
       const dy = b.y - closestY;
       const distSq = dx * dx + dy * dy;
-      const effectiveR = b.r * (isMobile ? 0.7 : 0.8);
+      const effectiveR = b.r * 0.8;
 
       if (distSq < effectiveR * effectiveR && hitCooldown <= 0) {
         bigSnowballs.splice(i, 1);
@@ -1739,7 +1697,7 @@
       const dx = b.x - closestX;
       const dy = b.y - closestY;
       const distSq = dx * dx + dy * dy;
-      const effectiveR = b.r * (isMobile ? 0.75 : 0.85);
+      const effectiveR = b.r * 0.85;
 
       if (distSq < effectiveR * effectiveR && hitCooldown <= 0) {
         golemSnowballs.splice(i, 1);
@@ -1844,7 +1802,7 @@
         if (g.type === "points") {
           score += 200;
           playGiftSound();
-          vibrate([0, 35, 35, 25]);
+          vibrate([0, 25]);
         } else if (g.type === "life" && lives < maxLives) {
           lives++;
           playLifeSound();
