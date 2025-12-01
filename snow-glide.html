@@ -11,229 +11,314 @@
         rel="stylesheet" />
 
   <style>
-    /* ------------------------------
-       GLOBAL RESET + BASE STYLING
-    ------------------------------- */
-    * {
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-    }
 
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      overflow: hidden;
-      background: #0d1b2a;
-      font-family: 'Press Start 2P', monospace;
-      touch-action: none;
-    }
+/* ==========================================
+   GLOBAL RESET
+========================================== */
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Press Start 2P', monospace;
+  background: #0d1b2a;
+  color: white;
+}
 
-    #gameCanvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      background: #fdf5ef;
-      width: 100vw;
-      height: 100vh;
-      touch-action: none;
-    }
+canvas {
+  display: block;
+}
 
-    /* Shake animation for strong collisions */
-    @keyframes shake {
-      0%   { transform: translate(0,0); }
-      25%  { transform: translate(-4px, 3px); }
-      50%  { transform: translate(3px, -3px); }
-      75%  { transform: translate(-3px, 2px); }
-      100% { transform: translate(0,0); }
-    }
-    #gameCanvas.shake {
-      animation: shake 0.4s linear 1;
-    }
+/* ==========================================
+   CANVAS (Always Behind UI)
+========================================== */
+#gameCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;         /* behind everything */
+  pointer-events: none; /* do not block menu buttons */
+}
 
-    /* Player sprite */
-    #playerSprite {
-      position: absolute;
-      width: 80px;
-      height: 80px;
-      image-rendering: pixelated;
-      pointer-events: none;
-      z-index: 3;
-      display: none;
-    }
 
-    /* ----------------------------------------------
-       UNIVERSAL MENU SCREENS (Start + Character)
-    ----------------------------------------------- */
-    #startScreen,
-    #characterScreen {
-      position: absolute;
-      width: 100vw;
-      height: 100vh;
-      left: 0;
-      top: 0;
-      background: radial-gradient(circle at 50% 20%, #233647 0%, #0d1b2a 55%, #050b12 100%);
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      color: white;
-      z-index: 10;
-      text-align: center;
-      padding: 0 16px;
-    }
+/* ==========================================
+   START SCREEN UI
+========================================== */
+#startScreen {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  z-index: 50;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
 
-    #characterScreen {
-      z-index: 11;
-      display: none;
-    }
+.gameTitle {
+  font-size: 22px;
+  margin-bottom: 25px;
+  letter-spacing: 2px;
+}
 
-    /* Retro game title */
-    .title {
-      font-size: 24px;
-      margin-bottom: 20px;
-      text-shadow: 0 0 6px #6dc1f6;
-    }
+.menuBtn {
+  margin: 8px 0;
+  width: 240px;
+  padding: 12px;
+  border-radius: 40px;
+  border: 2px solid #c9e265;
+  background: rgba(255,255,255,0.05);
+  color: white;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
 
-    .subtitle {
-      font-size: 9px;
-      margin-top: 4px;
-      opacity: 0.8;
-    }
+.menuBtn:hover {
+  background: rgba(201,226,101,0.25);
+}
 
-    /* ------------------------------
-       BUTTON STYLING
-    ------------------------------- */
-    .btn {
-      background: linear-gradient(135deg,#c9e265,#6dc1f6);
-      color: #0d1b2a;
-      margin-top: 12px;
-      padding: 12px 26px;
-      cursor: pointer;
-      font-size: 12px;
-      border-radius: 999px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.5);
-      text-align: center;
-      min-width: 180px;
-    }
 
-    .btn.secondary {
-      background: rgba(0,0,0,0.3);
-      color: #ffffff;
-      border: 2px solid #c9e265;
-      box-shadow: none;
-    }
+/* ==========================================
+   MODALS (Base)
+========================================== */
+.modal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
 
-    /* “By Rapidbott” footer */
-    .byText {
-      position: absolute;
-      bottom: 12px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 8px;
-      opacity: 0.75;
-    }
+.modalBox {
+  background: #0d1b2a;
+  width: 90%;
+  max-width: 340px;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #6dc1f6;
+  box-shadow: 0 0 20px rgba(0,0,0,0.65);
+  position: relative;  
+  z-index: 60;
+}
 
-    /* Menu snow overlay animation */
-    #startScreen::after,
-    #characterScreen::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(#ffffff 1px, transparent 1px);
-      background-size: 4px 4px;
-      opacity: 0.12;
-      pointer-events: none;
-      animation: menuSnow 1.2s linear infinite;
-    }
 
-    @keyframes menuSnow {
-      from { background-position: 0 0; }
-      to   { background-position: 0 8px; }
-    }
+/* ==========================================
+   CHARACTER SCREEN
+========================================== */
+#characterScreen {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+}
 
-    /* Sound toggle on top-left */
-    .soundToggle {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: rgba(0,0,0,0.4);
-      border-radius: 999px;
-      border: 1px solid #c9e265;
-      padding: 4px 10px;
-      font-size: 9px;
-      cursor: pointer;
-      z-index: 25;
-    }
+.characterCard {
+  width: 90px;
+  height: 110px;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  margin: 6px;
+  transition: 0.2s;
+}
 
-    /* -----------------------------------
-       NEW: DIFFICULTY MODAL CSS (UI3)
-    ------------------------------------ */
-    .difficultyModalOverlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.7);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-      padding: 0 16px;
-    }
+.characterCard:hover {
+  background: rgba(255,255,255,0.12);
+}
 
-    .difficultyModalBox {
-      background: radial-gradient(circle at 0% 0%, #1d2b3c 0%, #050b12 70%);
-      border-radius: 18px;
-      max-width: 360px;
-      width: 100%;
-      border: 1px solid #6dc1f6;
-      box-shadow: 0 0 30px rgba(0,0,0,0.8);
-      padding: 20px;
-      color: #ffffff;
-      position: relative;
-      overflow: hidden;
-      text-align: center;
-    }
+.characterCard.selected {
+  border: 2px solid #c9e265;
+  box-shadow: 0 0 10px #c9e265;
+}
 
-    .difficultyModalTitle {
-      font-size: 14px;
-      margin-bottom: 12px;
-      text-shadow: 0 0 6px #6dc1f6;
-    }
+.characterName {
+  margin-top: 5px;
+  font-size: 10px;
+}
 
-    .difficultyOption {
-      background: rgba(0,0,0,0.4);
-      border: 2px solid transparent;
-      border-radius: 12px;
-      padding: 12px;
-      margin: 8px 0;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 11px;
-    }
 
-    /* GREEN GLOW for selected difficulty */
-    .difficultyOption.selected {
-      border: 2px solid #c9e265;
-      box-shadow: 0 0 10px rgba(201, 226, 101, 0.7);
-      background: rgba(255,255,255,0.05);
-    }
+/* ==========================================
+   DIFFICULTY MODAL
+========================================== */
+#difficultyModal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
 
-    .difficultyOption:hover {
-      background: rgba(255,255,255,0.08);
-    }
+.diffBtn {
+  margin: 8px 0;
+  padding: 12px;
+  background: rgba(255,255,255,0.05);
+  border: 2px solid #6dc1f6;
+  border-radius: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
 
-    /* Close button */
-    .difficultyClose {
-      position: absolute;
-      right: 12px;
-      top: 10px;
-      cursor: pointer;
-      font-size: 14px;
-      opacity: 0.8;
-    }
-    .difficultyClose:hover { opacity: 1; }
+.diffBtn:hover {
+  background: rgba(201,226,101,0.25);
+}
 
-  </style>
+
+/* ==========================================
+   HOW TO PLAY Modal
+========================================== */
+#howToPlayModal {
+  display: none;
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ==========================================
+   LEADERBOARD MODAL
+========================================== */
+#leaderboardModal {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+.leaderboardBox {
+  background: #0d1b2a;
+  width: 90%;
+  max-width: 340px;
+  max-height: 80%;
+  overflow-y: auto;
+  padding: 20px;
+  border-radius: 16px;
+  border: 1px solid #6dc1f6;
+  box-shadow: 0 0 20px rgba(0,0,0,0.65);
+  position: relative;
+  z-index: 60;
+}
+
+.modalTitle {
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 12px;
+  color: #c9e265;
+}
+
+/* Row styles */
+.leaderboardList {
+  width: 100%;
+}
+
+.lbRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  font-size: 12px;
+}
+
+.lbRow:hover {
+  background: rgba(255,255,255,0.12);
+}
+
+.lbRank {
+  font-weight: bold;
+  color: #6dc1f6;
+}
+
+.lbName {
+  flex: 1;
+  text-align: center;
+}
+
+.lbScore {
+  color: #c9e265;
+}
+
+
+/* ==========================================
+   PAUSE & GAME OVER
+========================================== */
+#pauseOverlay,
+#gameOverCard,
+#nameEntryModal {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* ==========================================
+   TOAST (Feedback Notification)
+========================================== */
+.toast {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.7);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 10px;
+  opacity: 0;
+  z-index: 70;
+  transition: opacity 0.3s ease;
+}
+
+.toast.show {
+  opacity: 1;
+}
+
+
+/* ==========================================
+   FINAL UI PATCH (Ensures buttons work)
+========================================== */
+#startScreen,
+#characterScreen,
+#leaderboardModal,
+#difficultyModal,
+#howToPlayModal,
+#pauseOverlay,
+#gameOverCard,
+#nameEntryModal {
+  z-index: 50;
+  pointer-events: auto;
+}
+
+.modalBox,
+.leaderboardBox,
+.pauseBox,
+.gameOverBox,
+.nameEntryBox {
+  z-index: 60;
+}
+
+</style>
+
 </head>
 
 
@@ -815,180 +900,154 @@
 
 <!-- JS begins in PART 2 -->
 <script>
-/* JS WILL BE INSERTED IN PART 2, 3, 4 */
 
 /* ==========================================
-   PART 2A — CORE ENGINE SETUP
+   CANVAS SETUP
 ========================================== */
-
-// Canvas
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-resizeCanvas();
 
-window.addEventListener("resize", resizeCanvas);
 function resizeCanvas() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
 
 /* ==========================================
-   GLOBAL GAME STATE
+   GAME STATE
 ========================================== */
 let gameRunning = false;
 let gameOver = false;
 let paused = false;
 
-let score = 0;          // S3 — score tied to world movement
-let distance = 0;       // downhill meters
+let score = 0;
+let distance = 0;
 let lives = 3;
 
-let worldSpeed = 3;     // base speed
-let baseSpeed = 2.2;    // Option D1 — Easy start
+let worldSpeed = 3;
+let baseSpeed = 2.2;
 
-/* ==========================================
-   DIFFICULTY SYSTEM (M2 + M3)
-========================================== */
-
-// User-selected difficulty: "auto", "easy", "medium", "hard"
+let autoDifficultyLevel = 0;
 let difficultyMode = "auto";
 
-// internal scaler for auto mode
-let autoDifficultyLevel = 0;   
-// grows dynamically based on how well player survives
-
-// difficulty presets
-const difficultySettings = {
-  easy:   { speed: 2.2 },
-  medium: { speed: 3.3 },
-  hard:   { speed: 4.6 },
-};
-
-// called when user selects difficulty button
-function setDifficulty(mode) {
-  difficultyMode = mode;
-  closeDifficultyModal();
-
-  // UI feedback
-  showToast("Difficulty set to: " + mode.toUpperCase());
-}
 
 /* ==========================================
-   AUTO DIFFICULTY (M3)
-   Dynamic hidden system
-========================================== */
-
-function updateAutoDifficulty() {
-  if (difficultyMode !== "auto") return;
-
-  // increase slowly based on survival time
-  autoDifficultyLevel += 0.00025;
-
-  // cap max intensity (to avoid insane difficulty)
-  if (autoDifficultyLevel > 2.5) {
-    autoDifficultyLevel = 2.5;
-  }
-}
-
-/* ==========================================
-   COMPUTE WORLD SPEED
-   Option D1 → Easy Start
-   → transitions to D2 → D3 naturally
-========================================== */
-
-function computeWorldSpeed() {
-  if (difficultyMode === "easy")   return difficultySettings.easy.speed;
-  if (difficultyMode === "medium") return difficultySettings.medium.speed;
-  if (difficultyMode === "hard")   return difficultySettings.hard.speed;
-
-  // AUTO MODE → base + dynamic scaling
-  return baseSpeed + autoDifficultyLevel;
-}
-
-/* ==========================================
-   PLAYER OBJECT
+   PLAYER
 ========================================== */
 const player = {
-  x: canvas.width / 2,
-  y: canvas.height * 0.15,   // Option A1 — Start at top center
+  x: 0,
+  y: 0,
   width: 80,
   height: 80,
   speedX: 0,
-  speedY: 0,
+  speedY: 0
 };
 
-// ensure player always starts centered at top
 function resetPlayerPosition() {
   player.x = canvas.width / 2 - player.width / 2;
   player.y = canvas.height * 0.15;
 }
 
-/* ==========================================
-   INPUT SYSTEM (keyboard + touch)
-========================================== */
-const keys = { left:false, right:false, up:false, down:false };
 
-window.addEventListener("keydown", (e) => {
+/* ==========================================
+   INPUT
+========================================== */
+const keys = { left: false, right: false, up: false, down: false };
+window.addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") keys.left = true;
   if (e.key === "ArrowRight") keys.right = true;
   if (e.key === "ArrowUp") keys.up = true;
   if (e.key === "ArrowDown") keys.down = true;
+  if (e.key === "Escape") togglePause();
 });
-
-window.addEventListener("keyup", (e) => {
+window.addEventListener("keyup", e => {
   if (e.key === "ArrowLeft") keys.left = false;
   if (e.key === "ArrowRight") keys.right = false;
   if (e.key === "ArrowUp") keys.up = false;
   if (e.key === "ArrowDown") keys.down = false;
 });
 
-// Touch control placeholders — real logic in Part 3
+/* Touch */
 let touchActive = false;
-window.addEventListener("touchstart", () => touchActive = true);
-window.addEventListener("touchend",   () => touchActive = false);
-window.addEventListener("touchmove", (e) => {
-  // actual movement handled later
+let lastTouchPos = null;
+
+window.addEventListener("touchstart", e => {
+  touchActive = true;
+});
+window.addEventListener("touchend", e => {
+  touchActive = false;
+});
+window.addEventListener("touchmove", e => {
+  const t = e.touches[0];
+  const rect = canvas.getBoundingClientRect();
+  lastTouchPos = {
+    x: t.clientX - rect.left,
+    y: t.clientY - rect.top
+  };
   e.preventDefault();
-}, { passive:false });
+}, { passive: false });
+
 
 /* ==========================================
-   TOAST SYSTEM (General UI feedback)
+   AUTO DIFFICULTY (M3)
 ========================================== */
-function showToast(msg) {
-  const toast = document.getElementById("toast");
-  toast.innerText = msg;
-  toast.style.opacity = "1";
+function updateAutoDifficulty() {
+  if (difficultyMode !== "auto") return;
 
-  setTimeout(() => {
-    toast.style.opacity = "0";
-  }, 1800);
+  autoDifficultyLevel += 0.00025;
+  if (autoDifficultyLevel > 2.5) autoDifficultyLevel = 2.5;
 }
 
-/* ==========================================
-   PART 2B — MOVEMENT + WORLD DESCENT + SCORE
-========================================== */
+function computeWorldSpeed() {
+  if (difficultyMode === "easy") return 2.2;
+  if (difficultyMode === "medium") return 3.3;
+  if (difficultyMode === "hard") return 4.6;
+
+  return baseSpeed + autoDifficultyLevel;
+}
+
 
 /* ==========================================
-   PLAYER MOVEMENT (keyboard + touch drag)
+   WORLD & SCORE
 ========================================== */
+let worldOffset = 0;
 
+function updateWorld(dt) {
+  worldSpeed = computeWorldSpeed();
+  worldOffset += worldSpeed;
+
+  distance += worldSpeed * 0.02;
+  score = Math.floor(distance);
+
+  updateHUD();
+}
+
+function updateHUD() {
+  document.getElementById("scoreUI").innerHTML = score + " m";
+  document.getElementById("livesUI").innerHTML = "❤️".repeat(lives);
+}
+
+
+/* ==========================================
+   PLAYER MOVEMENT
+========================================== */
 function updatePlayer(dt) {
-  const moveSpeed = 420 * dt; // smooth & frame-independent
+  const moveSpeed = 420 * dt;
 
-  if (keys.left)  player.x -= moveSpeed;
+  if (keys.left) player.x -= moveSpeed;
   if (keys.right) player.x += moveSpeed;
-  if (keys.up)    player.y -= moveSpeed * 0.7;  // slight control upward
-  if (keys.down)  player.y += moveSpeed;
+  if (keys.up) player.y -= moveSpeed * 0.7;
+  if (keys.down) player.y += moveSpeed;
 
-  // Touch drag movement
   if (touchActive && lastTouchPos) {
-    const dx = lastTouchPos.x - player.x - player.width / 2;
-    const dy = lastTouchPos.y - player.y - player.height / 2;
+    const dx = lastTouchPos.x - (player.x + player.width / 2);
+    const dy = lastTouchPos.y - (player.y + player.height / 2);
     player.x += dx * 0.25;
     player.y += dy * 0.25;
   }
 
-  // Clamp player inside canvas
   if (player.x < 0) player.x = 0;
   if (player.x + player.width > canvas.width)
     player.x = canvas.width - player.width;
@@ -998,67 +1057,20 @@ function updatePlayer(dt) {
     player.y = canvas.height - player.height;
 }
 
-/* Record touch movement */
-let lastTouchPos = null;
-
-window.addEventListener("touchmove", (e) => {
-  const t = e.touches[0];
-  const rect = canvas.getBoundingClientRect();
-  lastTouchPos = {
-    x: t.clientX - rect.left,
-    y: t.clientY - rect.top
-  };
-});
-
 
 /* ==========================================
-   WORLD DESCENDING MOVEMENT
+   TRAIL
 ========================================== */
-
-let worldOffset = 0; // moves downward visually
-
-function updateWorld(dt) {
-  worldSpeed = computeWorldSpeed();
-  worldOffset += worldSpeed;
-
-  // S3 — score based on world movement
-  distance += worldSpeed * 0.02;
-  score = Math.floor(distance);
-
-  updateHUD();
-}
-
-
-/* ==========================================
-   HUD UPDATE
-========================================== */
-
-function updateHUD() {
-  document.getElementById("scoreUI").innerHTML = score + " m";
-  document.getElementById("distanceIndicator").innerHTML = 
-      "Speed: " + worldSpeed.toFixed(1);
-
-  document.getElementById("livesUI").innerHTML = "❤️".repeat(lives);
-}
-
-
-/* ==========================================
-   TRAIL SYSTEM (KEEP EXACT SAME DIRECTION)
-========================================== */
-
 let trail = [];
 
 function updateTrail(dt) {
-  // Add a new trail point if player is moving
   trail.push({
     x: player.x + player.width / 2,
     y: player.y + player.height
   });
 
-  // Limit trail length
   if (trail.length > 160) trail.shift();
 
-  // Move trail downward slowly (to maintain downhill illusion)
   const trailSpeed = worldSpeed * 0.45;
   for (let p of trail) {
     p.y += trailSpeed;
@@ -1083,790 +1095,52 @@ function drawTrail() {
 
 
 /* ==========================================
-   BACKGROUND (simple placeholder)
+   BACKGROUND
 ========================================== */
-
 function drawBackground() {
   const h = canvas.height;
   const g = ctx.createLinearGradient(0, 0, 0, h);
-
   g.addColorStop(0, "#4fa3e3");
   g.addColorStop(1, "#d8f2ff");
-
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 }
 
 
 /* ==========================================
-   HITBOX (for collisions later in Part 3)
+   HITBOX
 ========================================== */
-
 function getPlayerHitbox() {
   return {
     x: player.x + player.width * 0.2,
-    y: player.y + player.height * 0.25,
+    y: player.y + player.height * 0.2,
     w: player.width * 0.6,
     h: player.height * 0.6
   };
 }
 
-/* ==========================================
-   PART 2C — MAIN GAME LOOP + RENDER ORDER
-========================================== */
-
-let lastTimestamp = 0;
-
-function gameLoop(timestamp) {
-  if (!gameRunning) return;
-
-  const dt = (timestamp - lastTimestamp) / 1000;
-  lastTimestamp = timestamp;
-
-  if (!paused) {
-    // AUTO difficulty adjusts continuously
-    updateAutoDifficulty();
-
-    // Update world descent speed + score
-    updateWorld(dt);
-
-    // Player movement
-    updatePlayer(dt);
-
-    // Trail update
-    updateTrail(dt);
-
-    // Spawn / update obstacles (Part 3)
-    updateObstacles(dt);
-    updateGifts(dt);
-    updateBigSnowballs(dt);
-    updateGolems(dt);
-  }
-
-  // DRAW EVERYTHING
-  renderFrame();
-
-  requestAnimationFrame(gameLoop);
-}
-
 
 /* ==========================================
-   RENDER PIPELINE (drawing order)
+   OBSTACLES (TREES)
 ========================================== */
-
-function renderFrame() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // 1. Background first
-  drawBackground();
-
-  // 2. Trail (behind player)
-  drawTrail();
-
-  // 3. Obstacles + Gifts
-  drawObstacles();
-  drawGifts();
-  drawBigSnowballs();
-  drawGolems();
-
-  // 4. Player
-  drawPlayer();
-
-  // 5. Optional overlays (tutorials etc)
-}
-
-
-/* ==========================================
-   DRAW PLAYER
-========================================== */
-
-function drawPlayer() {
-  ctx.fillStyle = "#ff3366";
-  ctx.fillRect(player.x, player.y, player.width, player.height);
-
-  // Later: draw sprite image
-}
-
-
-/* ==========================================
-   PAUSE LOGIC
-========================================== */
-
-function togglePause() {
-  if (!gameRunning) return;
-
-  paused = !paused;
-
-  document.getElementById("pauseOverlay").style.display =
-      paused ? "flex" : "none";
-}
-
-function resumeGame() {
-  paused = false;
-  document.getElementById("pauseOverlay").style.display = "none";
-}
-
-window.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") togglePause();
-});
-
-
-/* ==========================================
-   START GAME
-========================================== */
-
-function startGame() {
-  score = 0;
-  distance = 0;
-  lives = 3;
-
-  worldOffset = 0;
-  autoDifficultyLevel = 0;
-
-  resetPlayerPosition();
-
-  // Clear existing objects
-  obstacles = [];
-  gifts = [];
-  bigSnowballs = [];
-  golems = [];
-  golemBullets = [];
-  trail = [];
-
-  document.getElementById("startScreen").style.display = "none";
-  document.getElementById("characterScreen").style.display = "none";
-  document.getElementById("gameOverCard").style.display = "none";
-
-  gameRunning = true;
-  paused = false;
-  lastTimestamp = performance.now();
-
-  requestAnimationFrame(gameLoop);
-}
-
-
-/* ==========================================
-   GAME OVER
-========================================== */
-
-function triggerGameOver() {
-  gameRunning = false;
-  paused = false;
-
-  document.getElementById("finalScoreText").innerHTML =
-    "Your Score: " + score + " m";
-
-  document.getElementById("gameOverCard").style.display = "flex";
-}
-
-
-/* ==========================================
-   RETRY
-========================================== */
-
-function retryGame() {
-  triggerGameOver(false);
-  startGame();
-}
-
-
-/* ==========================================
-   QUIT TO MENU
-========================================== */
-
-function quitToMenu() {
-  gameRunning = false;
-  paused = false;
-
-  document.getElementById("pauseOverlay").style.display = "none";
-  document.getElementById("gameOverCard").style.display = "none";
-
-  document.getElementById("startScreen").style.display = "flex";
-}
-
-/* ==========================================
-   PART 3A — OBSTACLES + GIFTS + COLLISIONS
-========================================== */
-
-/* Gameplay arrays */
-let obstacles = [];   // trees
-let gifts = [];        // green (points) / red (life)
-
-/* Spawn timers */
+let obstacles = [];
 let obstacleTimer = 0;
-let giftTimer = 0;
-
-/* ==========================================
-   SPAWN OBSTACLES (Trees)
-========================================== */
 
 function spawnObstacle() {
   const w = 48;
   const h = 80;
-
   const margin = 60;
   const x = margin + Math.random() * (canvas.width - margin * 2 - w);
 
-  obstacles.push({
-    x,
-    y: -100,
-    w,
-    h,
-  });
+  obstacles.push({ x, y: -100, w, h });
 }
-
-function updateObstacles(dt) {
-  const fallSpeed = worldSpeed * 1.0;
-
-  obstacleTimer += dt * worldSpeed;
-
-  // spawn every ~30 "meters"
-  if (obstacleTimer > 30) {
-    spawnObstacle();
-    obstacleTimer = 0;
-  }
-
-  const hitbox = getPlayerHitbox();
-
-  for (let i = obstacles.length - 1; i >= 0; i--) {
-    const o = obstacles[i];
-    o.y += fallSpeed;
-
-    // collision
-    if (
-      rectsOverlap(hitbox.x, hitbox.y, hitbox.w, hitbox.h, o.x, o.y, o.w, o.h)
-    ) {
-      obstacles.splice(i, 1);
-      lifeLost();
-      continue;
-    }
-
-    // remove off-screen
-    if (o.y > canvas.height + 80) {
-      obstacles.splice(i, 1);
-    }
-  }
-}
-
-/* Render */
-function drawObstacles() {
-  obstacles.forEach((o) => {
-    // shadow
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    ctx.beginPath();
-    ctx.ellipse(o.x + o.w / 2, o.y + o.h, o.w * 0.5, 10, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // trunk
-    ctx.fillStyle = "#7d4b27";
-    ctx.fillRect(o.x + o.w * 0.4, o.y + o.h * 0.65, o.w * 0.2, o.h * 0.35);
-
-    // tree shape
-    ctx.fillStyle = "#276b47";
-    ctx.beginPath();
-    ctx.moveTo(o.x + o.w / 2, o.y);
-    ctx.lineTo(o.x, o.y + o.h * 0.8);
-    ctx.lineTo(o.x + o.w, o.y + o.h * 0.8);
-    ctx.closePath();
-    ctx.fill();
-  });
-}
-
-/* ==========================================
-   GIFTS (Green = points, Red = life)
-========================================== */
-
-function spawnGift() {
-  const w = 40;
-  const h = 40;
-
-  const margin = 40;
-  const x = margin + Math.random() * (canvas.width - margin * 2 - w);
-
-  const type = Math.random() < 0.75 ? "points" : "life";
-
-  gifts.push({
-    x,
-    y: -100,
-    w,
-    h,
-    type,
-  });
-}
-
-function updateGifts(dt) {
-  const fallSpeed = worldSpeed * 1.0;
-
-  giftTimer += dt * worldSpeed;
-
-  // spawn every ~60 meters
-  if (giftTimer > 60) {
-    spawnGift();
-    giftTimer = 0;
-  }
-
-  const hitbox = getPlayerHitbox();
-
-  for (let i = gifts.length - 1; i >= 0; i--) {
-    const g = gifts[i];
-    g.y += fallSpeed;
-
-    // collision
-    if (
-      rectsOverlap(hitbox.x, hitbox.y, hitbox.w, hitbox.h, g.x, g.y, g.w, g.h)
-    ) {
-      if (g.type === "points") {
-        score += 150;
-      } else if (g.type === "life") {
-        if (lives < 3) lives++;
-      }
-      gifts.splice(i, 1);
-      continue;
-    }
-
-    // off screen
-    if (g.y > canvas.height + 80) {
-      gifts.splice(i, 1);
-    }
-  }
-}
-
-/* Render */
-function drawGifts() {
-  gifts.forEach((g) => {
-    ctx.fillStyle = g.type === "points" ? "#c9e265" : "#ff3b6a";
-    ctx.fillRect(g.x, g.y, g.w, g.h);
-
-    // ribbon
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(g.x + g.w / 2 - 3, g.y, 6, g.h);
-    ctx.fillRect(g.x, g.y + g.h / 2 - 3, g.w, 6);
-  });
-}
-
-/* ==========================================
-   COLLISION UTILITY
-========================================== */
-
-function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
-  return (
-    ax < bx + bw &&
-    ax + aw > bx &&
-    ay < by + bh &&
-    ay + ah > by
-  );
-}
-
-/* ==========================================
-   LIFE LOST HANDLER
-========================================== */
-
-function lifeLost() {
-  lives--;
-  if (lives <= 0) {
-    triggerGameOver();
-  }
-}
-
-/* ==========================================
-   PART 3B — BIG SNOWBALLS + GOLEMS + PROJECTILES
-========================================== */
-
-/* Arrays */
-let bigSnowballs = [];
-let golems = [];
-let golemBullets = [];
-
-/* Spawn timers */
-let bigSnowballTimer = 0;
-let golemTimer = 0;
-
-
-/* ==========================================
-   BIG SNOWBALLS (falling hazards)
-========================================== */
-
-function spawnBigSnowball() {
-  const r = 48;
-  const x = r + Math.random() * (canvas.width - r * 2);
-  const y = -120;
-
-  const vx = (Math.random() - 0.5) * 1.2; // slight side motion
-
-  bigSnowballs.push({
-    x,
-    y,
-    r,
-    vx,
-  });
-}
-
-function updateBigSnowballs(dt) {
-  const fall = worldSpeed * 1.1;
-
-  bigSnowballTimer += dt * worldSpeed;
-
-  // spawn every ~120 meters
-  if (bigSnowballTimer > 120) {
-    spawnBigSnowball();
-    bigSnowballTimer = 0;
-  }
-
-  const hitbox = getPlayerHitbox();
-
-  for (let i = bigSnowballs.length - 1; i >= 0; i--) {
-    const b = bigSnowballs[i];
-
-    b.y += fall;
-    b.x += b.vx;
-
-    // collision (circle vs rectangle)
-    const closestX = Math.max(hitbox.x, Math.min(b.x, hitbox.x + hitbox.w));
-    const closestY = Math.max(hitbox.y, Math.min(b.y, hitbox.y + hitbox.h));
-
-    const dx = b.x - closestX;
-    const dy = b.y - closestY;
-
-    if (dx * dx + dy * dy < b.r * b.r) {
-      bigSnowballs.splice(i, 1);
-      lifeLost();
-      continue;
-    }
-
-    // off screen
-    if (b.y > canvas.height + b.r) {
-      bigSnowballs.splice(i, 1);
-    }
-  }
-}
-
-function drawBigSnowballs() {
-  bigSnowballs.forEach((b) => {
-    // shadow
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    ctx.beginPath();
-    ctx.ellipse(b.x, b.y + b.r * 0.8, b.r * 0.8, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // body
-    const grad = ctx.createRadialGradient(
-      b.x - b.r * 0.3,
-      b.y - b.r * 0.3,
-      b.r * 0.1,
-      b.x,
-      b.y,
-      b.r
-    );
-    grad.addColorStop(0, "#ffffff");
-    grad.addColorStop(0.5, "#d6f0ff");
-    grad.addColorStop(1, "#7fa8d9");
-
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
-}
-
-
-/* ==========================================
-   GOLEMS (walking enemies)
-========================================== */
-
-function spawnGolem() {
-  const w = 70;
-  const h = 90;
-
-  const x = 40 + Math.random() * (canvas.width - 80);
-  const y = -160;
-
-  golems.push({
-    x,
-    y,
-    w,
-    h,
-    shootCooldown: 1 + Math.random() * 1.5, // seconds
-  });
-}
-
-function updateGolems(dt) {
-  const fall = worldSpeed * 0.9;
-
-  golemTimer += dt * worldSpeed;
-
-  // spawn every ~200 meters
-  if (golemTimer > 200) {
-    spawnGolem();
-    golemTimer = 0;
-  }
-
-  const hitbox = getPlayerHitbox();
-
-  for (let i = golems.length - 1; i >= 0; i--) {
-    const g = golems[i];
-
-    g.y += fall;
-
-    // collision box
-    if (
-      rectsOverlap(
-        hitbox.x, hitbox.y, hitbox.w, hitbox.h,
-        g.x, g.y, g.w, g.h
-      )
-    ) {
-      golems.splice(i, 1);
-      lifeLost();
-      continue;
-    }
-
-    // shooting logic
-    g.shootCooldown -= dt;
-    if (g.shootCooldown <= 0) {
-      fireGolemSnowball(g);
-      g.shootCooldown = 1.2 + Math.random() * 1.2;
-    }
-
-    // off screen
-    if (g.y > canvas.height + 120) {
-      golems.splice(i, 1);
-    }
-  }
-}
-
-function drawGolems() {
-  golems.forEach((g) => {
-    // shadow
-    ctx.fillStyle = "rgba(0,0,0,0.25)";
-    ctx.beginPath();
-    ctx.ellipse(g.x + g.w / 2, g.y + g.h, g.w * 0.6, 12, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // body
-    const grad = ctx.createLinearGradient(g.x, g.y, g.x, g.y + g.h);
-    grad.addColorStop(0, "#e8f8ff");
-    grad.addColorStop(1, "#7fc4ff");
-
-    ctx.fillStyle = grad;
-    ctx.fillRect(g.x, g.y, g.w, g.h);
-
-    // head
-    ctx.fillStyle = "#e8f8ff";
-    ctx.fillRect(g.x + 10, g.y - 24, g.w - 20, 24);
-
-    // eyes
-    ctx.fillStyle = "#173d5c";
-    ctx.fillRect(g.x + 18, g.y - 14, 6, 4);
-    ctx.fillRect(g.x + g.w - 24, g.y - 14, 6, 4);
-
-    ctx.fillStyle = "#6dc1f6";
-    ctx.fillRect(g.x + 19, g.y - 13, 4, 2);
-    ctx.fillRect(g.x + g.w - 23, g.y - 13, 4, 2);
-  });
-}
-
-
-/* ==========================================
-   GOLEM PROJECTILES (snowballs)
-========================================== */
-
-function fireGolemSnowball(g) {
-  const px = player.x + player.width / 2;
-  const py = player.y + player.height / 2;
-
-  const ox = g.x + g.w / 2;
-  const oy = g.y;
-
-  let dx = px - ox;
-  let dy = py - oy;
-  const mag = Math.sqrt(dx * dx + dy * dy) || 1;
-
-  dx /= mag;
-  dy /= mag;
-
-  const speed = 300 + worldSpeed * 40;
-
-  golemBullets.push({
-    x: ox,
-    y: oy,
-    r: 14,
-    vx: dx * speed,
-    vy: dy * speed,
-  });
-}
-
-function updateGolemsBullets(dt) {
-  const hitbox = getPlayerHitbox();
-
-  for (let i = golemBullets.length - 1; i >= 0; i--) {
-    const b = golemBullets[i];
-
-    b.x += b.vx * dt;
-    b.y += b.vy * dt;
-
-    // collision
-    const closestX = Math.max(hitbox.x, Math.min(b.x, hitbox.x + hitbox.w));
-    const closestY = Math.max(hitbox.y, Math.min(b.y, hitbox.y + hitbox.h));
-
-    const dx = b.x - closestX;
-    const dy = b.y - closestY;
-
-    if (dx * dx + dy * dy < b.r * b.r) {
-      golemBullets.splice(i, 1);
-      lifeLost();
-      continue;
-    }
-
-    // off screen
-    if (
-      b.x < -50 ||
-      b.x > canvas.width + 50 ||
-      b.y > canvas.height + 50
-    ) {
-      golemBullets.splice(i, 1);
-    }
-  }
-}
-
-function drawGolemsBullets() {
-  golemBullets.forEach((b) => {
-    // bullet tail
-    ctx.strokeStyle = "rgba(120,180,255,0.7)";
-    ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(b.x - b.vx * 0.02, b.y - b.vy * 0.02);
-    ctx.lineTo(b.x, b.y);
-    ctx.stroke();
-
-    // bullet body
-    ctx.fillStyle = "#ffffff";
-    ctx.beginPath();
-    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
-    ctx.fill();
-  });
-}
-
-
-/* ==========================================
-   PLUG INTO MAIN LOOP RENDER PHASE
-========================================== */
-
-function updateGolems(dt) {
-  updateGolemsBullets(dt);
-  updateGolems(dt);
-}
-
-function drawGolems() {
-  drawGolemsBullets();
-  drawGolems();
-}
-
-/* ==========================================
-   PART 3C — DAMAGE EFFECTS + VIBRATION + SCALING
-========================================== */
-
-let invincible = false;
-let invincibleTimer = 0;
-let screenShake = 0;
-
-/* Android / iPhone vibration wrapper */
-function vibrate(ms) {
-  if (navigator.vibrate) {
-    navigator.vibrate(ms);
-  }
-}
-
-/* ==========================================
-   LIFE LOST (UPGRADED)
-========================================== */
-function lifeLost() {
-  if (invincible || gameOver) return;
-
-  lives--;
-
-  // vibration feedback
-  vibrate(150);
-
-  // flash + shake
-  triggerDamageFlash();
-  triggerScreenShake();
-
-  // enable invincibility for 1 second
-  invincible = true;
-  invincibleTimer = 1.0;
-
-  if (lives <= 0) {
-    triggerGameOver();
-  }
-}
-
-/* ==========================================
-   INVINCIBILITY TIMER
-========================================== */
-function updateInvincibility(dt) {
-  if (invincible) {
-    invincibleTimer -= dt;
-    if (invincibleTimer <= 0) {
-      invincible = false;
-    }
-  }
-}
-
-/* ==========================================
-   DAMAGE FLASH EFFECT
-========================================== */
-let flashOpacity = 0;
-
-function triggerDamageFlash() {
-  flashOpacity = 0.6; // start bright flash
-}
-
-function drawDamageFlash() {
-  if (flashOpacity > 0) {
-    ctx.fillStyle = "rgba(255,0,0," + flashOpacity + ")";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    flashOpacity -= 0.02;
-  }
-}
-
-/* ==========================================
-   SCREEN SHAKE
-========================================== */
-function triggerScreenShake() {
-  screenShake = 12; // intensity
-}
-
-function applyScreenShake() {
-  if (screenShake > 0) {
-    const dx = (Math.random() - 0.5) * screenShake;
-    const dy = (Math.random() - 0.5) * screenShake;
-    ctx.translate(dx, dy);
-    screenShake *= 0.85;
-  }
-}
-
-/* ==========================================
-   WORLD SPAWN SCALING (Difficulty Curve)
-========================================== */
 
 function scaledObstacleRate() {
   return Math.max(28 - autoDifficultyLevel * 3, 14);
 }
 
-function scaledGiftRate() {
-  return Math.max(58 - autoDifficultyLevel * 2, 32);
-}
-
-function scaledSnowballRate() {
-  return Math.max(115 - autoDifficultyLevel * 5, 60);
-}
-
-function scaledGolemRate() {
-  return Math.max(190 - autoDifficultyLevel * 6, 90);
-}
-
-/* OVERRIDE SPAWN TIMERS USING SCALERS */
 function updateObstacles(dt) {
-  const fallSpeed = worldSpeed * 1.0;
+  const speed = worldSpeed * 1.0;
   obstacleTimer += dt * worldSpeed;
 
   if (obstacleTimer > scaledObstacleRate()) {
@@ -1878,20 +1152,56 @@ function updateObstacles(dt) {
 
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const o = obstacles[i];
-    o.y += fallSpeed;
+    o.y += speed;
 
-    if (rectsOverlap(hitbox.x, hitbox.y, hitbox.w, hitbox.h, o.x, o.y, o.w, o.h)) {
+    if (rectsOverlap(hitbox, o)) {
       obstacles.splice(i, 1);
       lifeLost();
       continue;
     }
 
-    if (o.y > canvas.height + 80) obstacles.splice(i, 1);
+    if (o.y > canvas.height + 100) obstacles.splice(i, 1);
   }
 }
 
+function drawObstacles() {
+  obstacles.forEach(o => {
+    ctx.fillStyle = "#7d4b27";
+    ctx.fillRect(o.x + o.w * 0.4, o.y + o.h * 0.65, o.w * 0.2, o.h * 0.35);
+
+    ctx.fillStyle = "#276b47";
+    ctx.beginPath();
+    ctx.moveTo(o.x + o.w / 2, o.y);
+    ctx.lineTo(o.x, o.y + o.h * 0.8);
+    ctx.lineTo(o.x + o.w, o.y + o.h * 0.8);
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
+
+/* ==========================================
+   GIFTS
+========================================== */
+let gifts = [];
+let giftTimer = 0;
+
+function spawnGift() {
+  const w = 40;
+  const h = 40;
+  const margin = 40;
+  const x = margin + Math.random() * (canvas.width - margin * 2 - w);
+  const type = Math.random() < 0.75 ? "points" : "life";
+
+  gifts.push({ x, y: -100, w, h, type });
+}
+
+function scaledGiftRate() {
+  return Math.max(58 - autoDifficultyLevel * 2, 32);
+}
+
 function updateGifts(dt) {
-  const fallSpeed = worldSpeed * 1.0;
+  const speed = worldSpeed * 1.0;
   giftTimer += dt * worldSpeed;
 
   if (giftTimer > scaledGiftRate()) {
@@ -1903,16 +1213,12 @@ function updateGifts(dt) {
 
   for (let i = gifts.length - 1; i >= 0; i--) {
     const g = gifts[i];
-    g.y += fallSpeed;
+    g.y += speed;
 
-    if (rectsOverlap(hitbox.x, hitbox.y, hitbox.w, hitbox.h, g.x, g.y, g.w, g.h)) {
-      if (g.type === "points") {
-        score += 150;
-        vibrate(80);
-      } else if (g.type === "life") {
-        if (lives < 3) lives++;
-        vibrate(80);
-      }
+    if (rectsOverlap(hitbox, g)) {
+      if (g.type === "points") score += 150;
+      if (navigator.vibrate) navigator.vibrate(80);
+      if (g.type === "life" && lives < 3) lives++;
       gifts.splice(i, 1);
       continue;
     }
@@ -1921,9 +1227,37 @@ function updateGifts(dt) {
   }
 }
 
+function drawGifts() {
+  gifts.forEach(g => {
+    ctx.fillStyle = g.type === "points" ? "#c9e265" : "#ff3b6a";
+    ctx.fillRect(g.x, g.y, g.w, g.h);
+
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(g.x + g.w / 2 - 3, g.y, 6, g.h);
+    ctx.fillRect(g.x, g.y + g.h / 2 - 3, g.w, 6);
+  });
+}
+
+
+/* ==========================================
+   SNOWBALLS
+========================================== */
+let bigSnowballs = [];
+let bigSnowballTimer = 0;
+
+function spawnBigSnowball() {
+  const r = 48;
+  const x = r + Math.random() * (canvas.width - r * 2);
+  const vx = (Math.random() - 0.5) * 1.2;
+  bigSnowballs.push({ x, y: -120, r, vx });
+}
+
+function scaledSnowballRate() {
+  return Math.max(115 - autoDifficultyLevel * 5, 60);
+}
+
 function updateBigSnowballs(dt) {
   const fall = worldSpeed * 1.1;
-
   bigSnowballTimer += dt * worldSpeed;
 
   if (bigSnowballTimer > scaledSnowballRate()) {
@@ -1938,12 +1272,7 @@ function updateBigSnowballs(dt) {
     b.y += fall;
     b.x += b.vx;
 
-    const closestX = Math.max(hitbox.x, Math.min(b.x, hitbox.x + hitbox.w));
-    const closestY = Math.max(hitbox.y, Math.min(b.y, hitbox.y + hitbox.h));
-    const dx = b.x - closestX;
-    const dy = b.y - closestY;
-
-    if (dx * dx + dy * dy < b.r * b.r) {
+    if (circleRectOverlap(b, hitbox)) {
       bigSnowballs.splice(i, 1);
       lifeLost();
       continue;
@@ -1953,9 +1282,39 @@ function updateBigSnowballs(dt) {
   }
 }
 
+function drawBigSnowballs() {
+  bigSnowballs.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+  });
+}
+
+
+/* ==========================================
+   GOLEMS + PROJECTILES
+========================================== */
+let golems = [];
+let golemTimer = 0;
+let golemBullets = [];
+
+function spawnGolem() {
+  golems.push({
+    x: 40 + Math.random() * (canvas.width - 80),
+    y: -160,
+    w: 70,
+    h: 90,
+    shootCooldown: 1 + Math.random() * 1.5
+  });
+}
+
+function scaledGolemRate() {
+  return Math.max(190 - autoDifficultyLevel * 6, 90);
+}
+
 function updateGolems(dt) {
   const fall = worldSpeed * 0.9;
-
   golemTimer += dt * worldSpeed;
 
   if (golemTimer > scaledGolemRate()) {
@@ -1969,7 +1328,7 @@ function updateGolems(dt) {
     const g = golems[i];
     g.y += fall;
 
-    if (rectsOverlap(hitbox.x, hitbox.y, hitbox.w, hitbox.h, g.x, g.y, g.w, g.h)) {
+    if (rectsOverlap(hitbox, g)) {
       golems.splice(i, 1);
       lifeLost();
       continue;
@@ -1985,12 +1344,164 @@ function updateGolems(dt) {
   }
 }
 
-/* ==========================================
-   UPDATE DAMAGE FX + INVINCIBILITY IN LOOP
-========================================== */
+function drawGolems() {
+  golems.forEach(g => {
+    ctx.fillStyle = "#88caff";
+    ctx.fillRect(g.x, g.y, g.w, g.h);
+  });
+}
 
-const oldGameLoop = gameLoop;
-gameLoop = function(timestamp) {
+
+/* PROJECTILES */
+function fireGolemSnowball(g) {
+  const px = player.x + player.width / 2;
+  const py = player.y + player.height / 2;
+
+  const ox = g.x + g.w / 2;
+  const oy = g.y;
+
+  let dx = px - ox;
+  let dy = py - oy;
+
+  const mag = Math.sqrt(dx * dx + dy * dy) || 1;
+  dx /= mag;
+  dy /= mag;
+
+  const speed = 300 + worldSpeed * 40;
+
+  golemBullets.push({ x: ox, y: oy, r: 14, vx: dx * speed, vy: dy * speed });
+}
+
+function updateGolemBullets(dt) {
+  const hitbox = getPlayerHitbox();
+
+  for (let i = golemBullets.length - 1; i >= 0; i--) {
+    const b = golemBullets[i];
+    b.x += b.vx * dt;
+    b.y += b.vy * dt;
+
+    if (circleRectOverlap(b, hitbox)) {
+      golemBullets.splice(i, 1);
+      lifeLost();
+      continue;
+    }
+
+    if (b.y > canvas.height + 50 ||
+        b.x < -50 || b.x > canvas.width + 50) {
+      golemBullets.splice(i, 1);
+    }
+  }
+}
+
+function drawGolemBullets() {
+  golemBullets.forEach(b => {
+    ctx.beginPath();
+    ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+  });
+}
+
+
+/* ==========================================
+   COLLISION HELPERS
+========================================== */
+function rectsOverlap(a, b) {
+  return (
+    a.x < b.x + b.w &&
+    a.x + a.w > b.x &&
+    a.y < b.y + b.h &&
+    a.y + a.h > b.y
+  );
+}
+
+function circleRectOverlap(circle, rect) {
+  const closestX = Math.max(rect.x, Math.min(circle.x, rect.x + rect.w));
+  const closestY = Math.max(rect.y, Math.min(circle.y, rect.y + rect.h));
+
+  const dx = circle.x - closestX;
+  const dy = circle.y - closestY;
+
+  return dx * dx + dy * dy < circle.r * circle.r;
+}
+
+
+/* ==========================================
+   DAMAGE FX & INVINCIBILITY
+========================================== */
+let invincible = false;
+let invincibleTimer = 0;
+let flashOpacity = 0;
+let screenShake = 0;
+
+function lifeLost() {
+  if (invincible) return;
+
+  lives--;
+  if (navigator.vibrate) navigator.vibrate(150);
+
+  flashOpacity = 0.6;
+  screenShake = 12;
+
+  invincible = true;
+  invincibleTimer = 1;
+
+  if (lives <= 0) triggerGameOver();
+}
+
+function updateInvincibility(dt) {
+  if (!invincible) return;
+  invincibleTimer -= dt;
+  if (invincibleTimer <= 0) invincible = false;
+}
+
+function drawDamageFlash() {
+  if (flashOpacity > 0) {
+    ctx.fillStyle = `rgba(255,0,0,${flashOpacity})`;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    flashOpacity -= 0.02;
+  }
+}
+
+function applyScreenShake() {
+  if (screenShake > 0) {
+    const dx = (Math.random() - 0.5) * screenShake;
+    const dy = (Math.random() - 0.5) * screenShake;
+    ctx.translate(dx, dy);
+    screenShake *= 0.85;
+  }
+}
+
+
+/* ==========================================
+   RENDER ORDER
+========================================== */
+function drawPlayer() {
+  ctx.fillStyle = "#ff3366"; // placeholder
+  ctx.fillRect(player.x, player.y, player.width, player.height);
+}
+
+function renderFrame() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  drawBackground();
+  drawTrail();
+  drawObstacles();
+  drawGifts();
+  drawBigSnowballs();
+  drawGolems();
+  drawGolemBullets();
+  drawPlayer();
+  drawDamageFlash();
+}
+
+
+/* ==========================================
+   GAME LOOP
+========================================== */
+let lastTimestamp = 0;
+
+function gameLoop(timestamp) {
   if (!gameRunning) return;
 
   const dt = (timestamp - lastTimestamp) / 1000;
@@ -2002,301 +1513,140 @@ gameLoop = function(timestamp) {
     updateWorld(dt);
     updatePlayer(dt);
     updateTrail(dt);
-
     updateObstacles(dt);
     updateGifts(dt);
     updateBigSnowballs(dt);
     updateGolems(dt);
-    updateGolemsBullets(dt);
+    updateGolemBullets(dt);
   }
 
   ctx.save();
-
   applyScreenShake();
   renderFrame();
-
   ctx.restore();
 
-  drawDamageFlash();
-
   requestAnimationFrame(gameLoop);
-};
-
-
-/* ==========================================
-   PART 4A — LEADERBOARD SYSTEM
-========================================== */
-
-/* ==========================================
-   UNIQUE DEVICE ID
-========================================== */
-
-function getDeviceID() {
-  let id = localStorage.getItem("snowglide_device_id");
-  if (!id) {
-    id = "dev-" + Math.random().toString(36).substr(2, 10);
-    localStorage.setItem("snowglide_device_id", id);
-  }
-  return id;
-}
-
-const deviceID = getDeviceID();
-
-
-/* ==========================================
-   BEST SCORE HANDLING
-========================================== */
-
-function getBestScore() {
-  return Number(localStorage.getItem("snowglide_best_score") || 0);
-}
-
-function updateBestScore(score) {
-  const best = getBestScore();
-  if (score > best) {
-    localStorage.setItem("snowglide_best_score", score);
-    return true; // means new high score
-  }
-  return false;
 }
 
 
 /* ==========================================
-   API ENDPOINTS
-   (Replace with final deployed URLs)
+   GAME START / PAUSE / GAME OVER
 ========================================== */
+function startGame() {
+  document.getElementById("gameCanvas").style.pointerEvents = "auto";
 
-const API_BASE = "https://YOUR_API_URL";    // replace me
-const API_SUBMIT = API_BASE + "/leaderboard/submit";
-const API_FETCH  = API_BASE + "/leaderboard/list";
+  score = 0;
+  distance = 0;
+  lives = 3;
+  autoDifficultyLevel = 0;
 
+  obstacles = [];
+  gifts = [];
+  bigSnowballs = [];
+  golems = [];
+  golemBullets = [];
+  trail = [];
 
-/* ==========================================
-   SUBMIT SCORE TO SERVER
-========================================== */
+  resetPlayerPosition();
 
-async function submitScoreToServer(name, score) {
-  try {
-    const res = await fetch(API_SUBMIT, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        "x-device-id": deviceID
-      },
-      body: JSON.stringify({ name, score })
-    });
-
-    const data = await res.json();
-    console.log("Score submitted:", data);
-    return data;
-  } catch (err) {
-    console.error("Error submitting score:", err);
-  }
-}
-
-
-/* ==========================================
-   AUTO-PUBLISH SCORE ON GAME OVER
-========================================== */
-
-async function handleAutoLeaderboardSubmit() {
-  const playerName = localStorage.getItem("snowglide_player_name") || null;
-
-  // First time → ask name
-  if (!playerName) {
-    openNameEntry();
-    return;
-  }
-
-  // update local best
-  const isNewBest = updateBestScore(score);
-
-  // send to server only if new best
-  if (isNewBest) {
-    await submitScoreToServer(playerName, score);
-  }
-}
-
-
-/* ==========================================
-   OPEN NAME ENTRY MODAL
-========================================== */
-
-function openNameEntry() {
-  document.getElementById("nameEntryModal").style.display = "flex";
-}
-
-
-/* ==========================================
-   SAVE NAME + SUBMIT SCORE
-========================================== */
-
-async function submitScore() {
-  const input = document.getElementById("playerNameInput");
-  const name = input.value.trim();
-
-  if (!name) {
-    showToast("Enter a valid name");
-    return;
-  }
-
-  localStorage.setItem("snowglide_player_name", name);
-
-  updateBestScore(score);
-
-  await submitScoreToServer(name, score);
-
-  document.getElementById("nameEntryModal").style.display = "none";
-
-  showToast("Score Saved!");
-}
-
-
-/* ==========================================
-   FETCH LEADERBOARD
-========================================== */
-
-async function loadLeaderboard() {
-  try {
-    const res = await fetch(API_FETCH, {
-      headers: {
-        "x-device-id": deviceID
-      }
-    });
-
-    const data = await res.json();
-
-    if (!data || !data.entries) {
-      console.error("Invalid leaderboard data");
-      return;
-    }
-
-    renderLeaderboard(data.entries);
-  } catch (err) {
-    console.error("Failed to load leaderboard:", err);
-  }
-}
-
-
-/* ==========================================
-   RENDER LEADERBOARD + HIGHLIGHT PLAYER
-========================================== */
-
-function renderLeaderboard(entries) {
-  const list = document.getElementById("leaderboardList");
-  list.innerHTML = "";
-
-  const playerName = localStorage.getItem("snowglide_player_name");
-  const bestScore = getBestScore();
-
-  entries.forEach((row, i) => {
-    const div = document.createElement("div");
-    div.className = "lbRow";
-
-    // highlight row if it's this player's best score
-    if (row.deviceID === deviceID && row.score === bestScore) {
-      div.style.background = "rgba(201,226,101,0.25)";
-      div.style.border = "1px solid #c9e265";
-      div.style.boxShadow = "0 0 8px #c9e265";
-    }
-
-    div.innerHTML = `
-      <span class="lbRank">#${i + 1}</span>
-      <span class="lbName">${row.name}</span>
-      <span class="lbScore">${row.score}</span>
-    `;
-
-    list.appendChild(div);
-  });
-}
-
-
-/* ==========================================
-   WHEN USER OPENS LEADERBOARD
-========================================== */
-
-function openLeaderboardModal() {
-  document.getElementById("leaderboardModal").style.display = "flex";
-  loadLeaderboard();
-}
-
-function closeLeaderboardModal() {
+  document.getElementById("startScreen").style.display = "none";
+  document.getElementById("characterScreen").style.display = "none";
   document.getElementById("leaderboardModal").style.display = "none";
+  document.getElementById("gameOverCard").style.display = "none";
+
+  gameRunning = true;
+  paused = false;
+
+  lastTimestamp = performance.now();
+  requestAnimationFrame(gameLoop);
 }
 
-/* ==========================================
-   PART 4B — MENU + CHARACTER + DIFFICULTY UI
-========================================== */
+function togglePause() {
+  if (!gameRunning) return;
+  paused = !paused;
+
+  document.getElementById("pauseOverlay").style.display = paused ? "flex" : "none";
+}
+
+function resumeGame() {
+  paused = false;
+  document.getElementById("pauseOverlay").style.display = "none";
+}
+
+function triggerGameOver() {
+  gameRunning = false;
+  paused = false;
+
+  document.getElementById("finalScoreText").innerHTML = "Your Score: " + score + " m";
+  document.getElementById("gameOverCard").style.display = "flex";
+
+  handleAutoLeaderboardSubmit();
+}
+
+function retryGame() {
+  startGame();
+}
+
+function quitToMenu() {
+  gameRunning = false;
+  paused = false;
+  showMenu();
+}
+
 
 /* ==========================================
    CHARACTER SYSTEM
 ========================================== */
-
 let selectedCharacter = localStorage.getItem("snowglide_character") || "default";
 
 function selectCharacter(name) {
   selectedCharacter = name;
-  localStorage.setItem("snowglide_character", selectedCharacter);
+  localStorage.setItem("snowglide_character", name);
 
-  // highlight UI
-  document.querySelectorAll(".characterCard").forEach((c) => {
+  document.querySelectorAll(".characterCard").forEach(c => {
     c.classList.remove("selected");
-    if (c.dataset.char === name) {
-      c.classList.add("selected");
-    }
+    if (c.dataset.char === name) c.classList.add("selected");
   });
 
   showToast("Character Selected: " + name);
 }
 
 function loadSavedCharacterSelection() {
-  document.querySelectorAll(".characterCard").forEach((c) => {
+  document.querySelectorAll(".characterCard").forEach(c => {
     c.classList.remove("selected");
-    if (c.dataset.char === selectedCharacter) {
-      c.classList.add("selected");
-    }
+    if (c.dataset.char === selectedCharacter) c.classList.add("selected");
   });
 }
 
+
 /* ==========================================
-   DRAW PLAYER USING SELECTED CHARACTER
+   DIFFICULTY UI
 ========================================== */
-function drawPlayer() {
-  // **TEMP PLACEHOLDER** — will use sprite sheet later
-  // replacing the rectangle with selected skin color
-  ctx.fillStyle = "#ff3366";
-  if (selectedCharacter === "snowman") ctx.fillStyle = "#ffffff";
-  if (selectedCharacter === "santa") ctx.fillStyle = "#d62828";
-  if (selectedCharacter === "elf") ctx.fillStyle = "#1ebd46";
-  if (selectedCharacter === "penguin") ctx.fillStyle = "#000000";
-  if (selectedCharacter === "polar") ctx.fillStyle = "#b3e2ff";
-  if (selectedCharacter === "mrs") ctx.fillStyle = "#ff6fae";
+function chooseDifficulty(mode) {
+  difficultyMode = mode;
+  localStorage.setItem("snowglide_difficulty", mode);
+  showToast("Difficulty: " + mode.toUpperCase());
+  closeDifficultyModal();
+}
 
-  ctx.fillRect(player.x, player.y, player.width, player.height);
-
-  // Later: replace with sprite images
+function loadSavedDifficulty() {
+  const d = localStorage.getItem("snowglide_difficulty");
+  if (d) difficultyMode = d;
 }
 
 
 /* ==========================================
-   START MENU HANDLERS
+   MENU NAV
 ========================================== */
-
 function openCharacterScreen() {
   document.getElementById("startScreen").style.display = "none";
   document.getElementById("characterScreen").style.display = "flex";
   loadSavedCharacterSelection();
 }
 
-function closeCharacterScreen() {
-  document.getElementById("characterScreen").style.display = "none";
-  document.getElementById("startScreen").style.display = "flex";
-}
-
 function openDifficultyModal() {
   document.getElementById("difficultyModal").style.display = "flex";
 }
-
 function closeDifficultyModal() {
   document.getElementById("difficultyModal").style.display = "none";
 }
@@ -2309,109 +1659,189 @@ function closeHowToPlay() {
   document.getElementById("howToPlayModal").style.display = "none";
 }
 
-
-/* ==========================================
-   DIFFICULTY SELECTOR BUTTONS
-========================================== */
-
-function chooseDifficulty(mode) {
-  difficultyMode = mode;
-
-  // save choice
-  localStorage.setItem("snowglide_difficulty", mode);
-
-  showToast("Difficulty set to: " + mode.toUpperCase());
-
-  closeDifficultyModal();
+function showMenu() {
+  document.getElementById("startScreen").style.display = "flex";
+  document.getElementById("gameCanvas").style.pointerEvents = "none";
 }
 
-function loadSavedDifficulty() {
-  const saved = localStorage.getItem("snowglide_difficulty");
-  if (saved) {
-    difficultyMode = saved;
+
+/* ==========================================
+   TOAST
+========================================== */
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.innerHTML = msg;
+  t.style.opacity = "1";
+  setTimeout(() => t.style.opacity = "0", 1800);
+}
+
+
+/* ==========================================
+   UNIQUE DEVICE ID
+========================================== */
+function getDeviceID() {
+  let id = localStorage.getItem("snowglide_device_id");
+  if (!id) {
+    id = "dev-" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem("snowglide_device_id", id);
+  }
+  return id;
+}
+const deviceID = getDeviceID();
+
+
+/* ==========================================
+   LEADERBOARD SYSTEM
+========================================== */
+
+const API_BASE     = "https://YOUR_API_URL";
+const API_SUBMIT   = API_BASE + "/leaderboard/submit";
+const API_FETCH    = API_BASE + "/leaderboard/list";
+
+function getBestScore() {
+  return Number(localStorage.getItem("snowglide_best_score") || 0);
+}
+
+function updateBestScore(score) {
+  const best = getBestScore();
+  if (score > best) {
+    localStorage.setItem("snowglide_best_score", score);
+    return true;
+  }
+  return false;
+}
+
+async function submitScoreToServer(name, score) {
+  try {
+    await fetch(API_SUBMIT, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "x-device-id": deviceID
+      },
+      body: JSON.stringify({ name, score })
+    });
+  } catch (err) {
+    console.error("Submit error:", err);
   }
 }
 
+async function handleAutoLeaderboardSubmit() {
+  const playerName = localStorage.getItem("snowglide_player_name");
 
-/* ==========================================
-   START GAME → from menu
-========================================== */
+  if (!playerName) {
+    openNameEntry();
+    return;
+  }
 
-function startFromMenu() {
-  document.getElementById("startScreen").style.display = "none";
-  startGame();
+  if (updateBestScore(score)) {
+    await submitScoreToServer(playerName, score);
+  }
+}
+
+function openNameEntry() {
+  document.getElementById("nameEntryModal").style.display = "flex";
+}
+
+async function submitScore() {
+  const input = document.getElementById("playerNameInput");
+  const name = input.value.trim();
+
+  if (!name) {
+    showToast("Enter a name");
+    return;
+  }
+
+  localStorage.setItem("snowglide_player_name", name);
+  updateBestScore(score);
+  await submitScoreToServer(name, score);
+
+  document.getElementById("nameEntryModal").style.display = "none";
+  showToast("Score saved!");
+}
+
+async function loadLeaderboard() {
+  try {
+    const res = await fetch(API_FETCH, {
+      headers: { "x-device-id": deviceID }
+    });
+    const data = await res.json();
+    renderLeaderboard(data.entries);
+  } catch (err) {
+    console.error("Leaderboard load error:", err);
+  }
+}
+
+function renderLeaderboard(entries) {
+  const list = document.getElementById("leaderboardList");
+  list.innerHTML = "";
+  const best = getBestScore();
+
+  entries.forEach((row, i) => {
+    const div = document.createElement("div");
+    div.className = "lbRow";
+
+    if (row.deviceID === deviceID && row.score === best) {
+      div.style.background = "rgba(201,226,101,0.2)";
+      div.style.border = "1px solid #c9e265";
+      div.style.boxShadow = "0 0 10px #c9e265";
+    }
+
+    div.innerHTML =
+      `<span class="lbRank">#${i + 1}</span>
+       <span class="lbName">${row.name}</span>
+       <span class="lbScore">${row.score}</span>`;
+
+    list.appendChild(div);
+  });
+}
+
+function openLeaderboardModal() {
+  document.getElementById("leaderboardModal").style.display = "flex";
+  loadLeaderboard();
+}
+
+function closeLeaderboardModal() {
+  document.getElementById("leaderboardModal").style.display = "none";
+  showMenu();
 }
 
 
 /* ==========================================
-   BACK BUTTONS
+   BUTTON HOOKS
 ========================================== */
+document.getElementById("playBtn")?.addEventListener("click", () => startFromMenu());
+document.getElementById("leaderboardBtn")?.addEventListener("click", () => openLeaderboardModal());
+document.getElementById("difficultyBtn")?.addEventListener("click", () => openDifficultyModal());
+document.getElementById("characterBtn")?.addEventListener("click", () => openCharacterScreen());
+document.getElementById("howBtn")?.addEventListener("click", () => openHowToPlay());
 
-document.querySelectorAll(".backBtn").forEach((btn) => {
+document.querySelectorAll(".backBtn").forEach(btn => {
   btn.addEventListener("click", () => {
-    closeCharacterScreen();
-    closeLeaderboardModal();
-    closeDifficultyModal();
-    closeHowToPlay();
-
-    document.getElementById("startScreen").style.display = "flex";
+    closeCharacterScreen?.();
+    closeLeaderboardModal?.();
+    closeDifficultyModal?.();
+    closeHowToPlay?.();
+    showMenu();
   });
+});
+
+document.querySelectorAll(".characterCard").forEach(card => {
+  card.addEventListener("click", () => selectCharacter(card.dataset.char));
 });
 
 
 /* ==========================================
-   INIT ON LOAD
+   SHOW MENU ON LOAD
 ========================================== */
-
 window.onload = () => {
   loadSavedCharacterSelection();
   loadSavedDifficulty();
+  showMenu();
 };
 
-/* ==========================================
-   PART 4C — BUTTON CONNECTIONS
-========================================== */
-
-// OPEN LEADERBOARD BUTTON
-document.getElementById("leaderboardBtn")?.addEventListener("click", () => {
-  openLeaderboardModal();
-});
-
-// CLOSE LEADERBOARD (already handled by .backBtn)
-document.querySelector("#leaderboardModal .backBtn")?.addEventListener("click", () => {
-  closeLeaderboardModal();
-  document.getElementById("startScreen").style.display = "flex";
-});
-
-// CHARACTER SELECT BUTTONS
-document.querySelectorAll(".characterCard").forEach((card) => {
-  card.addEventListener("click", () => {
-    selectCharacter(card.dataset.char);
-  });
-});
-
-// MENU PLAY BUTTON
-document.getElementById("playBtn")?.addEventListener("click", () => {
-  startFromMenu();
-});
-
-// MENU DIFFICULTY BUTTON
-document.getElementById("difficultyBtn")?.addEventListener("click", () => {
-  openDifficultyModal();
-});
-
-// MENU CHARACTER BUTTON
-document.getElementById("characterBtn")?.addEventListener("click", () => {
-  openCharacterScreen();
-});
-
-// HOW TO PLAY BUTTON
-document.getElementById("howBtn")?.addEventListener("click", () => {
-  openHowToPlay();
-});
-
-
 </script>
+
 
 </body>
 </html>
