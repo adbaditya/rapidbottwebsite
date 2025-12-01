@@ -184,21 +184,42 @@
     }
 
     /* menu snow texture */
-    #startScreen::after,
-    #characterScreen::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background-image: radial-gradient(#ffffff 1px, transparent 1px);
-      background-size: 4px 4px;
-      opacity: 0.12;
-      pointer-events: none;
-      animation: menuSnow 1.2s linear infinite;
-    }
-    @keyframes menuSnow {
-      from { background-position: 0 0; }
-      to   { background-position: 0 8px; }
-    }
+    /* existing small flake layer */
+#startScreen::after,
+#characterScreen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(#ffffff 1px, transparent 1px);
+  background-size: 4px 4px;
+  opacity: 0.14;
+  pointer-events: none;
+  animation: menuSnow 1.5s linear infinite;
+}
+
+/* NEW: bigger slow flakes */
+#startScreen::before,
+#characterScreen::before {
+  content: "";
+  position: absolute;
+  inset: -20px 0 0 0;
+  background-image: radial-gradient(#ffffff 2px, transparent 2px);
+  background-size: 10px 10px;
+  opacity: 0.22;
+  pointer-events: none;
+  animation: menuSnowBig 3.5s linear infinite;
+}
+
+@keyframes menuSnow {
+  from { background-position: 0 0; }
+  to   { background-position: 0 12px; }
+}
+
+@keyframes menuSnowBig {
+  from { background-position: 0 -20px; }
+  to   { background-position: 0 40px; }
+}
+
 
     /* sound toggle (reused) */
     .soundToggle {
@@ -2153,7 +2174,7 @@
     let count;
     if (isMobile) {
       // MOBILE: only 2 or 3 trees max in a line
-      count = 2 + Math.floor(Math.random() * 2); // 2–3
+      count = 1 + Math.floor(Math.random() * 2); // 2–3
     } else {
       // DESKTOP: 2–4 trees
       count = 2 + Math.floor(Math.random() * 3); // 2–4
@@ -2948,19 +2969,32 @@
   });
 
   window.addEventListener("mousemove", e => {
-    // snowflake cursor follow (desktop only)
-    if (useIceCursor) {
-      if (!iceCursor) {
-        iceCursor = document.getElementById("iceCursor");
-      }
-      if (iceCursor) {
+  // snowflake cursor follow (desktop only)
+  if (useIceCursor) {
+    if (!iceCursor) {
+      iceCursor = document.getElementById("iceCursor");
+    }
+    if (iceCursor) {
+      // detect if we're over UI (buttons, modals, etc.)
+      const isOverUi = e.target.closest &&
+        e.target.closest(
+          ".btn,.diffBtn,.soundToggle,#leaderboardIcon," +
+          ".smallBtn,.modalBox,.modalClose,.modalFooterBtn," +
+          "#pauseBtn,#charLeaderboardBtn"
+        );
+
+      if (isOverUi) {
+        // hide custom snowflake, let normal cursor/hand show
+        iceCursor.style.opacity = "0";
+      } else {
         iceCursor.style.opacity = "1";
         iceCursor.style.left = e.clientX + "px";
-        iceCursor.style.top = e.clientY + "px";
+        iceCursor.style.top  = e.clientY + "px";
       }
     }
+  }
 
-    if (!mouseDown || !gameRunning || lifePaused || gamePaused) return;
+  if (!mouseDown || !gameRunning || lifePaused || gamePaused) return;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
@@ -2988,20 +3022,20 @@
 
   // Show name modal only if user never set a name
   window.addEventListener("load", () => {
-    if (!playerName) {
-      openNameModal();
-    }
-    updateDifficultyButtons();
+  if (!playerName) {
+    openNameModal();
+  }
+  updateDifficultyButtons();
 
-    // set up snowflake cursor hiding of system cursor on desktop
-    if (useIceCursor) {
-      iceCursor = document.getElementById("iceCursor");
-      if (iceCursor) {
-        document.body.classList.add("hide-system-cursor");
-        canvas.classList.add("hide-system-cursor");
-      }
+  // only hide system cursor over the CANVAS, not the whole page
+  if (useIceCursor) {
+    iceCursor = document.getElementById("iceCursor");
+    if (iceCursor) {
+      canvas.classList.add("hide-system-cursor");
     }
-  });
+  }
+});
+
 </script>
 </body>
 </html>
