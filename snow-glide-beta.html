@@ -184,7 +184,7 @@
     }
 
     /* menu snow texture */
-    /* Clean winter snowfall for menu screens */
+    /* Clean, visible winter snowfall on menus */
 #startScreen::before,
 #characterScreen::before,
 #startScreen::after,
@@ -195,33 +195,36 @@
   pointer-events: none;
 }
 
-/* Layer 1 – small fast snow */
+/* Layer 1 – smaller, a bit faster flakes */
 #startScreen::before,
 #characterScreen::before {
-  background-image: radial-gradient(rgba(255,255,255,0.7) 2px, transparent 2px);
-  background-size: 6px 6px;
-  opacity: 0.12;
-  animation: winterSnowSmall 2.5s linear infinite;
+  background-image: radial-gradient(rgba(255,255,255,0.9) 1.4px, transparent 1.4px);
+  background-size: 26px 26px;   /* more spaced out – no grid look */
+  opacity: 0.55;
+  animation: menuSnowFallNear 5s linear infinite;
 }
 
-/* Layer 2 – larger slow snow */
+/* Layer 2 – bigger, slower flakes in the background */
 #startScreen::after,
 #characterScreen::after {
-  background-image: radial-gradient(rgba(255,255,255,0.5) 3px, transparent 3px);
-  background-size: 12px 12px;
-  opacity: 0.09;
-  animation: winterSnowBig 5s linear infinite;
+  background-image: radial-gradient(rgba(255,255,255,0.7) 2.2px, transparent 2.2px);
+  background-size: 40px 40px;
+  opacity: 0.35;
+  animation: menuSnowFallFar 9s linear infinite;
 }
 
-@keyframes winterSnowSmall {
-  from { background-position: 0 0; }
-  to   { background-position: 0 20px; }
+/* Near layer – slightly faster diagonal drift */
+@keyframes menuSnowFallNear {
+  from { background-position: 0 -60px; }
+  to   { background-position: -40px 80px; }
 }
 
-@keyframes winterSnowBig {
-  from { background-position: 0 -20px; }
-  to   { background-position: 0 40px; }
+/* Far layer – slower, softer drift */
+@keyframes menuSnowFallFar {
+  from { background-position: 0 -80px; }
+  to   { background-position: -30px 120px; }
 }
+
 
 
 
