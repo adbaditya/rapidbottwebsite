@@ -186,15 +186,19 @@
     /* menu snow texture */
     #startScreen::after,
     #characterScreen::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background-image: radial-gradient(#ffffff 1px, transparent 1px);
-  background-size: 4px 4px;
-  opacity: 0.12;
-  pointer-events: none;
-  animation: menuSnow 1.2s linear infinite;
-}
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(#ffffff 1px, transparent 1px);
+      background-size: 4px 4px;
+      opacity: 0.12;
+      pointer-events: none;
+      animation: menuSnow 1.2s linear infinite;
+    }
+    @keyframes menuSnow {
+      from { background-position: 0 0; }
+      to   { background-position: 0 8px; }
+    }
 
 
 
