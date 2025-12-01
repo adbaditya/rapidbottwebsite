@@ -591,6 +591,23 @@
       #score { font-size: 7px; padding: 5px 8px; }
       .smallBtn { font-size: 9px; padding: 7px 16px; }
     }
+
+    /* extra small screens: avoid header overlap */
+    @media (max-width: 480px) {
+      #score {
+        font-size: 6px;
+        max-width: 60vw;
+        padding: 4px 6px;
+      }
+      #pauseBtn {
+        top: 32px; /* pushed down below score line */
+      }
+      #leaderboardIcon {
+        font-size: 8px;
+        min-width: 60px;
+        padding: 0 8px;
+      }
+    }
   </style>
 </head>
 
@@ -1581,7 +1598,7 @@
   }
 
   /* ---------- trail ---------- */
-  /* NOTE: kept exactly as before (upward trail) – looks like a downhill track */
+  /* NOTE: kept as upward trail for downhill feel */
 
   function updateTrail(speed) {
     for (const p of trail) {
@@ -1678,11 +1695,17 @@
       // move upward (bottom -> top) to simulate downhill ride
       o.y -= speed;
 
+      // softer hitbox: only lower 65% of tree, narrower by 40%
+      const collX = o.x + o.width * 0.2;
+      const collY = o.y + o.height * 0.35;
+      const collW = o.width * 0.6;
+      const collH = o.height * 0.65;
+
       if (
-        o.x < player.x + player.width &&
-        o.x + o.width > player.x &&
-        o.y < player.y + player.height &&
-        o.y + o.height > player.y
+        collX < player.x + player.width &&
+        collX + collW > player.x &&
+        collY < player.y + player.height &&
+        collY + collH > player.y
       ) {
         if (hitCooldown <= 0) {
           obstacles.splice(i, 1);
@@ -1754,9 +1777,19 @@
 
   function updateBigSnowballs(speed) {
     const hazardMul = getHazardSpeedMultiplier();
-    let downMult = (isMobile ? 0.35 : 0.5) * hazardMul; // slower for both
 
-    // After 10k, ramp snowball fall speed
+    // slightly slower baseline than before
+    let downMult = (isMobile ? 0.28 : 0.4) * hazardMul;
+
+    // up to 8000m keep them softer, then gradually ramp
+    if (score < 8000) {
+      downMult *= 0.7;
+    } else if (score <= 12000) {
+      const t = (score - 8000) / 4000; // 0..1
+      downMult *= 0.7 + 0.3 * t;      // 0.7 → 1.0
+    }
+
+    // After 10k, extra ramp for deep runs
     if (score > 10000) {
       downMult *= 1 + Math.min((score - 10000) / 15000, 1); // up to 2x
     }
@@ -1772,9 +1805,10 @@
       const closestY = Math.max(player.y, Math.min(b.y, player.y + player.height));
       const dx = b.x - closestX;
       const dy = b.y - closestY;
+      const collR = b.r * 0.78; // softer radius
       const distSq = dx * dx + dy * dy;
 
-      if (distSq < b.r * b.r && hitCooldown <= 0) {
+      if (distSq < collR * collR && hitCooldown <= 0) {
         bigSnowballs.splice(i, 1);
         i--;
         if (handleLifeLoss()) return;
@@ -1887,7 +1921,15 @@
     let speed = baseSpeed + currentSpeed * (isMobile ? 0.12 : 0.22);
     speed *= hazardMul;
 
-    // After 10k, ramp projectile speed a bit
+    // up to 8000m – keep shots softer, then ramp
+    if (score < 8000) {
+      speed *= 0.65;
+    } else if (score <= 12000) {
+      const t = (score - 8000) / 4000; // 0..1
+      speed *= 0.65 + 0.35 * t;        // 0.65 → 1.0
+    }
+
+    // After 10k, ramp projectile speed a bit more
     if (score > 10000) {
       speed *= 1 + Math.min((score - 10000) / 15000, 0.8);
     }
@@ -1913,9 +1955,10 @@
       const closestY = Math.max(player.y, Math.min(b.y, player.y + player.height));
       const dx = b.x - closestX;
       const dy = b.y - closestY;
+      const collR = b.r * 0.75; // softer radius
       const distSq = dx * dx + dy * dy;
 
-      if (distSq < b.r * b.r && hitCooldown <= 0) {
+      if (distSq < collR * collR && hitCooldown <= 0) {
         golemSnowballs.splice(i, 1);
         i--;
         playGolemSnowballWhoosh();
