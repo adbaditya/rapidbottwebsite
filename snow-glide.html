@@ -1619,31 +1619,36 @@
     if (Math.floor(score) % 2 === 0) {
       trail.push({
         x: player.x + player.width / 2,
-        y: player.y + player.height
+        y: player.y + player.height * 0.25
       });
       if (trail.length > 200) trail.shift();
     }
   }
 
   function renderTrail() {
-    if (trail.length < 2) return;
+  if (trail.length < 2) return;
 
-    ctx.lineCap = "round";
-    ctx.beginPath();
+  ctx.lineCap = "round";
+  ctx.beginPath();
 
-    for (let i = 0; i < trail.length; i++) {
-      const p = trail[i];
-      if (i === 0) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
-    }
+  // trail is not allowed to go below this Y (keeps it behind the player)
+  const maxY = player.y + player.height * 0.25;
 
-    const last = trail[trail.length - 1];
-    const first = trail[0];
-    const factor = Math.max(0.4, (last.y - first.y) / canvas.height);
-    ctx.strokeStyle = "#6dc1f6";
-    ctx.lineWidth = 4 + 6 * factor;
-    ctx.stroke();
+  for (let i = 0; i < trail.length; i++) {
+    const p = trail[i];
+    const y = Math.min(p.y, maxY);   // clamp so it never goes in front
+    if (i === 0) ctx.moveTo(p.x, y);
+    else ctx.lineTo(p.x, y);
   }
+
+  const last = trail[trail.length - 1];
+  const first = trail[0];
+  const factor = Math.max(0.4, (last.y - first.y) / canvas.height);
+  ctx.strokeStyle = "#6dc1f6";
+  ctx.lineWidth = 4 + 6 * factor;
+  ctx.stroke();
+}
+
 
   /* ---------- trees ---------- */
 
