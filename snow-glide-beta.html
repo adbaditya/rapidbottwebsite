@@ -24,6 +24,11 @@
       touch-action: none; /* prevent scroll / zoom on mobile while dragging */
     }
 
+    /* hide system cursor when using custom ice cursor (desktop only) */
+    .hide-system-cursor {
+      cursor: none !important;
+    }
+
     #gameCanvas {
       position: absolute;
       top: 0;
@@ -51,6 +56,24 @@
       pointer-events: none;
       z-index: 3;
       display: none;
+    }
+
+    /* custom ice cursor (desktop) */
+    #iceCursor {
+      position: fixed;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 50;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle at 30% 30%, #ffffff, #cfe9ff 45%, #6dc1f6 80%);
+      box-shadow:
+        0 0 10px rgba(109,193,246,0.8),
+        0 0 20px rgba(201,226,101,0.5);
+      border: 1px solid rgba(0,80,140,0.6);
+      opacity: 0;
+      transition: opacity 0.15s ease-out;
     }
 
     /* ---------- shared menu layout ---------- */
@@ -392,6 +415,47 @@
       box-shadow: none;
     }
 
+    /* ---------- mobile touch pad hint ---------- */
+
+    #touchPadHint {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      width: 100%;
+      height: 40vh;
+      max-height: 280px;
+      display: none;
+      justify-content: center;
+      align-items: flex-start;
+      padding-top: 10px;
+      font-size: 9px;
+      color: #ffffff;
+      text-shadow: 0 0 6px rgba(0,0,0,0.9);
+      pointer-events: none;
+      z-index: 4;
+      background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.22), transparent 65%);
+      box-shadow: 0 -14px 40px rgba(0,0,0,0.6);
+      border-top: 1px dashed rgba(255,255,255,0.35);
+    }
+
+    #touchPadHint span {
+      background: rgba(0,0,0,0.45);
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(201,226,101,0.7);
+    }
+
+    #touchPadHint.active {
+      animation: touchPadPulse 1s ease-in-out infinite;
+      background: radial-gradient(circle at 50% 0%, rgba(255,210,150,0.5), transparent 70%);
+    }
+
+    @keyframes touchPadPulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 0.9; }
+      100% { opacity: 0.4; }
+    }
+
     /* ---------- modals (How to Play / Leaderboard) ---------- */
 
     .modalOverlay {
@@ -637,6 +701,9 @@
 <canvas id="gameCanvas"></canvas>
 <img id="playerSprite" src="" alt="player" />
 
+<!-- custom ice cursor (desktop only, JS decides visibility) -->
+<div id="iceCursor"></div>
+
 <!-- START MENU -->
 <div id="startScreen">
   <div id="soundToggleMain" class="soundToggle" onclick="toggleSound()"></div>
@@ -699,6 +766,11 @@
 </div>
 <div id="pauseBtn" onclick="playUiClick(); togglePause()">Pause</div>
 <div id="avalancheHud"></div>
+
+<!-- MOBILE TOUCH PAD HINT (bottom half) -->
+<div id="touchPadHint">
+  <span>Touch &amp; drag here to steer</span>
+</div>
 
 <!-- GAME OVER -->
 <div id="gameOverScreen">
@@ -829,6 +901,12 @@
   const isMobile =
     /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent) ||
     window.innerWidth < 800;
+
+  const useIceCursor = !isMobile;
+  let iceCursor = null;
+
+  let touchHintVisible = false;
+  let touchHintTimer = 0;
 
   let gameRunning = false;
   let gamePaused = false;
@@ -1522,6 +1600,35 @@
     ctx.fillRect(0, 0, w, h);
   }
 
+  /* ---------- mobile touch pad hint helpers ---------- */
+
+  function showTouchPadHint() {
+    const el = document.getElementById("touchPadHint");
+    if (!el) return;
+    touchHintVisible = true;
+    touchHintTimer = 360; // ~6 seconds at 60fps
+    el.style.display = "flex";
+  }
+
+  function hideTouchPadHint() {
+    const el = document.getElementById("touchPadHint");
+    if (!el) return;
+    el.style.display = "none";
+    el.classList.remove("active");
+    touchHintVisible = false;
+    touchHintTimer = 0;
+  }
+
+  function updateTouchPadHint() {
+    if (!touchHintVisible) return;
+    if (touchHintTimer > 0) {
+      touchHintTimer--;
+      if (touchHintTimer <= 0) {
+        hideTouchPadHint();
+      }
+    }
+  }
+
   /* ---------- start game ---------- */
 
   function startGame() {
@@ -1575,6 +1682,11 @@
 
     initSnow();
     ensureMusicPlaying();
+
+    // show touch pad hint only on first ever tutorial run on mobile
+    if (isMobile && tutorialRun) {
+      showTouchPadHint();
+    }
 
     gameRunning = true;
     updateHud();
@@ -1892,6 +2004,9 @@
     updateTutorial();
     drawTutorialOverlay();
 
+    // update and fade mobile touch pad hint (if visible)
+    updateTouchPadHint();
+
     updateHud();
     requestAnimationFrame(gameLoop);
   }
@@ -2004,17 +2119,10 @@
     const height = 70;
     const margin = 40;
 
-    // On mobile: NEVER spawn clusters – only single trees for better playability
-    if (isMobile) {
-      const x = margin + Math.random() * (canvas.width - 2 * margin - width);
-      const y = canvas.height + 130; // spawn from bottom and move upward
-      obstacles.push({ x, y, width, height });
-      return;
-    }
-
-    // Desktop only: allow clusters
-    let allowClusters = true;
-    const doCluster = allowClusters && Math.random() < 0.5;
+    // on desktop we sometimes spawn clusters; on mobile we unlock clusters after 2000m
+    let allowClusters = !isMobile;
+    if (isMobile && score > 2000) allowClusters = true;
+    const doCluster = allowClusters && Math.random() < (isMobile ? 0.35 : 0.5);
 
     if (!doCluster) {
       const x = margin + Math.random() * (canvas.width - 2 * margin - width);
@@ -2743,10 +2851,23 @@
   window.addEventListener("touchstart", e => {
     if (tryResumeFromPauseLife()) return;
     touchActive = true;
+
+    if (isMobile && touchHintVisible) {
+      const hint = document.getElementById("touchPadHint");
+      if (hint) {
+        hint.classList.add("active");
+        // shorten remaining time so it fades out soon after first interactions
+        touchHintTimer = Math.min(touchHintTimer, 120);
+      }
+    }
   }, { passive: false });
 
   window.addEventListener("touchend", () => {
     touchActive = false;
+    if (isMobile) {
+      const hint = document.getElementById("touchPadHint");
+      if (hint) hint.classList.remove("active");
+    }
   });
 
   window.addEventListener("touchmove", e => {
@@ -2800,6 +2921,18 @@
   });
 
   window.addEventListener("mousemove", e => {
+    // ice cursor follow (desktop only)
+    if (useIceCursor) {
+      if (!iceCursor) {
+        iceCursor = document.getElementById("iceCursor");
+      }
+      if (iceCursor) {
+        iceCursor.style.opacity = "1";
+        iceCursor.style.left = e.clientX + "px";
+        iceCursor.style.top = e.clientY + "px";
+      }
+    }
+
     if (!mouseDown || !gameRunning || lifePaused || gamePaused) return;
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
@@ -2810,9 +2943,15 @@
     if (player.x < 0) player.x = 0;
     if (player.y < 0) player.y = 0;
     if (player.x + player.width > canvas.width)  player.x = canvas.width - player.width;
-    if (player.y + player.height > canvas.height)  player.y = canvas.height - player.height;
+    if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
 
     clampPlayerYForMobile();
+  });
+
+  window.addEventListener("mouseleave", () => {
+    if (iceCursor) {
+      iceCursor.style.opacity = "0";
+    }
   });
 
   window.addEventListener("resize", () => {
@@ -2826,6 +2965,15 @@
       openNameModal();
     }
     updateDifficultyButtons();
+
+    // set up ice cursor hiding of system cursor on desktop
+    if (useIceCursor) {
+      iceCursor = document.getElementById("iceCursor");
+      if (iceCursor) {
+        document.body.classList.add("hide-system-cursor");
+        canvas.classList.add("hide-system-cursor");
+      }
+    }
   });
 </script>
 </body>
