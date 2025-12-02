@@ -1240,26 +1240,18 @@
 
 
   // Auto-pause game + music when tab/window is not active
+
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
-    // Tab is hidden → pause the game (show pause screen) if a run is active
     if (gameRunning && !gamePaused && !lifePaused) {
-      togglePause(); // this sets gamePaused = true and shows #pauseScreen
-    }
-
-    // Pause background music
-    if (musicAudio && !musicAudio.paused) {
-      musicAudio.pause();
-    }
-  } else {
-    // Tab is visible again.
-    // Keep the game paused so player has to press "Resume".
-    // Only restart music if not muted AND game is running and not paused.
-    if (!soundMuted && musicAudio && gameRunning && !gamePaused) {
-      ensureMusicPlaying();
+      togglePause(); // this will also pause music now
     }
   }
+  // When visible again we do nothing here:
+  // player will resume manually (Resume button or Esc),
+  // and togglePause will restart music if not muted.
 });
+
 
 
   /* ---------- character sprites ---------- */
@@ -2896,10 +2888,24 @@ document.addEventListener("visibilitychange", () => {
   /* ---------- pause handling ---------- */
 
   function togglePause() {
-    if (!gameRunning || lifePaused) return;
-    gamePaused = !gamePaused;
-    document.getElementById("pauseScreen").style.display = gamePaused ? "flex" : "none";
+  if (!gameRunning || lifePaused) return;
+
+  gamePaused = !gamePaused;
+  document.getElementById("pauseScreen").style.display = gamePaused ? "flex" : "none";
+
+  if (gamePaused) {
+    // Pause music when game is paused
+    if (musicAudio && !musicAudio.paused) {
+      musicAudio.pause();
+    }
+  } else {
+    // Resume music when game is unpaused
+    if (!soundMuted) {
+      ensureMusicPlaying();
+    }
   }
+}
+
 
   function resumeFromPause() {
     gamePaused = false;
