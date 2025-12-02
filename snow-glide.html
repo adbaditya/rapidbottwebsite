@@ -937,6 +937,22 @@
 </div>
 
 <script>
+
+// Auto-pause game + music when tab is not active
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    // ---- Page is hidden ----
+    if (typeof pauseGame === "function") pauseGame();
+    if (typeof bgMusic !== "undefined" && bgMusic?.pause) bgMusic.pause();
+  } else {
+    // ---- Page is visible again ----
+    if (typeof resumeGame === "function") resumeGame();
+    if (typeof bgMusic !== "undefined" && bgMusic?.play) bgMusic.play();
+  }
+});
+
+
+
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth;
