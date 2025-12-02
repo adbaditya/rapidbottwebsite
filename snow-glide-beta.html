@@ -12,20 +12,19 @@
 <meta property="og:url" content="https://rapidbott.cloud/snow-glide">
 <meta property="og:title" content="Snow Glide – Pixel Xmas Run">
 <meta property="og:description" content="A fast, fun, pixel-art downhill ride. Dodge trees, escape the avalanche & climb the leaderboard!">
-<meta property="og:image" content="https://static.wixstatic.com/media/526e04_d763276c741d4923b3cec2d8373e7ab9~mv2.png">
-<meta property="og:image:width" content="1024">
-<meta property="og:image:height" content="1024">
+<meta property="og:image" content="https://static.wixstatic.com/media/526e04_38d7a8f9e8324e10888092e007a6108a~mv2.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 
 <!-- Twitter / X -->
 <meta property="twitter:card" content="summary_large_image">
 <meta property="twitter:url" content="https://rapidbott.cloud/snow-glide">
 <meta property="twitter:title" content="Snow Glide – Pixel Xmas Run">
 <meta property="twitter:description" content="A fast, fun, pixel-art downhill ride. Dodge trees, escape the avalanche & climb the leaderboard!">
-<meta property="twitter:image" content="https://static.wixstatic.com/media/526e04_d763276c741d4923b3cec2d8373e7ab9~mv2.png">
+<meta property="twitter:image" content="https://static.wixstatic.com/media/526e04_38d7a8f9e8324e10888092e007a6108a~mv2.jpg">
 
-<!-- Mobile and Display -->
-<meta name="theme-color" content="#c9e265">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+
+<link rel="icon" type="image/png" href="https://static.wixstatic.com/media/526e04_38d7a8f9e8324e10888092e007a6108a~mv2.png">
 
 
   <meta name="viewport"
@@ -938,6 +937,8 @@
 </div>
 
 <script>
+
+
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth;
@@ -1236,6 +1237,30 @@
 
   updateSoundButtons();
   updateDifficultyButtons();
+
+
+  // Auto-pause game + music when tab/window is not active
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    // Tab is hidden → pause the game (show pause screen) if a run is active
+    if (gameRunning && !gamePaused && !lifePaused) {
+      togglePause(); // this sets gamePaused = true and shows #pauseScreen
+    }
+
+    // Pause background music
+    if (musicAudio && !musicAudio.paused) {
+      musicAudio.pause();
+    }
+  } else {
+    // Tab is visible again.
+    // Keep the game paused so player has to press "Resume".
+    // Only restart music if not muted AND game is running and not paused.
+    if (!soundMuted && musicAudio && gameRunning && !gamePaused) {
+      ensureMusicPlaying();
+    }
+  }
+});
+
 
   /* ---------- character sprites ---------- */
 
