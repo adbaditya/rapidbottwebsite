@@ -2,55 +2,63 @@
 <html>
 <head>
   <meta charset="UTF-8" />
-  <title>Redirecting to Payment…</title>
+  <title>Redirecting...</title>
 
-  <!-- Required Security Headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
 
-  <!-- Load PhonePe Checkout SDK -->
   <script src="https://mercury.phonepe.com/web/bundle/checkout.js"></script>
 
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      text-align: center;
-      padding-top: 60px;
-    }
+    body { font-family: system-ui; text-align: center; padding-top: 80px; }
   </style>
 </head>
 <body>
 
-  <h2>Redirecting to Payment…</h2>
+  <h2>Preparing Payment…</h2>
   <p>Please wait…</p>
 
   <script>
-    // Get token from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenUrl = urlParams.get("token");
+    async function startPayment() {
+      const params = new URLSearchParams(window.location.search);
+      const orderId = params.get("orderId");
 
-    if (!tokenUrl) {
-      document.body.innerHTML = "<h2>Missing payment token.</h2>";
-    } else {
-      console.log("Loaded tokenUrl:", tokenUrl);
+      if (!orderId) {
+        document.body.innerHTML = "<h2>Missing orderId</h2>";
+        return;
+      }
 
-      // PhonePe Checkout
+      // 1️⃣ Fetch token from YOUR Deno server using orderId
+      const res = await fetch(`https://phonepe.deno.dev/getToken?orderId=${orderId}`);
+      const data = await res.json();
+
+      if (!data.tokenUrl) {
+        document.body.innerHTML = "<h2>Could not generate payment token.</h2>";
+        return;
+      }
+
+      const tokenUrl = data.tokenUrl;
+      console.log("Token URL:", tokenUrl);
+
+      // 2️⃣ Trigger PhonePe Checkout
       window.PhonePeCheckout.transact(
         {
-          tokenUrl: decodeURIComponent(tokenUrl),
+          tokenUrl,
           type: "IFRAME"
         },
-        function callback(response) {
-          console.log("Payment callback:", response);
+        function(response) {
+          console.log("Payment result:", response);
 
           if (response === "CONCLUDED") {
             window.location.href = "/payment-success";
-          } else if (response === "USER_CANCEL") {
+          } else {
             window.location.href = "/payment-failed";
           }
         }
       );
     }
+
+    startPayment();
   </script>
 
 </body>
