@@ -1,61 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Processing Payment…</title>
 
-  <!-- Required headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
 
   <script src="https://mercury.phonepe.com/web/bundle/checkout.js"></script>
+
+  <style>
+    body { 
+      font-family: system-ui; 
+      text-align: center; 
+      padding-top: 40px; 
+    }
+  </style>
 </head>
 <body>
 
+<h2>Redirecting to Payment…</h2>
+<p>Please wait…</p>
+
 <script>
-  async function startPayment() {
-    // Step 1 — hit your Deno endpoint
-    const res = await fetch("https://phonepe.deno.dev/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        environment: "production",
-        merchantOrderId: "ord123",
-        amount: 29900,
-        redirectUrl: "https://rapidbott.cloud/payment-complete",
-        clientId: "YOUR_CLIENT_ID",
-        clientSecret: "YOUR_SECRET",
-        clientVersion: "1"
-      })
-    });
-
-    const data = await res.json();
-
-    if (!data.phonePeRedirect) {
-      alert("Failed to create payment");
-      console.log(data);
-      return;
-    }
-
-    // Step 2 — open PayPage INSIDE RAPIDBOTT.CLOUD (Iframe Mode)
-    window.PhonePeCheckout.transact(
-      {
-        tokenUrl: data.phonePeRedirect,
-        type: "IFRAME"
-      },
-      function callback(result) {
-        console.log("PhonePe result:", result);
-
-        if (result === "USER_CANCEL") {
-          window.location.href = "/payment-cancelled";
-        } else if (result === "CONCLUDED") {
-          window.location.href = "/payment-success";
-        }
-      }
-    );
+  function getParam(key) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(key);
   }
 
-  startPayment();
+  const tokenUrl = decodeURIComponent(getParam("token"));
+  const orderId = getParam("order");
+
+  if (!tokenUrl) {
+    document.body.innerHTML = "<h1>Invalid Payment Link</h1>";
+    throw new Error("Missing tokenUrl");
+  }
+
+  // Start PhonePe Checkout
+  window.PhonePeCheckout.transact(
+    {
+      tokenUrl,
+      type: "IFRAME"
+    },
+    function callback(result) {
+      console.log("PhonePe result:", result);
+
+      if (result === "USER_CANCEL") {
+        window.location.href = "/payment-cancelled";
+      } else if (result === "CONCLUDED") {
+        window.location.href = "/payment-success?order=" + orderId;
+      }
+    }
+  );
 </script>
 
 </body>
