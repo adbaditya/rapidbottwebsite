@@ -1,58 +1,57 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>Processing Payment…</title>
+  <meta charset="UTF-8" />
+  <title>Redirecting to Payment…</title>
 
+  <!-- Required Security Headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
 
+  <!-- Load PhonePe Checkout SDK -->
   <script src="https://mercury.phonepe.com/web/bundle/checkout.js"></script>
 
   <style>
-    body { 
-      font-family: system-ui; 
-      text-align: center; 
-      padding-top: 40px; 
+    body {
+      font-family: system-ui, sans-serif;
+      text-align: center;
+      padding-top: 60px;
     }
   </style>
 </head>
 <body>
 
-<h2>Redirecting to Payment…</h2>
-<p>Please wait…</p>
+  <h2>Redirecting to Payment…</h2>
+  <p>Please wait…</p>
 
-<script>
-  function getParam(key) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(key);
-  }
+  <script>
+    // Get token from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokenUrl = urlParams.get("token");
 
-  const tokenUrl = decodeURIComponent(getParam("token"));
-  const orderId = getParam("order");
+    if (!tokenUrl) {
+      document.body.innerHTML = "<h2>Missing payment token.</h2>";
+    } else {
+      console.log("Loaded tokenUrl:", tokenUrl);
 
-  if (!tokenUrl) {
-    document.body.innerHTML = "<h1>Invalid Payment Link</h1>";
-    throw new Error("Missing tokenUrl");
-  }
+      // PhonePe Checkout
+      window.PhonePeCheckout.transact(
+        {
+          tokenUrl: decodeURIComponent(tokenUrl),
+          type: "IFRAME"
+        },
+        function callback(response) {
+          console.log("Payment callback:", response);
 
-  // Start PhonePe Checkout
-  window.PhonePeCheckout.transact(
-    {
-      tokenUrl,
-      type: "IFRAME"
-    },
-    function callback(result) {
-      console.log("PhonePe result:", result);
-
-      if (result === "USER_CANCEL") {
-        window.location.href = "/payment-cancelled";
-      } else if (result === "CONCLUDED") {
-        window.location.href = "/payment-success?order=" + orderId;
-      }
+          if (response === "CONCLUDED") {
+            window.location.href = "/payment-success";
+          } else if (response === "USER_CANCEL") {
+            window.location.href = "/payment-failed";
+          }
+        }
+      );
     }
-  );
-</script>
+  </script>
 
 </body>
 </html>
