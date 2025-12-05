@@ -1,37 +1,62 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8" />
-  <title>Redirecting to PhonePe…</title>
+  <meta charset="UTF-8" />
+  <title>Processing Payment…</title>
 
-  <!-- These meta tags satisfy PhonePe requirements -->
+  <!-- Required headers -->
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
 
-  <style>
-    body {
-      font-family: system-ui;
-      text-align: center;
-      padding-top: 40px;
-      background: #ffffff;
-    }
-  </style>
+  <script src="https://mercury.phonepe.com/web/bundle/checkout.js"></script>
 </head>
 <body>
-  <h2>Redirecting to PhonePe checkout…</h2>
-  <p>Please wait…</p>
 
-  <script>
-    const params = new URLSearchParams(window.location.search);
-    const redirectUrl = params.get("u");
+<script>
+  async function startPayment() {
+    // Step 1 — hit your Deno endpoint
+    const res = await fetch("https://phonepe.deno.dev/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        environment: "production",
+        merchantOrderId: "ord123",
+        amount: 29900,
+        redirectUrl: "https://rapidbott.cloud/payment-complete",
+        clientId: "YOUR_CLIENT_ID",
+        clientSecret: "YOUR_SECRET",
+        clientVersion: "1"
+      })
+    });
 
-    if (!redirectUrl) {
-      document.body.innerHTML = "<h3>Invalid or missing redirect URL</h3>";
-    } else {
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 150);
+    const data = await res.json();
+
+    if (!data.phonePeRedirect) {
+      alert("Failed to create payment");
+      console.log(data);
+      return;
     }
-  </script>
+
+    // Step 2 — open PayPage INSIDE RAPIDBOTT.CLOUD (Iframe Mode)
+    window.PhonePeCheckout.transact(
+      {
+        tokenUrl: data.phonePeRedirect,
+        type: "IFRAME"
+      },
+      function callback(result) {
+        console.log("PhonePe result:", result);
+
+        if (result === "USER_CANCEL") {
+          window.location.href = "/payment-cancelled";
+        } else if (result === "CONCLUDED") {
+          window.location.href = "/payment-success";
+        }
+      }
+    );
+  }
+
+  startPayment();
+</script>
+
 </body>
 </html>
